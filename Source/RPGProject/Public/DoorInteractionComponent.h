@@ -45,4 +45,6 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FRuntimeFloatCurve OpenCurve;
 
+	bool IsTriggered = false;
+
 };
