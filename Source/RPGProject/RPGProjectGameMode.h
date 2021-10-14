@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Blueprint/UserWidget.h"
 #include "RPGProjectGameMode.generated.h"
 
 UCLASS(minimalapi)
@@ -13,6 +14,12 @@ class ARPGProjectGameMode : public AGameModeBase
 
 public:
 	ARPGProjectGameMode();
+	//void StartPlay() override;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> ObjectiveWidgetClass;
+	
+	UUserWidget* ObjectiveWidget = nullptr;
 };
 
 

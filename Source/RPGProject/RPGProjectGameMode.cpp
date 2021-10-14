@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RPGProjectGameMode.h"
+#include "Kismet/GameplayStatics.h"
 #include "RPGProjectCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -11,5 +12,19 @@ ARPGProjectGameMode::ARPGProjectGameMode()
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
+	}
+
+	/*Super::StartPlay(); 
+	*/
+
+	if (ObjectiveWidget == nullptr)
+	{
+		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		ObjectiveWidget = CreateWidget<UUserWidget>(PlayerController, ObjectiveWidgetClass);
+	}
+
+	if (ObjectiveWidget)
+	{
+		ObjectiveWidget->AddToViewport();
 	}
 }

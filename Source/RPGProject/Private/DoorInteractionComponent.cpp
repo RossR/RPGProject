@@ -7,6 +7,15 @@
 #include "Engine/TriggerBox.h"
 #include "Engine/World.h"
 
+#include "DrawDebugHelpers.h"
+
+constexpr float FLT_METERS(float meters) { return meters * 100.0f; }
+
+static TAutoConsoleVariable<bool> CVarToggleDebugDoor(
+	TEXT("RPGProject.DoorInteractionComponent.Debug"),
+	false,
+	TEXT("Toggle DoorInterationComponent debug display."),
+	ECVF_Default);
 
 // Sets default values for this component's properties
 UDoorInteractionComponent::UDoorInteractionComponent()
@@ -14,6 +23,10 @@ UDoorInteractionComponent::UDoorInteractionComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
+
+	DoorState = EDoorState::DS_Closed;
+
+	CVarToggleDebugDoor.AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate::CreateStatic(&UDoorInteractionComponent::OnDebugToggled));
 
 	// ...
 }
@@ -44,15 +57,15 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 		if (PlayerPawn && TriggerBox->IsOverlappingActor(PlayerPawn))
 		{
-			IsTriggered = true;
+			DoorState = EDoorState::DS_Open;
 		}
 		else if (PlayerPawn && TriggerBox->IsOverlappingActor(PlayerPawn) == false)
 		{
-			IsTriggered = false;
+			DoorState = EDoorState::DS_Closed;
 		}
 	}
 
-	if (IsTriggered)
+	if (DoorState == EDoorState::DS_Open)
 	{
 		if (CurrentRotationTime < TimeToRotate)
 		{
@@ -75,5 +88,21 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		}
 	}
 
+	DebugDraw();
 }
 
+void UDoorInteractionComponent::OnDebugToggled(IConsoleVariable* Var)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnDebugLogged"));
+}
+
+void UDoorInteractionComponent::DebugDraw()
+{
+	if (CVarToggleDebugDoor->GetBool())
+	{
+		FVector Offset(FLT_METERS(-0.75f), 0.0f, FLT_METERS(2.5f));
+		FVector StartLocation = GetOwner()->GetActorLocation() + Offset;
+		FString EnumAsString = TEXT("Door State: ") + UEnum::GetDisplayValueAsText(DoorState).ToString();
+		DrawDebugString(GetWorld(), Offset, EnumAsString, GetOwner(), FColor::Blue, 0.0f);
+	}
+}
