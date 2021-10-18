@@ -63,6 +63,4 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	EDoorState DoorState;
 
-	bool IsTriggered = false;
-
 };

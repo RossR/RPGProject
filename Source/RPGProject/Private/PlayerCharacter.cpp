@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Engine/Engine.h"
 
 
 // Sets default values
@@ -21,13 +22,22 @@ APlayerCharacter::APlayerCharacter()
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	// set our turn rates for input
-	BaseTurnRate = 45.0f;
-	BaseLookUpRate = 45.0f;
+	BaseTurnRate = 70.0f;
+	BaseLookUpRate = .0f;
+
+
+	PlayerMoveState = EPlayerMoveState::PMS_Walking;
+	MovementSpeed = 600;
 	
-	// Don't rotate when the controller rotates. Let that just affect the camera.
+	// Don't rotate when the controller rotates. Let that just affect the camera. - Taken from 3rdP Character BP
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
+	// Character Movement settings
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
+	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
@@ -63,10 +73,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &APlayerCharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &APlayerCharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump); // &APlayerCharacter::Jump also works
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping); // &APlayerCharacter::StopJumping also works
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::Sprint);
-	PlayerInputComponent->BindAction("StopSprinting", IE_Released, this, &APlayerCharacter::StopSprinting);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprinting);
 	PlayerInputComponent->BindAction("HoldCrouch", IE_Pressed, this, &APlayerCharacter::HoldCrouch);
 	PlayerInputComponent->BindAction("HoldCrouch", IE_Released, this, &APlayerCharacter::StopHoldingCrouch);
 	PlayerInputComponent->BindAction("ToggleCrouch", IE_Pressed, this, &APlayerCharacter::ToggleCrouch);
@@ -74,9 +84,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerCharacter::TurnRate);
-	PlayerInputComponent->BindAxis("Turn", this, &APlayerCharacter::Turn);
+	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerCharacter::LookUpRate);
-	PlayerInputComponent->BindAxis("LoopUp", this, &APlayerCharacter::LookUp);
+	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 
 }
 
@@ -84,24 +94,25 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 // Action Mappings
 //--------------------------------------------------------------
 
-void APlayerCharacter::Jump()
-{
-
-}
-
-void APlayerCharacter::StopJumping()
-{
-
-}
-
 void APlayerCharacter::Sprint()
 {
+	PlayerMoveState = EPlayerMoveState::PMS_Sprinting;
+	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * 1.5f;
+	GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	GetCharacterMovement()->MaxAcceleration = 8192;
 
+	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
+	
 }
 
 void APlayerCharacter::StopSprinting()
 {
+	PlayerMoveState = EPlayerMoveState::PMS_Walking;
+	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+	GetCharacterMovement()->MinAnalogWalkSpeed = 0;
+	GetCharacterMovement()->MaxAcceleration = 2048;
 
+	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
 }
 
 void APlayerCharacter::HoldCrouch()
@@ -125,38 +136,43 @@ void APlayerCharacter::ToggleCrouch()
 
 void APlayerCharacter::MoveForward(float Value)
 {
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
-	
-	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	AddMovementInput(Direction, Value);
+	if (Value != 0 && Controller != nullptr)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		AddMovementInput(Direction, Value);
+
+		// FString DisplayValue = "MoveForward: " + FString::SanitizeFloat(Value);
+		// GEngine->AddOnScreenDebugMessage(1, 0.5, FColor::Emerald, DisplayValue);
+
+	}
 }
 
 void APlayerCharacter::MoveRight(float Value)
 {
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	if (Value != 0 && Controller != nullptr)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-	AddMovementInput(Direction, Value);
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		AddMovementInput(Direction, Value);
+
+		// FString DisplayValue = "MoveRight: " + FString::SanitizeFloat(Value);
+		// GEngine->AddOnScreenDebugMessage(2, 0.5, FColor::Emerald, DisplayValue);
+	}
 }
 
 void APlayerCharacter::TurnRate(float Rate)
 {
-
-}
-
-void APlayerCharacter::Turn(float Value)
-{
-
+	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
 void APlayerCharacter::LookUpRate(float Rate)
 {
-
-}
-
-void APlayerCharacter::LookUp(float Value)
-{
-
+	AddControllerPitchInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }

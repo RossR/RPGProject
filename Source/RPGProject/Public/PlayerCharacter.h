@@ -6,6 +6,15 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+UENUM()
+enum class EPlayerMoveState
+{
+	PMS_Walking = 0 UMETA(DisplayName = "Walking"),
+	PMS_Sprinting = 1 UMETA(DisplayName = "Sprinting"),
+
+};
+
+
 UCLASS()
 class RPGPROJECT_API APlayerCharacter : public ACharacter
 {
@@ -17,10 +26,10 @@ public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraArm;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 	
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
@@ -29,12 +38,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = CharacterMovement)
+	int32 MovementSpeed;
+
+protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EPlayerMoveState PlayerMoveState;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void Jump();
-	void StopJumping();
 	void Sprint();
 	void StopSprinting();
 	void HoldCrouch();
@@ -45,9 +60,7 @@ protected:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void TurnRate(float Rate);
-	void Turn(float Value);
 	void LookUpRate(float Rate);
-	void LookUp(float Value);
 
 public:	
 	// Called every frame
