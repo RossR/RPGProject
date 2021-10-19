@@ -6,16 +6,33 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
-UENUM()
+
+/*UENUM()
 enum class EPlayerMoveState
 {
 	PMS_Walking = 0 UMETA(DisplayName = "Walking"),
 	PMS_Sprinting = 1 UMETA(DisplayName = "Sprinting"),
+	PMS_Crouching = 2 UMETA(DisplayName = "Crouching"),
 
 };
+*/
+
+UENUM(BlueprintType)
+namespace EPlayerMoveState
+{
+	enum State
+	{
+		PMS_Idle = 0 UMETA(DisplayName = "Idle"),
+		PMS_Walking = 1 UMETA(DisplayName = "Walking"),
+		PMS_Sprinting = 2 UMETA(DisplayName = "Sprinting"),
+		PMS_Crouching = 3 UMETA(DisplayName = "Crouching"),
+
+		PMS_Max UMETA(Hidden)
+	};
+}
 
 
-UCLASS()
+UCLASS(BlueprintType)
 class RPGPROJECT_API APlayerCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -31,7 +48,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Enum)
+	TEnumAsByte<EPlayerMoveState::State> PlayerMoveState;
+
+protected:
+
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
 	float BaseTurnRate;
 
@@ -40,11 +62,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = CharacterMovement)
 	int32 MovementSpeed;
-
-protected:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EPlayerMoveState PlayerMoveState;
 
 protected:
 	// Called when the game starts or when spawned

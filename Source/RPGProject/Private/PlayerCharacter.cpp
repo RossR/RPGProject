@@ -25,8 +25,7 @@ APlayerCharacter::APlayerCharacter()
 	BaseTurnRate = 70.0f;
 	BaseLookUpRate = .0f;
 
-
-	PlayerMoveState = EPlayerMoveState::PMS_Walking;
+	PlayerMoveState = EPlayerMoveState::PMS_Idle;
 	MovementSpeed = 600;
 	
 	// Don't rotate when the controller rotates. Let that just affect the camera. - Taken from 3rdP Character BP
@@ -117,12 +116,14 @@ void APlayerCharacter::StopSprinting()
 
 void APlayerCharacter::HoldCrouch()
 {
-
+	PlayerMoveState = EPlayerMoveState::PMS_Crouching;
+	//GetCapsuleComponent()->InitCapsuleSize(42.f, 48.0f);
 }
 
 void APlayerCharacter::StopHoldingCrouch()
 {
-
+	PlayerMoveState = EPlayerMoveState::PMS_Idle;
+	//GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 }
 
 void APlayerCharacter::ToggleCrouch()
@@ -138,6 +139,8 @@ void APlayerCharacter::MoveForward(float Value)
 {
 	if (Value != 0 && Controller != nullptr)
 	{
+		PlayerMoveState = EPlayerMoveState::PMS_Walking;
+
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
@@ -149,12 +152,17 @@ void APlayerCharacter::MoveForward(float Value)
 		// GEngine->AddOnScreenDebugMessage(1, 0.5, FColor::Emerald, DisplayValue);
 
 	}
+	else
+	{
+		PlayerMoveState = EPlayerMoveState::PMS_Idle;
+	}
 }
 
 void APlayerCharacter::MoveRight(float Value)
 {
 	if (Value != 0 && Controller != nullptr)
 	{
+		PlayerMoveState = EPlayerMoveState::PMS_Walking;
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
@@ -164,6 +172,10 @@ void APlayerCharacter::MoveRight(float Value)
 
 		// FString DisplayValue = "MoveRight: " + FString::SanitizeFloat(Value);
 		// GEngine->AddOnScreenDebugMessage(2, 0.5, FColor::Emerald, DisplayValue);
+	}
+	else
+	{
+		PlayerMoveState = EPlayerMoveState::PMS_Idle;
 	}
 }
 
