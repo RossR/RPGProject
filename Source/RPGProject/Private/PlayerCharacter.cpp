@@ -25,7 +25,7 @@ APlayerCharacter::APlayerCharacter()
 	BaseTurnRate = 70.0f;
 	BaseLookUpRate = .0f;
 
-	PlayerMoveState = EPlayerMoveState::PMS_Idle;
+	PlayerMoveState = EPlayerMoveState::PMS_Walking;
 	MovementSpeed = 600;
 	
 	// Don't rotate when the controller rotates. Let that just affect the camera. - Taken from 3rdP Character BP
@@ -101,7 +101,6 @@ void APlayerCharacter::Sprint()
 	GetCharacterMovement()->MaxAcceleration = 8192;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-	
 }
 
 void APlayerCharacter::StopSprinting()
@@ -117,12 +116,14 @@ void APlayerCharacter::StopSprinting()
 void APlayerCharacter::HoldCrouch()
 {
 	PlayerMoveState = EPlayerMoveState::PMS_Crouching;
+	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
 	//GetCapsuleComponent()->InitCapsuleSize(42.f, 48.0f);
 }
 
 void APlayerCharacter::StopHoldingCrouch()
 {
-	PlayerMoveState = EPlayerMoveState::PMS_Idle;
+	PlayerMoveState = EPlayerMoveState::PMS_Walking;
+	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
 	//GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 }
 
@@ -152,10 +153,6 @@ void APlayerCharacter::MoveForward(float Value)
 		// GEngine->AddOnScreenDebugMessage(1, 0.5, FColor::Emerald, DisplayValue);
 
 	}
-	else
-	{
-		PlayerMoveState = EPlayerMoveState::PMS_Idle;
-	}
 }
 
 void APlayerCharacter::MoveRight(float Value)
@@ -172,10 +169,7 @@ void APlayerCharacter::MoveRight(float Value)
 
 		// FString DisplayValue = "MoveRight: " + FString::SanitizeFloat(Value);
 		// GEngine->AddOnScreenDebugMessage(2, 0.5, FColor::Emerald, DisplayValue);
-	}
-	else
-	{
-		PlayerMoveState = EPlayerMoveState::PMS_Idle;
+		
 	}
 }
 

@@ -22,10 +22,9 @@ namespace EPlayerMoveState
 {
 	enum State
 	{
-		PMS_Idle = 0 UMETA(DisplayName = "Idle"),
-		PMS_Walking = 1 UMETA(DisplayName = "Walking"),
-		PMS_Sprinting = 2 UMETA(DisplayName = "Sprinting"),
-		PMS_Crouching = 3 UMETA(DisplayName = "Crouching"),
+		PMS_Walking = 0 UMETA(DisplayName = "Walking"),
+		PMS_Sprinting = 1 UMETA(DisplayName = "Sprinting"),
+		PMS_Crouching = 2 UMETA(DisplayName = "Crouching"),
 
 		PMS_Max UMETA(Hidden)
 	};
