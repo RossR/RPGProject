@@ -63,8 +63,12 @@ void APlayerCharacter::BeginPlay()
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
+	// Normalise before tick
+	// ControlInputVector;
+
 	Super::Tick(DeltaTime);
 
+	
 }
 
 // Called to bind functionality to input
