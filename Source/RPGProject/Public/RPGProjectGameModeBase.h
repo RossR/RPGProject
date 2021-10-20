@@ -5,23 +5,17 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Blueprint/UserWidget.h"
-#include "TutorialGameMode.generated.h"
+#include "RPGProjectGameModeBase.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
-class RPGPROJECT_API ATutorialGameMode : public AGameModeBase
+class RPGPROJECT_API ARPGProjectGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-
+	
 public:
-
 	void StartPlay() override;
 
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<UUserWidget> ObjectiveWidgetClass;
-
-	UUserWidget* ObjectiveWidget = nullptr;
-
+	TSubclassOf<UUserWidget> ObjectiveWidgetClass;
 };
