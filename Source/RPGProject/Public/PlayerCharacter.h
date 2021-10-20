@@ -7,16 +7,6 @@
 #include "PlayerCharacter.generated.h"
 
 
-/*UENUM()
-enum class EPlayerMoveState
-{
-	PMS_Walking = 0 UMETA(DisplayName = "Walking"),
-	PMS_Sprinting = 1 UMETA(DisplayName = "Sprinting"),
-	PMS_Crouching = 2 UMETA(DisplayName = "Crouching"),
-
-};
-*/
-
 UENUM(BlueprintType)
 namespace EPlayerMoveState
 {
