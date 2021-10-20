@@ -7,7 +7,6 @@
 void ARPGProjectGameModeBase::StartPlay()
 {
 	Super::StartPlay();
-
 	/*
 	UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();
 	
