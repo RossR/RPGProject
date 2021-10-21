@@ -43,12 +43,6 @@ void UDoorInteractionComponent::BeginPlay()
 	
 	// Ensure TimeToRotate is greater than EPSILON
 	CurrentRotationTime = 0.0f;
-	
-	UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();
-	if (ObjectiveWorldSubsystem)
-	{
-		OpenedEvent.AddUObject(ObjectiveWorldSubsystem, &UObjectiveWorldSubsystem::OnObjectiveCompeted);
-	}
 
 }
 
@@ -82,9 +76,7 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		GetOwner()->SetActorRotation(CurrentRotation);
 		if (TimeRatio >= 1.0f)
 		{
-			DoorState = EDoorState::DS_Open;
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, TEXT("DoorOpened"));
-			OpenedEvent.Broadcast();
+			OnDoorOpen();
 		}
 	}
 	else if (DoorState == EDoorState::DS_Open)
@@ -109,6 +101,20 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 
 	DebugDraw();
+}
+
+void UDoorInteractionComponent::OnDoorOpen()
+{
+	DoorState = EDoorState::DS_Open;
+	
+	UObjectiveComponent* ObjectiveComponent = GetOwner()->FindComponentByClass<UObjectiveComponent>();
+	if (ObjectiveComponent)
+	{
+		ObjectiveComponent->SetState(EObjectiveState::OS_Completed);
+	}
+	
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, TEXT("DoorOpened"));
+
 }
 
 void UDoorInteractionComponent::OnDebugToggled(IConsoleVariable* Var)

@@ -28,6 +28,8 @@ public:
 	// Sets default values for this component's properties
 	UDoorInteractionComponent();
 
+	void OnDoorOpen();
+
 	static void OnDebugToggled(IConsoleVariable* Var);
 	void DebugDraw();
 
