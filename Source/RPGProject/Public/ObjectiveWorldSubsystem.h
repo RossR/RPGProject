@@ -17,6 +17,8 @@ public:
 	void CreateObjectiveWidget(TSubclassOf<UUserWidget> ObjectiveWidgetClass);
 	void DisplayObjectiveWidget();
 
+	void OnObjectiveCompeted();
+
 private:
 	UUserWidget* ObjectiveWidget = nullptr;
 

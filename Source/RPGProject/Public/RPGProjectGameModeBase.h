@@ -14,6 +14,8 @@ class RPGPROJECT_API ARPGProjectGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	ARPGProjectGameModeBase();
+
 	void StartPlay() override;
 
 	UPROPERTY(EditDefaultsOnly)

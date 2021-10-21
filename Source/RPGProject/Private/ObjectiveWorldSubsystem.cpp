@@ -16,6 +16,18 @@ void UObjectiveWorldSubsystem::CreateObjectiveWidget(TSubclassOf<UUserWidget> Ob
 void UObjectiveWorldSubsystem::DisplayObjectiveWidget()
 {
 	ensureMsgf(ObjectiveWidget, TEXT("UObjectiveWorldSubsystem::DisplayObjectiveWidget ObjectiveWidget is nullptr"));
-	ObjectiveWidget->AddToViewport();
+	if (ObjectiveWidget != nullptr)
+	{
+		
+		ObjectiveWidget->AddToViewport();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ObjectiveWidget is nullptr"));
+	}
 }
 
+void UObjectiveWorldSubsystem::OnObjectiveCompeted()
+{
+	DisplayObjectiveWidget();
+}

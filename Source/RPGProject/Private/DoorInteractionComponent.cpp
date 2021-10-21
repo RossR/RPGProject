@@ -6,7 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/TriggerBox.h"
 #include "Engine/World.h"
-
+#include "ObjectiveWorldSubsystem.h"
 #include "DrawDebugHelpers.h"
 
 constexpr float FLT_METERS(float meters) { return meters * 100.0f; }
@@ -44,6 +44,12 @@ void UDoorInteractionComponent::BeginPlay()
 	// Ensure TimeToRotate is greater than EPSILON
 	CurrentRotationTime = 0.0f;
 	
+	UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();
+	if (ObjectiveWorldSubsystem)
+	{
+		OpenedEvent.AddUObject(ObjectiveWorldSubsystem, &UObjectiveWorldSubsystem::OnObjectiveCompeted);
+	}
+
 }
 
 
