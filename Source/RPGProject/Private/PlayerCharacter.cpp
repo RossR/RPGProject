@@ -27,6 +27,8 @@ APlayerCharacter::APlayerCharacter()
 
 	PlayerMoveState = EPlayerMoveState::PMS_Walking;
 	MovementSpeed = 600;
+	WalkingMaxAcceleration = 2048;
+	SprintingMaxAcceleration = 8192;
 	
 	// Don't rotate when the controller rotates. Let that just affect the camera. - Taken from 3rdP Character BP
 	bUseControllerRotationPitch = false;
@@ -37,13 +39,15 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-
+	
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
 	CameraArm->SetupAttachment(RootComponent);
 	CameraArm->SetRelativeLocation(FVector(0, 0, 40.0f));
-	CameraArm->TargetArmLength = 300.0f;
+	CameraArm->TargetArmLength = 400.0f;
 	CameraArm->bUsePawnControlRotation = true;
+	CameraArm->bEnableCameraLag = true;
+	CameraArm->CameraLagSpeed = 10.0f;
 
 	// Create the follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -102,7 +106,7 @@ void APlayerCharacter::Sprint()
 	PlayerMoveState = EPlayerMoveState::PMS_Sprinting;
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * 1.5f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	GetCharacterMovement()->MaxAcceleration = 8192;
+	GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
 }
@@ -112,7 +116,7 @@ void APlayerCharacter::StopSprinting()
 	PlayerMoveState = EPlayerMoveState::PMS_Walking;
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0;
-	GetCharacterMovement()->MaxAcceleration = 2048;
+	GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
 }

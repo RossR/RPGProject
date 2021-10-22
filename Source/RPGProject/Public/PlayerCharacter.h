@@ -52,6 +52,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = CharacterMovement)
 	int32 MovementSpeed;
 
+	int32 WalkingMaxAcceleration;
+	int32 SprintingMaxAcceleration;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
