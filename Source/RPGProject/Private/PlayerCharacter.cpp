@@ -23,7 +23,7 @@ APlayerCharacter::APlayerCharacter()
 
 	// set our turn rates for input
 	BaseTurnRate = 70.0f;
-	BaseLookUpRate = .0f;
+	BaseLookUpRate = 70.0f;
 
 	PlayerMoveState = EPlayerMoveState::PMS_Walking;
 	MovementSpeed = 600;
@@ -79,7 +79,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	/*
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump); // &APlayerCharacter::Jump also works
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping); // &APlayerCharacter::StopJumping also works
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::Sprint);
@@ -94,7 +94,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerCharacter::LookUpRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-
+	*/
 }
 
 //--------------------------------------------------------------
