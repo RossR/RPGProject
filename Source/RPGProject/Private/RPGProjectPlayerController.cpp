@@ -5,6 +5,9 @@
 
 ARPGProjectPlayerController::ARPGProjectPlayerController()
 {
+
+	PrimaryActorTick.bCanEverTick = true;
+
 	// set our turn rates for input
 	BaseTurnRate = 70.0f;
 	BaseLookUpRate = 70.0f;
@@ -32,6 +35,13 @@ void ARPGProjectPlayerController::SetupInputComponent()
 
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponet Set up successfully!"));
 }
+
+// Called every frame
+void ARPGProjectPlayerController::Tick(float DeltaTime)
+{
+
+}
+
 
 //--------------------------------------------------------------
 // Action Mappings

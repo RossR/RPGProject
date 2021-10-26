@@ -19,6 +19,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupInputComponent() override;
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 
 	void Jump();

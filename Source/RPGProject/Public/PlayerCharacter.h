@@ -59,6 +59,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	
+
 	void Sprint();
 	void StopSprinting();
 	void HoldCrouch();
@@ -77,5 +79,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
 
 };

@@ -3,14 +3,16 @@
 
 #include "PlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "Components/InputComponent.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/Controller.h"
+#include "GameFramework/DamageType.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Engine/Engine.h"
 
+// #include "Engine/Engine.h"
+// #include "GameFramework/Controller.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -96,6 +98,18 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	*/
 }
+
+void APlayerCharacter::FellOutOfWorld(const class UDamageType& dmgType)
+{
+	// GetWorld()->GetFirstPlayerController()->RestartLevel();
+
+	APlayerController* PlayerController = GetController <APlayerController>();
+	if (PlayerController)
+	{
+		PlayerController->RestartLevel();
+	}
+}
+
 
 //--------------------------------------------------------------
 // Action Mappings
