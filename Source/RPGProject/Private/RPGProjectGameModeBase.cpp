@@ -7,12 +7,13 @@
 
 ARPGProjectGameModeBase::ARPGProjectGameModeBase()
 {
-	// Properly locates the Objective Widget, without this my UE4 crashes as ObjectiveWidgetClass is null
-	// I don't fully understand how this works, but I shall ask about it next session (26/10/21)
+	/* Bad practice to use ConstructorHelpers as it hard-codes ObjectiveWidgetClass
 	static ConstructorHelpers::FClassFinder<UUserWidget> WBP_Objective(TEXT("/Game/Widgets/WBP_Objective"));
 	if (!ensure(WBP_Objective.Class != nullptr)) return;
+	
 
 	ObjectiveWidgetClass = WBP_Objective.Class;
+	*/
 }
 
 void ARPGProjectGameModeBase::StartPlay()
