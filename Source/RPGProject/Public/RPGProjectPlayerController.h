@@ -48,4 +48,19 @@ protected:
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	int32 MovementSpeed;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	float SprintSpeedMultiplier;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	int32 WalkingMaxAcceleration;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	int32 SprintingMaxAcceleration;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	int32 CharacterMinAnalogWalkSpeed;
+
 };

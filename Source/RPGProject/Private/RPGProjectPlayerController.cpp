@@ -2,6 +2,8 @@
 
 
 #include "RPGProjectPlayerController.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ARPGProjectPlayerController::ARPGProjectPlayerController()
 {
@@ -12,6 +14,13 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 	BaseTurnRate = 70.0f;
 	BaseLookUpRate = 70.0f;
 	
+	// Variables for sprint function
+	MovementSpeed = 600;
+	SprintSpeedMultiplier = 1.5f;
+	WalkingMaxAcceleration = 2048;
+	SprintingMaxAcceleration = 8192;
+	CharacterMinAnalogWalkSpeed = 0;
+
 }
 
 void ARPGProjectPlayerController::SetupInputComponent()
@@ -49,37 +58,58 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 
 void ARPGProjectPlayerController::Jump()
 {
-	
+	if (GetCharacter() != nullptr)
+	{
+		GetCharacter()->Jump();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ARPGProjectPlayerController::Jump GetCharacter() is nullptr."));
+	}
 }
 
 void ARPGProjectPlayerController::StopJumping()
 {
-
+	if (GetCharacter() != nullptr)
+	{
+		GetCharacter()->StopJumping();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ARPGProjectPlayerController::StopJumping GetCharacter() is nullptr."));
+	}
 }
 
 void ARPGProjectPlayerController::Sprint()
 {
-	/*
 	// PlayerMoveState = EPlayerMoveState::PMS_Sprinting;
+	// Alternate way to cast to character -> ACharacter* PosCharacter = Cast<ACharacter>(GetPawn());
 
-	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * 1.5f;
-	GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
-
-	// GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-	*/
+	if (GetCharacter() != nullptr)
+	{
+		GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * SprintSpeedMultiplier;
+		GetCharacter()->GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacter()->GetCharacterMovement()->MaxWalkSpeed;
+		GetCharacter()->GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ARPGProjectPlayerController::Sprint GetCharacter() is nullptr."));
+	}
 }
 
 void ARPGProjectPlayerController::StopSprinting()
 {
-	/*
-	PlayerMoveState = EPlayerMoveState::PMS_Walking;
-	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-	GetCharacterMovement()->MinAnalogWalkSpeed = 0;
-	GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
 
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-	*/
+	if (GetCharacter() != nullptr)
+	{
+		GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+		GetCharacter()->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+		GetCharacter()->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ARPGProjectPlayerController::StopSprinting GetCharacter() is nullptr."));
+	}
 }
 
 void ARPGProjectPlayerController::HoldCrouch()

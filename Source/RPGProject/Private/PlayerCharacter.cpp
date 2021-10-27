@@ -11,8 +11,6 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-// #include "Engine/Engine.h"
-// #include "GameFramework/Controller.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -28,9 +26,8 @@ APlayerCharacter::APlayerCharacter()
 	BaseLookUpRate = 70.0f;
 
 	PlayerMoveState = EPlayerMoveState::PMS_Walking;
+
 	MovementSpeed = 600;
-	WalkingMaxAcceleration = 2048;
-	SprintingMaxAcceleration = 8192;
 	
 	// Don't rotate when the controller rotates. Let that just affect the camera. - Taken from 3rdP Character BP
 	bUseControllerRotationPitch = false;
@@ -117,22 +114,26 @@ void APlayerCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 
 void APlayerCharacter::Sprint()
 {
+	/*
 	PlayerMoveState = EPlayerMoveState::PMS_Sprinting;
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * 1.5f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
+	*/
 }
 
 void APlayerCharacter::StopSprinting()
 {
+	/*
 	PlayerMoveState = EPlayerMoveState::PMS_Walking;
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0;
 	GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
+	*/
 }
 
 void APlayerCharacter::HoldCrouch()
