@@ -4,6 +4,7 @@
 #include "RPGProjectGameModeBase.h"
 #include "ObjectiveWorldSubsystem.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 ARPGProjectGameModeBase::ARPGProjectGameModeBase()
 {
@@ -14,6 +15,7 @@ ARPGProjectGameModeBase::ARPGProjectGameModeBase()
 
 	ObjectiveWidgetClass = WBP_Objective.Class;
 	*/
+
 }
 
 void ARPGProjectGameModeBase::StartPlay()
@@ -28,5 +30,17 @@ void ARPGProjectGameModeBase::StartPlay()
 	{
 		ObjectiveWorldSubsystem->CreateObjectiveWidget(ObjectiveWidgetClass);
 		ObjectiveWorldSubsystem->DisplayObjectiveWidget();
+	}
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	PlayerHUDWidget = CreateWidget<UUserWidget>(PlayerController, PlayerHUDWidgetClass);
+
+	if (PlayerHUDWidget)
+	{
+		PlayerHUDWidget->AddToViewport();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ARPGProjectGameModeBase::ARPGProjectGameModeBase PlayerHUDWidget is null"));
 	}
 }

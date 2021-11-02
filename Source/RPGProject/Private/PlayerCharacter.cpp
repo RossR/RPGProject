@@ -10,6 +10,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "HealthComponent.h"
 
 
 // Sets default values
@@ -53,6 +54,7 @@ APlayerCharacter::APlayerCharacter()
 	FollowCamera->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 	
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
 }
 
@@ -74,7 +76,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	
 }
 
-// Called to bind functionality to input
+// Called to bind functionality to 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -98,6 +100,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 {
+	OnDeath(true);
+}
+
+void APlayerCharacter::OnDeath(bool IsFellOut)
+{
 	// GetWorld()->GetFirstPlayerController()->RestartLevel();
 
 	APlayerController* PlayerController = GetController <APlayerController>();
@@ -107,33 +114,43 @@ void APlayerCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 	}
 }
 
+float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::TakeDamage Damage %.2f"), Damage);
+	if (HealthComponent)
+	{
+		HealthComponent->TakeDamage(Damage);
+		if (HealthComponent->IsDead())
+		{
+			OnDeath(false);
+		}
+	}
+	return Damage;
+}
 
 //--------------------------------------------------------------
 // Action Mappings
 //--------------------------------------------------------------
-
+/*
 void APlayerCharacter::Sprint()
 {
-	/*
 	PlayerMoveState = EPlayerMoveState::PMS_Sprinting;
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * 1.5f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-	*/
 }
 
 void APlayerCharacter::StopSprinting()
 {
-	/*
 	PlayerMoveState = EPlayerMoveState::PMS_Walking;
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0;
 	GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-	*/
 }
 
 void APlayerCharacter::HoldCrouch()
@@ -154,11 +171,13 @@ void APlayerCharacter::ToggleCrouch()
 {
 
 }
+*/
 
 //--------------------------------------------------------------
 // Axis Mappings
 //--------------------------------------------------------------
 
+/*
 void APlayerCharacter::MoveForward(float Value)
 {
 	if (Value != 0 && Controller != nullptr)
@@ -205,3 +224,4 @@ void APlayerCharacter::LookUpRate(float Rate)
 {
 	AddControllerPitchInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
+*/

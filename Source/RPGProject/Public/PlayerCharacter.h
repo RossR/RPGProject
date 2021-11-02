@@ -20,6 +20,7 @@ namespace EPlayerMoveState
 	};
 }
 
+class UHealthComponent;
 
 UCLASS(BlueprintType)
 class RPGPROJECT_API APlayerCharacter : public ACharacter
@@ -56,19 +57,23 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	
-
+	/*
 	void Sprint();
 	void StopSprinting();
 	void HoldCrouch();
 	void StopHoldingCrouch();
 	void ToggleCrouch();
 	
-
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void TurnRate(float Rate);
 	void LookUpRate(float Rate);
+	*/
+
+	void OnDeath(bool IsFellOut);
+
+	UPROPERTY(EditAnywhere)
+	UHealthComponent* HealthComponent;
 
 public:	
 	// Called every frame
@@ -77,6 +82,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// Called when the actor falls out the world (KillZ)
 	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
+	 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 };
