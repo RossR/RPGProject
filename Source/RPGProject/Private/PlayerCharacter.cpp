@@ -61,6 +61,7 @@ APlayerCharacter::APlayerCharacter()
 
 	RightShoulderArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("RightShoulder"));
 	RightShoulderArrow->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
+	RightShoulderArrow->SetRelativeLocation({250.0f, 50.0f, 50.0f});
 	
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
