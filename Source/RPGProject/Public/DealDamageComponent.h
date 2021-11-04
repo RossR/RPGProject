@@ -30,7 +30,8 @@ public:
 	UCapsuleComponent* GetTriggerCapsule() const { return TriggerCapsule; }
 
 	bool IsActive() const { return bActive; }
-	void SetActive(bool IsActive) { bActive = IsActive; }
+	UFUNCTION(BlueprintCallable)
+	void SetActiveState(bool IsActive) { bActive = IsActive; }
 
 protected:
 	// Called when the game starts
@@ -52,6 +53,8 @@ protected:
 
 	APlayerCharacter* PlayerCharacter;
 	TSubclassOf<UDamageType> ValidDamageTypeClass;
+
+	UPrimitiveComponent* OtherComponent;
 
 	FTimerHandle DamageOverTime;
 	

@@ -39,8 +39,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UArrowComponent* ChaseArrow;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UArrowComponent* RightShoulderArrow;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Enum)
 	TEnumAsByte<EPlayerMoveState::State> PlayerMoveState;
+
+	UFUNCTION(BlueprintCallable)
+	void MoveCameraToArrowLocation(FName ArrowName);
 
 protected:
 

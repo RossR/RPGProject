@@ -26,6 +26,7 @@ void UDealDamageComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	
 	// ...
 	
 }
@@ -34,17 +35,39 @@ void UDealDamageComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!bActive && GetWorld()->GetTimerManager().IsTimerActive(DamageOverTime))
+	if (!bActive)
 	{
-		GetWorld()->GetTimerManager().ClearTimer(DamageOverTime);
-		// TriggerCapsule->Deactivate();
-		// FOverlapInfo DealDamageOverlapInfo (SweepResults);
-		// TriggerCapsule->EndComponentOverlap(DealDamageOverlapInfo, true, false);
+		if (GetWorld()->GetTimerManager().IsTimerActive(DamageOverTime))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(DamageOverTime);
+		}
+		
+		if (TriggerCapsule->GetGenerateOverlapEvents())
+		{
+			FOverlapInfo DealDamageOverlapInfo(OtherComponent);
+			TriggerCapsule->EndComponentOverlap(DealDamageOverlapInfo, true, false);
+			TriggerCapsule->SetGenerateOverlapEvents(false);
+		}
 	}
 	
-	if (bActive && !TriggerCapsule->IsActive())
+	if (bActive)
 	{
-		//TriggerCapsule->Activate();
+		if (!TriggerCapsule->GetGenerateOverlapEvents())
+		{
+			TriggerCapsule->SetGenerateOverlapEvents(true);
+		}
+
+		// TriggerCapsule->OnComponentHit()
+
+		if (!TriggerCapsule->IsActive())
+		{
+			// ---------------------------------------------------------------------------------------------
+			// NO OVERLAP EVENT IS TRIGGERED IF PLAYER IS NOT MOVING AT TIME OF ACTIVATION
+			// FIGURE OUT SOLUTION
+			// ---------------------------------------------------------------------------------------------
+
+			//TriggerCapsule->Activate();
+		}
 	}
 }
 
@@ -56,6 +79,8 @@ void UDealDamageComponent::OnOverlapBegin(class UPrimitiveComponent* OverlappedC
 	{
 		return;
 	}
+
+	OtherComponent = OtherComp;
 
 	if (!bActive)
 	{

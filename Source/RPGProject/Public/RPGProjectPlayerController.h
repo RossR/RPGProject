@@ -31,6 +31,8 @@ protected:
 	void HoldCrouch();
 	void StopHoldingCrouch();
 	void ToggleCrouch();
+	void Aim();
+	void StopAiming();
 
 
 	void MoveForward(float Value);

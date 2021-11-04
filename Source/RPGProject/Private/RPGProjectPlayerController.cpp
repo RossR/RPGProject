@@ -4,6 +4,8 @@
 #include "RPGProjectPlayerController.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "PlayerCharacter.h"
+#include "Camera/CameraComponent.h"
 
 ARPGProjectPlayerController::ARPGProjectPlayerController()
 {
@@ -34,6 +36,8 @@ void ARPGProjectPlayerController::SetupInputComponent()
 	InputComponent->BindAction("HoldCrouch", IE_Pressed, this, &ARPGProjectPlayerController::HoldCrouch);
 	InputComponent->BindAction("HoldCrouch", IE_Released, this, &ARPGProjectPlayerController::StopHoldingCrouch);
 	InputComponent->BindAction("ToggleCrouch", IE_Pressed, this, &ARPGProjectPlayerController::ToggleCrouch);
+	InputComponent->BindAction("Aim", IE_Pressed, this, &ARPGProjectPlayerController::Aim);
+	InputComponent->BindAction("Aim", IE_Released, this, &ARPGProjectPlayerController::StopAiming);
 
 	InputComponent->BindAxis("MoveForward", this, &ARPGProjectPlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &ARPGProjectPlayerController::MoveRight);
@@ -133,6 +137,27 @@ void ARPGProjectPlayerController::StopHoldingCrouch()
 void ARPGProjectPlayerController::ToggleCrouch()
 {
 
+}
+
+void ARPGProjectPlayerController::Aim()
+{
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetCharacter());
+
+	if (PlayerCharacter != nullptr)
+	{
+		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
+	}
+}
+
+void ARPGProjectPlayerController::StopAiming()
+{
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetCharacter());
+
+	if (PlayerCharacter != nullptr)
+	{
+		UArrowComponent* ArrowComp = PlayerCharacter->ChaseArrow;
+		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("Chase")));
+	}
 }
 
 //--------------------------------------------------------------

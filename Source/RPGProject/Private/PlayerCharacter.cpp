@@ -4,6 +4,7 @@
 #include "PlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/ArrowComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/DamageType.h"
@@ -40,6 +41,7 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	
+
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
 	CameraArm->SetupAttachment(RootComponent);
@@ -50,9 +52,15 @@ APlayerCharacter::APlayerCharacter()
 	CameraArm->CameraLagSpeed = 10.0f;
 
 	// Create the follow camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	FollowCamera->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+	
+	ChaseArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Chase"));
+	ChaseArrow->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
+
+	RightShoulderArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("RightShoulder"));
+	RightShoulderArrow->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
 	
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
@@ -63,6 +71,7 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	//GetComponents<UArrowComponent>(ArrowArray);
 }
 
 // Called every frame
@@ -127,6 +136,30 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 		}
 	}
 	return Damage;
+}
+
+void APlayerCharacter::MoveCameraToArrowLocation(FName ArrowName)
+{
+	UArrowComponent* ArrowComp = Cast<UArrowComponent>(GetDefaultSubobjectByName(ArrowName));
+	FVector NewCameraLocation = ArrowComp->GetRelativeLocation();
+
+	if (FollowCamera != NULL && ArrowComp != nullptr)
+	{
+		FollowCamera->SetRelativeLocation(NewCameraLocation);
+	}
+	else
+	{
+		if (FollowCamera == NULL)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::MoveCameraToArrowLocation FollowCamera is NULL"));
+		}
+		else if (ArrowComp == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::MoveCameraToArrowLocation ArrowComp is NULL, ArrowName might be wrong"));
+		}
+		
+	}
+	// FollowCamera->SetRelativeLocation(NewCameraLocation);
 }
 
 //--------------------------------------------------------------
