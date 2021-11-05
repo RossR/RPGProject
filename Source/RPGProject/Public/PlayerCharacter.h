@@ -32,7 +32,42 @@ class RPGPROJECT_API APlayerCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
-	
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// Called when the actor falls out the world (KillZ)
+	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	UFUNCTION(BlueprintCallable)
+	void MoveCameraToArrowLocation(FName ArrowName);
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	/*
+	void Sprint();
+	void StopSprinting();
+	void HoldCrouch();
+	void StopHoldingCrouch();
+	void ToggleCrouch();
+
+	void MoveForward(float Value);
+	void MoveRight(float Value);
+	void TurnRate(float Rate);
+	void LookUpRate(float Rate);
+	*/
+
+	void OnDeath(bool IsFellOut);
+
+public:
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraArm;
 
@@ -48,8 +83,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Enum)
 	TEnumAsByte<EPlayerMoveState::State> PlayerMoveState;
 
-	UFUNCTION(BlueprintCallable)
-	void MoveCameraToArrowLocation(FName ArrowName);
+	
 
 protected:
 
@@ -62,38 +96,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = CharacterMovement)
 	int32 MovementSpeed;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	/*
-	void Sprint();
-	void StopSprinting();
-	void HoldCrouch();
-	void StopHoldingCrouch();
-	void ToggleCrouch();
-	
-	void MoveForward(float Value);
-	void MoveRight(float Value);
-	void TurnRate(float Rate);
-	void LookUpRate(float Rate);
-	*/
-
-	void OnDeath(bool IsFellOut);
-
 	UPROPERTY(EditAnywhere)
 	UHealthComponent* HealthComponent;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	// Called when the actor falls out the world (KillZ)
-	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
-	 
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 };

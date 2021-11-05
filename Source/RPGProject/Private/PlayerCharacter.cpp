@@ -3,7 +3,6 @@
 
 #include "PlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/InputComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -11,7 +10,9 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "HealthComponent.h"
+
 
 
 // Sets default values
@@ -65,6 +66,8 @@ APlayerCharacter::APlayerCharacter()
 	
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
+	// Tags.Add("Player");
+
 }
 
 // Called when the game starts or when spawned
@@ -90,6 +93,9 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	
+
 	/*
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump); // &APlayerCharacter::Jump also works
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping); // &APlayerCharacter::StopJumping also works
@@ -142,11 +148,15 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 void APlayerCharacter::MoveCameraToArrowLocation(FName ArrowName)
 {
 	UArrowComponent* ArrowComp = Cast<UArrowComponent>(GetDefaultSubobjectByName(ArrowName));
-	FVector NewCameraLocation = ArrowComp->GetRelativeLocation();
+	// FVector NewCameraLocation = ArrowComp->GetRelativeLocation();
+	// FRotator NewCameraRotation = ArrowComp->GetRelativeRotation();
+	FLatentActionInfo ActionInfo;
+	ActionInfo.CallbackTarget = this;
 
 	if (FollowCamera != NULL && ArrowComp != nullptr)
 	{
-		FollowCamera->SetRelativeLocation(NewCameraLocation);
+		UKismetSystemLibrary::MoveComponentTo(FollowCamera, ArrowComp->GetRelativeLocation(), ArrowComp->GetRelativeRotation(), false, false, 0.15f,false, EMoveComponentAction::Move, ActionInfo);
+		// FollowCamera->SetRelativeLocation(NewCameraLocation);
 	}
 	else
 	{

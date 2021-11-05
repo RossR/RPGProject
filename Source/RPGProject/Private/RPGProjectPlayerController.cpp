@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerCharacter.h"
 #include "Camera/CameraComponent.h"
+#include "Components/InputComponent.h"
 
 ARPGProjectPlayerController::ARPGProjectPlayerController()
 {
@@ -46,7 +47,22 @@ void ARPGProjectPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("LookUpRate", this, &ARPGProjectPlayerController::LookUpRate);
 	InputComponent->BindAxis("LookUp", this, &ARPGProjectPlayerController::AddControllerPitchInput);
 
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponet Set up successfully!"));
+	FInputActionBinding* Binding;
+
+	Binding = &InputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &ARPGProjectPlayerController::StartInteraction);
+	Binding = &InputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &ARPGProjectPlayerController::StopInteraction);
+
+	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponent Set up successfully!"));
+}
+
+void ARPGProjectPlayerController::StartInteraction()
+{
+	OnInteractionStart.Broadcast();
+}
+
+void ARPGProjectPlayerController::StopInteraction()
+{
+	OnInteractionCancel.Broadcast();
 }
 
 // Called every frame

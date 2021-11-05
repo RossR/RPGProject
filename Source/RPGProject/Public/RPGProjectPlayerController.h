@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "RPGProjectPlayerController.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnInteractionStart);
+DECLARE_MULTICAST_DELEGATE(FOnInteractionCancel);
 
 UCLASS()
 class RPGPROJECT_API ARPGProjectPlayerController : public APlayerController
@@ -21,6 +23,11 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+public:
+
+	FOnInteractionStart OnInteractionStart;
+	FOnInteractionCancel OnInteractionCancel;
 
 protected:
 
@@ -41,6 +48,9 @@ protected:
 	void AddControllerYawInput(float Value);
 	void LookUpRate(float Rate);
 	void AddControllerPitchInput(float Value);
+
+	void StartInteraction();
+	void StopInteraction();
 
 protected:
 
