@@ -40,18 +40,22 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable)
-	void InteractionStart();
+	virtual void InteractionStart();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void InteractionCancel();
+
+public:
+
+	UPROPERTY(EditAnywhere, NoClear, Category = "Interaction")
+	UCapsuleComponent* TriggerCapsule = nullptr;
 
 protected:
 
 	UPROPERTY(EditAnywhere)
 	FText InteractionPrompt;
 	
-	UPROPERTY(EditAnywhere, NoClear, Category = "Interaction")
-	UCapsuleComponent* TriggerCapsule = nullptr;
-
 	UPROPERTY(VisibleAnywhere)
-	AActor* InteractingActor;
-
+		AActor* InteractingActor;
 
 };

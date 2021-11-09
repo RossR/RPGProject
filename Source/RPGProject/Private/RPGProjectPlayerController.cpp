@@ -47,21 +47,25 @@ void ARPGProjectPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("LookUpRate", this, &ARPGProjectPlayerController::LookUpRate);
 	InputComponent->BindAxis("LookUp", this, &ARPGProjectPlayerController::AddControllerPitchInput);
 
-	FInputActionBinding* Binding;
+	// FInputActionBinding* Binding;
 
-	Binding = &InputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &ARPGProjectPlayerController::StartInteraction);
-	Binding = &InputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &ARPGProjectPlayerController::StopInteraction);
+	// Binding = &
+	InputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &ARPGProjectPlayerController::StartInteraction);
+	// Binding = &
+	InputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &ARPGProjectPlayerController::StopInteraction);
 
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponent Set up successfully!"));
 }
 
 void ARPGProjectPlayerController::StartInteraction()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StartInteraction called"));
 	OnInteractionStart.Broadcast();
 }
 
 void ARPGProjectPlayerController::StopInteraction()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopInteraction called"));
 	OnInteractionCancel.Broadcast();
 }
 

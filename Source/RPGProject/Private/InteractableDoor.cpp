@@ -24,5 +24,6 @@ void AInteractableDoor::BeginPlay()
 
 void AInteractableDoor::OnInteractionSuccess()
 {
+	UE_LOG(LogTemp, Warning, TEXT("AInteractableDoor::OnInteractionSuccess called"));
 	OnDoorOpen.Broadcast();
 }

@@ -46,6 +46,7 @@ void UInteractionComponent::BeginPlay()
 	{
 		// Bind to player input
 		PlayerController->OnInteractionStart.AddUObject(this, &UInteractionComponent::InteractionStart);
+		PlayerController->OnInteractionCancel.AddUObject(this, &UInteractionComponent::InteractionCancel);
 	}
 	
 }
@@ -71,6 +72,7 @@ void UInteractionComponent::OnOverlapBegin(class UPrimitiveComponent* Overlapped
 	// InventoryInteractionComponent..make this say press x to equip
 	if (OtherActor->ActorHasTag("Player"))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UInteractionComponent::OnOverlapBegin OtherActor is Player!"));
 		InteractingActor = OtherActor;
 	}
 	else if (!OtherActor->ActorHasTag("Player"))
@@ -91,5 +93,10 @@ void UInteractionComponent::OnOverlapEnd(class UPrimitiveComponent* OverlappedCo
 // Broadcast
 void UInteractionComponent::InteractionStart()
 {
+	UE_LOG(LogTemp, Warning, TEXT("UInteractionComponent::InteractionStart called"));
+}
 
+void UInteractionComponent::InteractionCancel()
+{
+	UE_LOG(LogTemp, Warning, TEXT("UInteractionComponent::InteractionCancel called"));
 }

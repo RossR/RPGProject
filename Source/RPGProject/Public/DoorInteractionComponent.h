@@ -8,7 +8,6 @@
 #include "InteractionComponent.h"
 #include "DoorInteractionComponent.generated.h"
 
-class ATriggerBox;
 class IConsoleVariable;
 
 UENUM()
@@ -39,15 +38,25 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	// Bound to interaction input from player
-	void InteractionStart();
+	// Bound to interaction input from playercontroller
+	void InteractionStart() override;
+
+	// Bound to interaction input from playercontroller
+	void InteractionCancel() override;
 
 	// Request to open the door
 	UFUNCTION(BlueprintCallable)
 	void OpenDoor();
 
+	// Request to close the door
+	UFUNCTION(BlueprintCallable)
+	void CloseDoor();
+
 	//  Called internally when the door has finished opening
 	void OnDoorOpen();
+
+	//  Called internally when the door has finished closing
+	void OnDoorClose();
 
 	UFUNCTION(BlueprintCallable)
 	bool IsOpen() { return DoorState == EDoorState::DS_Open; }
@@ -73,8 +82,8 @@ protected:
 
 	float CurrentRotationTime = 0.0f;
 
-	UPROPERTY(EditAnywhere)
-	ATriggerBox* TriggerBox;
+	// UPROPERTY(EditAnywhere)
+	// UCapsuleComponent* TriggerVolume;
 
 	UPROPERTY(EditAnywhere)
 	FRuntimeFloatCurve OpenCurve;
