@@ -20,14 +20,15 @@ namespace EPlayerMoveState
 	};
 }
 
+class UParticleSystemComponent;
+
 class UHealthComponent;
+class UDamageHandlerComponent;
 
 UCLASS(BlueprintType)
 class RPGPROJECT_API APlayerCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
-	
 
 public:
 	// Sets default values for this character's properties
@@ -43,6 +44,8 @@ public:
 	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
 
 	UFUNCTION(BlueprintCallable)
 	void MoveCameraToArrowLocation(FName ArrowName);
@@ -80,6 +83,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* RightShoulderArrow;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Particle System")
+	UParticleSystemComponent* ParticleSystemComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Enum)
 	TEnumAsByte<EPlayerMoveState::State> PlayerMoveState;
 
@@ -87,16 +93,18 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseTurnRate;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMovement)
 	int32 MovementSpeed;
 
 	UPROPERTY(EditAnywhere)
 	UHealthComponent* HealthComponent;
 
+	UPROPERTY(EditAnywhere)
+	UDamageHandlerComponent* DamageHandlerComponent;
 };

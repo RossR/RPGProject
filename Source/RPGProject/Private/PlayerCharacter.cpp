@@ -11,7 +11,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Particles/ParticleSystemComponent.h"
+
 #include "HealthComponent.h"
+#include "DamageHandlerComponent.h"
 
 
 
@@ -64,7 +67,12 @@ APlayerCharacter::APlayerCharacter()
 	RightShoulderArrow->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
 	RightShoulderArrow->SetRelativeLocation({250.0f, 50.0f, 50.0f});
 	
+	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
+	ParticleSystemComponent->SetupAttachment(RootComponent);
+
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	
+	DamageHandlerComponent = CreateDefaultSubobject<UDamageHandlerComponent>(TEXT("DamageHandlerComponent"));
 
 	// Tags.Add("Player");
 
@@ -143,6 +151,15 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 		}
 	}
 	return Damage;
+}
+
+void APlayerCharacter::SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval)
+{
+	
+	if (DamageHandlerComponent)
+	{
+		DamageHandlerComponent->TakeFireDamage(BaseDamage, DamageTotalTime, TakeDamageInterval);
+	}
 }
 
 void APlayerCharacter::MoveCameraToArrowLocation(FName ArrowName)

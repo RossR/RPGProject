@@ -22,6 +22,9 @@ public:
 	TSubclassOf<UUserWidget> ObjectiveWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> ObjectivesCompleteWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> PlayerHUDWidgetClass;
 
 	UUserWidget* PlayerHUDWidget;

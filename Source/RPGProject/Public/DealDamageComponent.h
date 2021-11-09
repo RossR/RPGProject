@@ -37,13 +37,18 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void DealDamage();//FDamageEvent DamageEvent, APlayerCharacter* PlayerCharacter);
+	void DealDamage();
 
 	UPROPERTY(EditAnywhere)
 	float BaseDamage = 50.0f;
 
 	UPROPERTY(EditAnywhere)
-	float SecondsBetweenDamage;
+	// Intervals (in seconds) to apply damage to overlapped actors
+	float TakeDamageInterval;
+
+	UPROPERTY(EditAnywhere)
+	// The duration that overlapped actors will take damage
+	float DamageTotalTime = 2.0f;
 
 	UPROPERTY(EditAnywhere)
 	bool bIsDamageOverTime;

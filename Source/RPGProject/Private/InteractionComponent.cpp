@@ -26,6 +26,8 @@ UInteractionComponent::UInteractionComponent()
 	TriggerCapsule->SetCapsuleRadius(90.0);
 	TriggerCapsule->SetRelativeLocation({ -50.0f, 0.0f, 100.0f });
 
+	PromptOffset = TriggerCapsule->GetRelativeLocation();
+
 	// Binding to events
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &UInteractionComponent::OnOverlapBegin);
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &UInteractionComponent::OnOverlapEnd);
@@ -59,9 +61,7 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 
 	if (InteractingActor)
 	{
-		FVector Offset( 0.0f, 50.0f, 100.0f);
-		FVector StartLocation = GetOwner()->GetActorLocation() + Offset;
-		DrawDebugString(GetWorld(), Offset, InteractionPrompt.ToString(), GetOwner(), FColor::Blue, 0.0f);
+		DrawDebugString(GetWorld(), PromptOffset, InteractionPrompt.ToString(), GetOwner(), FColor::Blue, 0.0f);
 	}
 }
 

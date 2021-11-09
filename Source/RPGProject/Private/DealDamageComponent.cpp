@@ -94,8 +94,9 @@ void UDealDamageComponent::OnOverlapBegin(class UPrimitiveComponent* OverlappedC
 		/*TSubclassOf<UDamageType> const */ ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
 		// FDamageEvent DamageEvent(ValidDamageTypeClass);
 
+		PlayerCharacter->SetOnFire(BaseDamage, DamageTotalTime, TakeDamageInterval);
 
-
+		/*
 		if (bIsDamageOverTime)
 		{
 			
@@ -103,13 +104,14 @@ void UDealDamageComponent::OnOverlapBegin(class UPrimitiveComponent* OverlappedC
 			{
 				DealDamage();
 			}
-			GetWorld()->GetTimerManager().SetTimer(DamageOverTime, [&]() {this->DealDamage(/*DamageEvent, PlayerCharacter*/); }, SecondsBetweenDamage, true, -1.0f);
+			GetWorld()->GetTimerManager().SetTimer(DamageOverTime, [&]() {this->DealDamage(); }, TakeDamageInterval, true, -1.0f);
 		}
 		else
 		{
-			DealDamage(/*DamageEvent, PlayerCharacter*/ );
+			DealDamage();
 			
 		}
+		*/
 	}
 }
 

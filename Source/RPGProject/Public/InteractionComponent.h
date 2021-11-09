@@ -45,17 +45,17 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void InteractionCancel();
 
-public:
-
-	UPROPERTY(EditAnywhere, NoClear, Category = "Interaction")
-	UCapsuleComponent* TriggerCapsule = nullptr;
-
 protected:
 
 	UPROPERTY(EditAnywhere)
 	FText InteractionPrompt;
+
+	UPROPERTY(EditAnywhere, NoClear, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	UCapsuleComponent* TriggerCapsule = nullptr;
+
+	FVector PromptOffset;
 	
 	UPROPERTY(VisibleAnywhere)
-		AActor* InteractingActor;
+	AActor* InteractingActor;
 
 };

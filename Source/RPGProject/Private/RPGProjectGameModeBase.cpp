@@ -22,14 +22,11 @@ void ARPGProjectGameModeBase::StartPlay()
 {
 	Super::StartPlay();
 
-	
-
 	UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();
 	
 	if (ObjectiveWorldSubsystem)
 	{
-		ObjectiveWorldSubsystem->CreateObjectiveWidget(ObjectiveWidgetClass);
-		ObjectiveWorldSubsystem->DisplayObjectiveWidget();
+		ObjectiveWorldSubsystem->OnMapStart();
 	}
 
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
