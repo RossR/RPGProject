@@ -124,13 +124,22 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 {
-	OnDeath(true);
+	if (HealthComponent && !HealthComponent->IsDead())
+	{
+		HealthComponent->SetCurrentHealth(0.0f);
+		OnDeath(true);
+	}
 }
 
 void APlayerCharacter::OnDeath(bool IsFellOut)
 {
-	// GetWorld()->GetFirstPlayerController()->RestartLevel();
+	GetWorldTimerManager().SetTimer(RestartLevelTimerHandle, this, &APlayerCharacter::OnDeathTimerFinished, TimeRestartAfterDeath, false);
+	GetCharacterMovement()->DisableMovement();
+	
+}
 
+void APlayerCharacter::OnDeathTimerFinished()
+{
 	APlayerController* PlayerController = GetController <APlayerController>();
 	if (PlayerController)
 	{
@@ -142,7 +151,7 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 {
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::TakeDamage Damage %.2f"), Damage);
-	if (HealthComponent)
+	if (HealthComponent && !HealthComponent->IsDead())
 	{
 		HealthComponent->TakeDamage(Damage);
 		if (HealthComponent->IsDead())
@@ -189,6 +198,25 @@ void APlayerCharacter::MoveCameraToArrowLocation(FName ArrowName)
 	}
 	// FollowCamera->SetRelativeLocation(NewCameraLocation);
 }
+
+const bool APlayerCharacter::IsAlive() const
+{
+	if (HealthComponent)
+	{
+		return !HealthComponent->IsDead();
+	}
+	return false;
+}
+
+const float APlayerCharacter::GetCurrentHealth() const
+{
+	if (HealthComponent)
+	{
+		return HealthComponent->GetCurrentHealth();
+	}
+	return 0.0f;
+}
+
 
 //--------------------------------------------------------------
 // Action Mappings

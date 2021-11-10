@@ -16,13 +16,15 @@ public:
 	// Sets default values for this component's properties
 	UHealthComponent();
 
-	void TakeDamage(float Damage) { /*UE_LOG(LogTemp, Warning, TEXT("Damage: "), Damage); */CurrentHealth -= Damage; }
+	void TakeDamage(float Damage) { CurrentHealth -= Damage; }
 	bool IsDead() { return CurrentHealth <= FLT_EPSILON; }
 
 	UFUNCTION(BlueprintCallable)
 	float GetMaxHealth() { return MaxHealth; }
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentHealth() { return CurrentHealth; }
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentHealth(float Health) { CurrentHealth = Health; }
 
 protected:
 	// Called when the game starts

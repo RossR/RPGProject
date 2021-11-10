@@ -50,24 +50,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void MoveCameraToArrowLocation(FName ArrowName);
 
+	UFUNCTION(BlueprintCallable)
+	const bool IsAlive() const;
+
+	UFUNCTION(BlueprintCallable)
+	const float GetCurrentHealth() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	/*
-	void Sprint();
-	void StopSprinting();
-	void HoldCrouch();
-	void StopHoldingCrouch();
-	void ToggleCrouch();
-
-	void MoveForward(float Value);
-	void MoveRight(float Value);
-	void TurnRate(float Rate);
-	void LookUpRate(float Rate);
-	*/
-
 	void OnDeath(bool IsFellOut);
+
+	UFUNCTION()
+	void OnDeathTimerFinished();
 
 public:
 
@@ -107,4 +103,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UDamageHandlerComponent* DamageHandlerComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "On Death")
+	float TimeRestartAfterDeath;
+
+	FTimerHandle RestartLevelTimerHandle;
 };

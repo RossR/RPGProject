@@ -166,6 +166,7 @@ void ARPGProjectPlayerController::Aim()
 	if (PlayerCharacter != nullptr)
 	{
 		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
+		PlayerCharacter->bUseControllerRotationYaw = true;
 	}
 }
 
@@ -175,8 +176,9 @@ void ARPGProjectPlayerController::StopAiming()
 
 	if (PlayerCharacter != nullptr)
 	{
-		UArrowComponent* ArrowComp = PlayerCharacter->ChaseArrow;
+		// UArrowComponent* ArrowComp = PlayerCharacter->ChaseArrow;
 		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("Chase")));
+		PlayerCharacter->bUseControllerRotationYaw = false;
 	}
 }
 
