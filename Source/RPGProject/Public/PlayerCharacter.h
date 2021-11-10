@@ -56,6 +56,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	const float GetCurrentHealth() const;
 
+	UFUNCTION(BlueprintCallable)
+	void SetIsCrouched(bool IsActive) { IsCrouched = IsActive; }
+	UFUNCTION(BlueprintCallable)
+	bool GetIsCrouched() { return IsCrouched; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetPlayerMoveState(TEnumAsByte<EPlayerMoveState::State> NewState);
+	UFUNCTION(BlueprintCallable)
+	TEnumAsByte<EPlayerMoveState::State> GetPlayerMoveState() { return PlayerMoveState; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -108,4 +118,6 @@ protected:
 	float TimeRestartAfterDeath;
 
 	FTimerHandle RestartLevelTimerHandle;
+
+	bool IsCrouched;
 };

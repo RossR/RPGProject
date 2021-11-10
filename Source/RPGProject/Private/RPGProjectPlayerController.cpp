@@ -20,6 +20,7 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 	// Variables for sprint function
 	MovementSpeed = 600;
 	SprintSpeedMultiplier = 1.5f;
+	CrouchSpeedMultiplier = 0.66f;
 	WalkingMaxAcceleration = 2048;
 	SprintingMaxAcceleration = 8192;
 	CharacterMinAnalogWalkSpeed = 0;
@@ -57,6 +58,13 @@ void ARPGProjectPlayerController::SetupInputComponent()
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponent Set up successfully!"));
 }
 
+void ARPGProjectPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	PlayerCharacter = Cast<APlayerCharacter>(GetCharacter());
+}
+
 void ARPGProjectPlayerController::StartInteraction()
 {
 	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StartInteraction called"));
@@ -72,7 +80,19 @@ void ARPGProjectPlayerController::StopInteraction()
 // Called every frame
 void ARPGProjectPlayerController::Tick(float DeltaTime)
 {
+	if (PlayerCharacter)
+	{
+		if (PlayerCharacter->GetIsCrouched())
+		{
+			GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * CrouchSpeedMultiplier;
+		}
+		else if (!PlayerCharacter->GetIsCrouched() && PlayerCharacter->GetPlayerMoveState() != EPlayerMoveState::PMS_Sprinting)
+		{
+			GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+		}
+	}
 
+		
 }
 
 
@@ -82,9 +102,12 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 
 void ARPGProjectPlayerController::Jump()
 {
-	if (GetCharacter() != nullptr)
+	if (PlayerCharacter)
 	{
-		GetCharacter()->Jump();
+		if (!PlayerCharacter->GetIsCrouched())
+		{
+			PlayerCharacter->Jump();
+		}
 	}
 	else
 	{
@@ -94,9 +117,9 @@ void ARPGProjectPlayerController::Jump()
 
 void ARPGProjectPlayerController::StopJumping()
 {
-	if (GetCharacter() != nullptr)
+	if (PlayerCharacter)
 	{
-		GetCharacter()->StopJumping();
+		PlayerCharacter->StopJumping();
 	}
 	else
 	{
@@ -109,11 +132,13 @@ void ARPGProjectPlayerController::Sprint()
 	// PlayerMoveState = EPlayerMoveState::PMS_Sprinting;
 	// Alternate way to cast to character -> ACharacter* PosCharacter = Cast<ACharacter>(GetPawn());
 
-	if (GetCharacter() != nullptr)
+	if (PlayerCharacter)
 	{
-		GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * SprintSpeedMultiplier;
-		GetCharacter()->GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacter()->GetCharacterMovement()->MaxWalkSpeed;
-		GetCharacter()->GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
+		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Sprinting);
+		PlayerCharacter->SetIsCrouched(false);
+		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * SprintSpeedMultiplier;
+		PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed;
+		PlayerCharacter->GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
 	}
 	else
 	{
@@ -124,11 +149,15 @@ void ARPGProjectPlayerController::Sprint()
 void ARPGProjectPlayerController::StopSprinting()
 {
 
-	if (GetCharacter() != nullptr)
+	if (PlayerCharacter)
 	{
-		GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-		GetCharacter()->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-		GetCharacter()->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+		if (!PlayerCharacter->GetIsCrouched())
+		{
+			PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Walking);
+		}
+		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+		PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+		PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
 	}
 	else
 	{
@@ -138,6 +167,11 @@ void ARPGProjectPlayerController::StopSprinting()
 
 void ARPGProjectPlayerController::HoldCrouch()
 {
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->SetIsCrouched(true);
+	}
+
 	/*
 	PlayerMoveState = EPlayerMoveState::PMS_Crouching;
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
@@ -147,6 +181,10 @@ void ARPGProjectPlayerController::HoldCrouch()
 
 void ARPGProjectPlayerController::StopHoldingCrouch()
 {
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->SetIsCrouched(false);
+	}
 	/*
 	PlayerMoveState = EPlayerMoveState::PMS_Walking;
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
@@ -156,13 +194,14 @@ void ARPGProjectPlayerController::StopHoldingCrouch()
 
 void ARPGProjectPlayerController::ToggleCrouch()
 {
-
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->SetIsCrouched(!PlayerCharacter->GetIsCrouched());
+	}
 }
 
 void ARPGProjectPlayerController::Aim()
 {
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetCharacter());
-
 	if (PlayerCharacter != nullptr)
 	{
 		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
@@ -172,8 +211,6 @@ void ARPGProjectPlayerController::Aim()
 
 void ARPGProjectPlayerController::StopAiming()
 {
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetCharacter());
-
 	if (PlayerCharacter != nullptr)
 	{
 		// UArrowComponent* ArrowComp = PlayerCharacter->ChaseArrow;
@@ -188,7 +225,7 @@ void ARPGProjectPlayerController::StopAiming()
 
 void ARPGProjectPlayerController::MoveForward(float Value)
 {
-	if (Value != 0 && GetPawn() != nullptr)
+	if (Value != 0 && PlayerCharacter)
 	{
 		// PlayerMoveState = EPlayerMoveState::PMS_Walking;
 
@@ -197,7 +234,7 @@ void ARPGProjectPlayerController::MoveForward(float Value)
 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		GetPawn()->AddMovementInput(Direction, Value);
+		PlayerCharacter->AddMovementInput(Direction, Value);
 
 		// FString DisplayValue = "MoveForward: " + FString::SanitizeFloat(Value);
 		// GEngine->AddOnScreenDebugMessage(1, 0.5, FColor::Emerald, DisplayValue);
@@ -207,7 +244,7 @@ void ARPGProjectPlayerController::MoveForward(float Value)
 
 void ARPGProjectPlayerController::MoveRight(float Value)
 {
-	if (Value != 0 && GetPawn() != nullptr)
+	if (Value != 0 && PlayerCharacter)
 	{
 		// PlayerMoveState = EPlayerMoveState::PMS_Walking;
 		
@@ -216,7 +253,7 @@ void ARPGProjectPlayerController::MoveRight(float Value)
 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		GetPawn()->AddMovementInput(Direction, Value);
+		PlayerCharacter->AddMovementInput(Direction, Value);
 
 		// FString DisplayValue = "MoveRight: " + FString::SanitizeFloat(Value);
 		// GEngine->AddOnScreenDebugMessage(2, 0.5, FColor::Emerald, DisplayValue);

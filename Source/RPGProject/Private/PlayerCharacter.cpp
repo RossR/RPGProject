@@ -45,6 +45,7 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	
+	IsCrouched = false;
 
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
@@ -217,6 +218,11 @@ const float APlayerCharacter::GetCurrentHealth() const
 	return 0.0f;
 }
 
+// Walking = 0, Sprinting = 1, Crouching = 2
+void APlayerCharacter::SetPlayerMoveState(TEnumAsByte<EPlayerMoveState::State> NewState)
+{
+	PlayerMoveState = NewState;
+}
 
 //--------------------------------------------------------------
 // Action Mappings

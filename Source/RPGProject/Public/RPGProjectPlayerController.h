@@ -9,6 +9,8 @@
 DECLARE_MULTICAST_DELEGATE(FOnInteractionStart);
 DECLARE_MULTICAST_DELEGATE(FOnInteractionCancel);
 
+class APlayerCharacter;
+
 UCLASS()
 class RPGPROJECT_API ARPGProjectPlayerController : public APlayerController
 {
@@ -30,6 +32,8 @@ public:
 	FOnInteractionCancel OnInteractionCancel;
 
 protected:
+
+	virtual void BeginPlay() override;
 
 	void Jump();
 	void StopJumping();
@@ -67,6 +71,9 @@ protected:
 	float SprintSpeedMultiplier;
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	float CrouchSpeedMultiplier;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
 	int32 WalkingMaxAcceleration;
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
@@ -74,5 +81,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
 	int32 CharacterMinAnalogWalkSpeed;
+
+	APlayerCharacter* PlayerCharacter;
 
 };
