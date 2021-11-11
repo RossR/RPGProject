@@ -14,6 +14,7 @@
 #include "Particles/ParticleSystemComponent.h"
 
 #include "Actors/Components/HealthComponent.h"
+#include "Actors/Components/StaminaComponent.h"
 #include "Actors/Components/DamageHandlerComponent.h"
 
 
@@ -72,6 +73,8 @@ APlayerCharacter::APlayerCharacter()
 	ParticleSystemComponent->SetupAttachment(RootComponent);
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+
+	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
 	
 	DamageHandlerComponent = CreateDefaultSubobject<UDamageHandlerComponent>(TEXT("DamageHandlerComponent"));
 
@@ -102,8 +105,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	
 
 	/*
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump); // &APlayerCharacter::Jump also works
@@ -163,6 +164,14 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 	return Damage;
 }
 
+void APlayerCharacter::TakeStaminaDamage(float Damage)
+{
+	if (StaminaComponent)
+	{
+		StaminaComponent->TakeStaminaDamage(Damage);
+	}
+}
+
 void APlayerCharacter::SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval)
 {
 	
@@ -216,6 +225,20 @@ const float APlayerCharacter::GetCurrentHealth() const
 		return HealthComponent->GetCurrentHealth();
 	}
 	return 0.0f;
+}
+
+const float APlayerCharacter::GetCurrentStamina() const
+{
+	if (StaminaComponent)
+	{
+		return StaminaComponent->GetCurrentStamina();
+	}
+	return 0.0f;
+}
+
+bool APlayerCharacter::IsStaminaFull()
+{
+	return StaminaComponent->GetCurrentStamina() == StaminaComponent->GetMaxStamina();
 }
 
 // Walking = 0, Sprinting = 1, Crouching = 2

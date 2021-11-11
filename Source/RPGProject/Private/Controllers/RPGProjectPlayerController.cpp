@@ -7,10 +7,12 @@
 #include "Characters/PlayerCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ARPGProjectPlayerController::ARPGProjectPlayerController()
 {
-
+	
 	PrimaryActorTick.bCanEverTick = true;
 
 	// set our turn rates for input
@@ -80,6 +82,8 @@ void ARPGProjectPlayerController::StopInteraction()
 // Called every frame
 void ARPGProjectPlayerController::Tick(float DeltaTime)
 {
+	DeltaSeconds = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
+
 	if (PlayerCharacter)
 	{
 		if (PlayerCharacter->GetIsCrouched())
@@ -92,7 +96,29 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 		}
 	}
 
+	if (PlayerCharacter)
+	{
+		if (PlayerCharacter->GetCurrentStamina() <= 0)
+		{
+			StopSprinting();
+		}
+	}
 		
+}
+
+void ARPGProjectPlayerController::SprintTimerFinished()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::SprintTimerFinished called"));
+	if (PlayerCharacter)
+	{
+		float Damage = PlayerCharacter->StaminaDamagePerInterval;
+		float Speed = UKismetMathLibrary::VSizeXY(PlayerCharacter->GetVelocity());
+		
+		if (Speed > 0)
+		{
+			PlayerCharacter->TakeStaminaDamage(Damage);
+		}
+	}
 }
 
 
@@ -139,6 +165,8 @@ void ARPGProjectPlayerController::Sprint()
 		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * SprintSpeedMultiplier;
 		PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed;
 		PlayerCharacter->GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
+
+		GetWorld()->GetTimerManager().SetTimer(SprintStaminaDrainTimerHandle, this, &ARPGProjectPlayerController::SprintTimerFinished, DeltaSeconds, true, -1.0f);
 	}
 	else
 	{
@@ -163,6 +191,8 @@ void ARPGProjectPlayerController::StopSprinting()
 	{
 		UE_LOG(LogTemp, Error, TEXT("ARPGProjectPlayerController::StopSprinting GetCharacter() is nullptr."));
 	}
+
+	GetWorld()->GetTimerManager().ClearTimer(SprintStaminaDrainTimerHandle);
 }
 
 void ARPGProjectPlayerController::HoldCrouch()

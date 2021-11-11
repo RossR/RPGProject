@@ -23,6 +23,7 @@ namespace EPlayerMoveState
 class UParticleSystemComponent;
 
 class UHealthComponent;
+class UStaminaComponent;
 class UDamageHandlerComponent;
 
 UCLASS(BlueprintType)
@@ -45,6 +46,8 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+	void TakeStaminaDamage(float Damage);
+
 	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
 
 	UFUNCTION(BlueprintCallable)
@@ -55,6 +58,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	const float GetCurrentHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	const float GetCurrentStamina() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool IsStaminaFull();
 
 	UFUNCTION(BlueprintCallable)
 	void SetIsCrouched(bool IsActive) { IsCrouched = IsActive; }
@@ -95,7 +104,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Enum)
 	TEnumAsByte<EPlayerMoveState::State> PlayerMoveState;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stamina)
+	float StaminaDamagePerInterval = 1.0f;
 
 protected:
 
@@ -110,6 +120,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UHealthComponent* HealthComponent;
+
+	UPROPERTY(EditAnywhere)
+	UStaminaComponent* StaminaComponent;
 
 	UPROPERTY(EditAnywhere)
 	UDamageHandlerComponent* DamageHandlerComponent;

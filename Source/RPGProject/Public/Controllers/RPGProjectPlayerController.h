@@ -56,6 +56,8 @@ protected:
 	void StartInteraction();
 	void StopInteraction();
 
+	void SprintTimerFinished();
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
@@ -82,6 +84,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
 	int32 CharacterMinAnalogWalkSpeed;
 
+	UPROPERTY(EditAnywhere)
+	float StaminaRegenDelay;
+
 	APlayerCharacter* PlayerCharacter;
 
+	FTimerHandle SprintStaminaDrainTimerHandle;
+
+	FTimerHandle StaminaRegenTimerHandle;
+
+	float DeltaSeconds;
 };
