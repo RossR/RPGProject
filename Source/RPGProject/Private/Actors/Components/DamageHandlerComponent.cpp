@@ -2,7 +2,7 @@
 
 
 #include "Actors/Components/DamageHandlerComponent.h"
-#include "Characters/PlayerCharacter.h"
+#include "Characters/RPGProjectPlayerCharacter.h"
 #include "Particles/ParticleSystemComponent.h"
 
 
@@ -22,7 +22,7 @@ void UDamageHandlerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+	PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(GetOwner());
 	
 }
 

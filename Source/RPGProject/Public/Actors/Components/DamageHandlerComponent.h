@@ -8,7 +8,7 @@
 #include "Misc/Optional.h"
 #include "DamageHandlerComponent.generated.h"
 
-class APlayerCharacter;
+class ARPGProjectPlayerCharacter;
 class UParticleSystem;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -47,7 +47,7 @@ protected:
 
 	TOptional<FDamageInfo> ActiveDamageInfo;
 
-	APlayerCharacter* PlayerCharacter = nullptr;
+	ARPGProjectPlayerCharacter* PlayerCharacter = nullptr;
 
 	/* Holds a critical section object */
 	FCriticalSection CriticalSection;

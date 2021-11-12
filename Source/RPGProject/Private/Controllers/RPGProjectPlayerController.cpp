@@ -4,7 +4,7 @@
 #include "Controllers/RPGProjectPlayerController.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Characters/PlayerCharacter.h"
+#include "Characters/RPGProjectPlayerCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -64,7 +64,7 @@ void ARPGProjectPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerCharacter = Cast<APlayerCharacter>(GetCharacter());
+	PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(GetCharacter());
 }
 
 void ARPGProjectPlayerController::StartInteraction()
@@ -108,7 +108,7 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 
 void ARPGProjectPlayerController::SprintTimerFinished()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::SprintTimerFinished called"));
+	// UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::SprintTimerFinished called"));
 	if (PlayerCharacter)
 	{
 		float Damage = PlayerCharacter->StaminaDamagePerInterval;

@@ -35,7 +35,7 @@ protected:
 protected:
 
 	UPROPERTY(EditAnywhere)
-	float MaxStamina = 200;
+	float MaxStamina = 400;
 
 	UPROPERTY(VisibleAnywhere)
 	float CurrentStamina = 0.0f;

@@ -3,7 +3,7 @@
 
 #include "Actors/Components/DealDamageComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Characters/PlayerCharacter.h"
+#include "Characters/RPGProjectPlayerCharacter.h"
 #include "GameFramework/DamageType.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -87,8 +87,8 @@ void UDealDamageComponent::OnOverlapBegin(class UPrimitiveComponent* OverlappedC
 		return;
 	}
 
-	//APlayerCharacter* 
-	PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+	//ARPGProjectPlayerCharacter* 
+	PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(OtherActor);
 	if (PlayerCharacter)
 	{
 		/*TSubclassOf<UDamageType> const */ ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
@@ -125,9 +125,9 @@ void UDealDamageComponent::OnOverlapEnd(class UPrimitiveComponent* OverlappedCom
 	PlayerCharacter = nullptr;
 }
 
-void UDealDamageComponent::DealDamage()// FDamageEvent DamageEvent, APlayerCharacter* PlayerCharacter)
+void UDealDamageComponent::DealDamage()// FDamageEvent DamageEvent, ARPGProjectPlayerCharacter* PlayerCharacter)
 {
-	// APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+	// ARPGProjectPlayerCharacter* PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(OtherActor);
 	if (PlayerCharacter)
 	{
 		FDamageEvent DamageEvent(ValidDamageTypeClass);

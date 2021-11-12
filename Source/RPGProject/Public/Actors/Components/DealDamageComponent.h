@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Characters/PlayerCharacter.h"
+#include "Characters/RPGProjectPlayerCharacter.h"
 #include "DealDamageComponent.generated.h"
 
 class UCapsuleComponent;
@@ -56,7 +56,7 @@ protected:
 	UPROPERTY(EditAnywhere, NoClear)
 	UCapsuleComponent* TriggerCapsule;
 
-	APlayerCharacter* PlayerCharacter;
+	ARPGProjectPlayerCharacter* PlayerCharacter;
 	TSubclassOf<UDamageType> ValidDamageTypeClass;
 
 	UPrimitiveComponent* OtherComponent;

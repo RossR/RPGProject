@@ -31,7 +31,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere)
-	float MaxHealth = 100;
+	float MaxHealth = 1000;
 
 	UPROPERTY(VisibleAnywhere)
 	float CurrentHealth = 0.0f;

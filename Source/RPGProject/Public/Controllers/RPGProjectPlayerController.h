@@ -9,7 +9,7 @@
 DECLARE_MULTICAST_DELEGATE(FOnInteractionStart);
 DECLARE_MULTICAST_DELEGATE(FOnInteractionCancel);
 
-class APlayerCharacter;
+class ARPGProjectPlayerCharacter;
 
 UCLASS()
 class RPGPROJECT_API ARPGProjectPlayerController : public APlayerController
@@ -87,7 +87,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float StaminaRegenDelay;
 
-	APlayerCharacter* PlayerCharacter;
+	ARPGProjectPlayerCharacter* PlayerCharacter;
 
 	FTimerHandle SprintStaminaDrainTimerHandle;
 
