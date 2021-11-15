@@ -34,6 +34,8 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 	StaminaRegenInterval = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
 
+	CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
+
 	if (CurrentStamina == MaxStamina)
 	{
 		IsRegeneratingStamina = false;

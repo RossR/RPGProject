@@ -35,15 +35,22 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	void TickMovementUpdate();
+	void RelaxedMovementUpdate();
+	void CombatMovementUpdate();
+
 	void Jump();
 	void StopJumping();
 	void Sprint();
 	void StopSprinting();
 	void HoldCrouch();
-	void StopHoldingCrouch();
+	void StopCrouching();
 	void ToggleCrouch();
 	void Aim();
 	void StopAiming();
+	void Walking();
+	void StopWalking();
+	void Dodge();
 
 
 	void MoveForward(float Value);
@@ -58,6 +65,8 @@ protected:
 
 	void SprintTimerFinished();
 
+	void CheckSpeedToSetMoveState();
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
@@ -66,13 +75,31 @@ protected:
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMovement)
+	float CharacterSpeed;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
 	int32 MovementSpeed;
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	int32 CombatMovementSpeed;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	int32 WalkMovementSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMovement)
+	int32 CrouchMovementSpeed;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMovement)
+	int32 SprintMovementSpeed;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	float CombatSpeedMultiplier;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
 	float SprintSpeedMultiplier;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
 	float CrouchSpeedMultiplier;
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)

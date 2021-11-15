@@ -32,7 +32,11 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	BaseTurnRate = 70.0f;
 	BaseLookUpRate = 70.0f;
 
-	PlayerMoveState = EPlayerMoveState::PMS_Walking;
+	PlayerMoveState = EPlayerMoveState::PMS_Idle;
+	PlayerCombatState = EPlayerCombatState::PCS_Relaxed;
+
+	LastPlayerMoveState = PlayerMoveState;
+	LastPlayerCombatState = PlayerCombatState;
 
 	MovementSpeed = 600;
 	
@@ -242,105 +246,14 @@ bool ARPGProjectPlayerCharacter::IsStaminaFull()
 	return StaminaComponent->GetCurrentStamina() == StaminaComponent->GetMaxStamina();
 }
 
-// Walking = 0, Sprinting = 1, Crouching = 2
-void ARPGProjectPlayerCharacter::SetPlayerMoveState(TEnumAsByte<EPlayerMoveState::State> NewState)
+void ARPGProjectPlayerCharacter::SetPlayerMoveState(EPlayerMoveState NewState)
 {
+	LastPlayerMoveState = PlayerMoveState;
 	PlayerMoveState = NewState;
 }
 
-//--------------------------------------------------------------
-// Action Mappings
-//--------------------------------------------------------------
-/*
-void ARPGProjectPlayerCharacter::Sprint()
+void ARPGProjectPlayerCharacter::SetPlayerCombatState(EPlayerCombatState NewState)
 {
-	PlayerMoveState = EPlayerMoveState::PMS_Sprinting;
-	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * 1.5f;
-	GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
-
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
+	LastPlayerCombatState = PlayerCombatState;
+	PlayerCombatState = NewState;
 }
-
-void ARPGProjectPlayerCharacter::StopSprinting()
-{
-	PlayerMoveState = EPlayerMoveState::PMS_Walking;
-	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-	GetCharacterMovement()->MinAnalogWalkSpeed = 0;
-	GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
-
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-}
-
-void ARPGProjectPlayerCharacter::HoldCrouch()
-{
-	PlayerMoveState = EPlayerMoveState::PMS_Crouching;
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-	//GetCapsuleComponent()->InitCapsuleSize(42.f, 48.0f);
-}
-
-void ARPGProjectPlayerCharacter::StopHoldingCrouch()
-{
-	PlayerMoveState = EPlayerMoveState::PMS_Walking;
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-	//GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-}
-
-void ARPGProjectPlayerCharacter::ToggleCrouch()
-{
-
-}
-*/
-
-//--------------------------------------------------------------
-// Axis Mappings
-//--------------------------------------------------------------
-
-/*
-void ARPGProjectPlayerCharacter::MoveForward(float Value)
-{
-	if (Value != 0 && Controller != nullptr)
-	{
-		PlayerMoveState = EPlayerMoveState::PMS_Walking;
-
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-		AddMovementInput(Direction, Value);
-
-		// FString DisplayValue = "MoveForward: " + FString::SanitizeFloat(Value);
-		// GEngine->AddOnScreenDebugMessage(1, 0.5, FColor::Emerald, DisplayValue);
-
-	}
-}
-
-void ARPGProjectPlayerCharacter::MoveRight(float Value)
-{
-	if (Value != 0 && Controller != nullptr)
-	{
-		PlayerMoveState = EPlayerMoveState::PMS_Walking;
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		AddMovementInput(Direction, Value);
-
-		// FString DisplayValue = "MoveRight: " + FString::SanitizeFloat(Value);
-		// GEngine->AddOnScreenDebugMessage(2, 0.5, FColor::Emerald, DisplayValue);
-		
-	}
-}
-
-void ARPGProjectPlayerCharacter::TurnRate(float Rate)
-{
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
-}
-
-void ARPGProjectPlayerCharacter::LookUpRate(float Rate)
-{
-	AddControllerPitchInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
-}
-*/

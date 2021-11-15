@@ -8,17 +8,25 @@
 
 
 UENUM(BlueprintType)
-namespace EPlayerMoveState
+enum class EPlayerMoveState : uint8
 {
-	enum State
-	{
-		PMS_Walking = 0 UMETA(DisplayName = "Walking"),
-		PMS_Sprinting = 1 UMETA(DisplayName = "Sprinting"),
-		PMS_Crouching = 2 UMETA(DisplayName = "Crouching"),
+	PMS_Idle UMETA(DisplayName = "Idle"),
+	PMS_Walking UMETA(DisplayName = "Walking"),
+	PMS_Jogging UMETA(DisplayName = "Jogging"),
+	PMS_Sprinting UMETA(DisplayName = "Sprinting"),
+	PMS_Crouching UMETA(DisplayName = "Crouching"),
 
-		PMS_Max UMETA(Hidden)
-	};
-}
+	PMS_Max UMETA(Hidden)
+};
+	
+UENUM(BlueprintType)
+enum class EPlayerCombatState : uint8
+{
+	PCS_Relaxed UMETA(DisplayName = "Relaxed"),
+	PCS_CombatReady UMETA(DisplayName = "Combat Ready"),
+
+	PCS_Max UMETA(Hidden)
+};
 
 class UParticleSystemComponent;
 
@@ -67,13 +75,27 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetIsCrouched(bool IsActive) { IsCrouched = IsActive; }
+
 	UFUNCTION(BlueprintCallable)
+	// Returns true if the character is crouching
 	bool GetIsCrouched() { return IsCrouched; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetPlayerMoveState(TEnumAsByte<EPlayerMoveState::State> NewState);
+	void SetPlayerMoveState(EPlayerMoveState NewState);
 	UFUNCTION(BlueprintCallable)
-	TEnumAsByte<EPlayerMoveState::State> GetPlayerMoveState() { return PlayerMoveState; }
+	EPlayerMoveState GetPlayerMoveState() { return PlayerMoveState; }
+	UFUNCTION(BlueprintCallable)
+	// Returns true if the Player Move State has changed this/last frame (not sure which)
+	bool HasPlayerMoveStateChanged() { return PlayerMoveState != LastPlayerMoveState; }
+
+
+	UFUNCTION(BlueprintCallable)
+	void SetPlayerCombatState(EPlayerCombatState NewState);
+	UFUNCTION(BlueprintCallable)
+	EPlayerCombatState GetPlayerCombatState() { return PlayerCombatState; }
+	UFUNCTION(BlueprintCallable)
+	// Returns true if the Player Combat State has changed this/last frame (not sure which)
+	bool HasPlayerCombatStateChanged() { return PlayerCombatState != LastPlayerCombatState; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -101,8 +123,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Particle System")
 	UParticleSystemComponent* ParticleSystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Enum)
-	TEnumAsByte<EPlayerMoveState::State> PlayerMoveState;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerMoveState PlayerMoveState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerMoveState LastPlayerMoveState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerCombatState PlayerCombatState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerCombatState LastPlayerCombatState;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stamina)
 	float StaminaDamagePerInterval = 1.0f;
