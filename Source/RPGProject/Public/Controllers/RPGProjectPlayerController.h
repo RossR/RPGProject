@@ -38,6 +38,7 @@ protected:
 	void TickMovementUpdate();
 	void RelaxedMovementUpdate();
 	void CombatMovementUpdate();
+	void StopPreviousStateEffects();
 
 	void Jump();
 	void StopJumping();
@@ -121,4 +122,6 @@ protected:
 	FTimerHandle StaminaRegenTimerHandle;
 
 	float DeltaSeconds;
+
+	bool IsAiming = false;
 };

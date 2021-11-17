@@ -147,6 +147,7 @@ void ARPGProjectPlayerController::TickMovementUpdate()
 				case EPlayerCombatState::PCS_CombatReady:
 				{
 					CombatMovementUpdate();
+					StopAiming();
 					break;
 				}
 			}
@@ -158,9 +159,8 @@ void ARPGProjectPlayerController::RelaxedMovementUpdate()
 {
 	if (PlayerCharacter)
 	{
-		if (true)// PlayerCharacter->HasPlayerMoveStateChanged())
+		if (PlayerCharacter->HasPlayerMoveStateChanged())
 		{
-			// PlayerCharacter->SetPlayerMoveState(PlayerCharacter->GetPlayerMoveState());
 
 			switch (PlayerCharacter->GetPlayerMoveState())
 			{
@@ -205,43 +205,8 @@ void ARPGProjectPlayerController::RelaxedMovementUpdate()
 				}
 			}
 
-			if (PlayerCharacter->HasPlayerMoveStateChanged())
-			{
-				switch (PlayerCharacter->LastPlayerMoveState)
-				{
-					case EPlayerMoveState::PMS_Idle:
-					{
+			StopPreviousStateEffects();
 
-						break;
-					}
-
-					case EPlayerMoveState::PMS_Walking:
-					{
-
-						break;
-					}
-
-					case EPlayerMoveState::PMS_Jogging:
-					{
-
-						break;
-					}
-
-					case EPlayerMoveState::PMS_Sprinting:
-					{
-
-						break;
-					}
-
-					case EPlayerMoveState::PMS_Crouching:
-					{
-						PlayerCharacter->SetIsCrouched(false);
-						break;
-					}
-				}
-
-				PlayerCharacter->SetPlayerMoveState(PlayerCharacter->GetPlayerMoveState());
-			}
 		}
 	}
 }
@@ -250,9 +215,8 @@ void ARPGProjectPlayerController::CombatMovementUpdate()
 {
 	if (PlayerCharacter)
 	{
-		if (true)// PlayerCharacter->HasPlayerMoveStateChanged())
+		if (PlayerCharacter->HasPlayerMoveStateChanged())
 		{
-			// PlayerCharacter->SetPlayerMoveState(PlayerCharacter->GetPlayerMoveState());
 
 			switch (PlayerCharacter->GetPlayerMoveState())
 			{
@@ -297,45 +261,50 @@ void ARPGProjectPlayerController::CombatMovementUpdate()
 				}
 			}
 
-			if (PlayerCharacter->HasPlayerMoveStateChanged())
-			{
-				switch (PlayerCharacter->LastPlayerMoveState)
-				{
-					case EPlayerMoveState::PMS_Idle:
-					{
-
-						break;
-					}
-
-					case EPlayerMoveState::PMS_Walking:
-					{
-
-						break;
-					}
-
-					case EPlayerMoveState::PMS_Jogging:
-					{
-
-						break;
-					}
-
-					case EPlayerMoveState::PMS_Sprinting:
-					{
-
-						break;
-					}
-
-					case EPlayerMoveState::PMS_Crouching:
-					{
-						PlayerCharacter->SetIsCrouched(false);
-						break;
-					}
-				}
-
-				PlayerCharacter->SetPlayerMoveState(PlayerCharacter->GetPlayerMoveState());
-			}
+			StopPreviousStateEffects();
 			
 		}
+	}
+}
+
+void ARPGProjectPlayerController::StopPreviousStateEffects()
+{
+	if (PlayerCharacter->HasPlayerMoveStateChanged())
+	{
+		switch (PlayerCharacter->LastPlayerMoveState)
+		{
+			case EPlayerMoveState::PMS_Idle:
+			{
+
+				break;
+			}
+
+			case EPlayerMoveState::PMS_Walking:
+			{
+
+				break;
+			}
+
+			case EPlayerMoveState::PMS_Jogging:
+			{
+
+				break;
+			}
+
+			case EPlayerMoveState::PMS_Sprinting:
+			{
+				StopSprinting();
+				break;
+			}
+
+			case EPlayerMoveState::PMS_Crouching:
+			{
+				StopCrouching();
+				break;
+			}
+		}
+
+		PlayerCharacter->SetPlayerMoveState(PlayerCharacter->GetPlayerMoveState());
 	}
 }
 
@@ -481,8 +450,12 @@ void ARPGProjectPlayerController::Aim()
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
-		PlayerCharacter->bUseControllerRotationYaw = true;
+		if (PlayerCharacter->GetPlayerCombatState() == EPlayerCombatState::PCS_Relaxed)
+		{
+			PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
+			PlayerCharacter->bUseControllerRotationYaw = true;
+			IsAiming = true;
+		}
 	}
 }
 
@@ -493,6 +466,7 @@ void ARPGProjectPlayerController::StopAiming()
 		// UArrowComponent* ArrowComp = PlayerCharacter->ChaseArrow;
 		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("Chase")));
 		PlayerCharacter->bUseControllerRotationYaw = false;
+		IsAiming = false;
 	}
 }
 
