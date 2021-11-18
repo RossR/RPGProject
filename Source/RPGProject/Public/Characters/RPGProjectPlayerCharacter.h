@@ -97,6 +97,12 @@ public:
 	// Returns true if the Player Combat State has changed this/last frame (not sure which)
 	bool HasPlayerCombatStateChanged() { return PlayerCombatState != LastPlayerCombatState; }
 
+	UFUNCTION(BlueprintCallable)
+	void SetIsRagdollDeath(bool IsActive) { IsRagdollDeath = IsActive; }
+
+	UFUNCTION(BlueprintCallable)
+	bool GetIsRagdollDeath() { return IsRagdollDeath; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -164,4 +170,5 @@ protected:
 	FTimerHandle RestartLevelTimerHandle;
 
 	bool IsCrouched;
+	bool IsRagdollDeath;
 };

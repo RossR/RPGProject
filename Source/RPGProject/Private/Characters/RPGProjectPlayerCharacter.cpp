@@ -51,11 +51,13 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	
 	IsCrouched = false;
+	IsRagdollDeath = false;
 
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
-	CameraArm->SetupAttachment(RootComponent);
-	CameraArm->SetRelativeLocation(FVector(0, 0, 40.0f));
+	CameraArm->SetupAttachment(GetMesh(), FName("CameraSocket"));//RootComponent);
+	// CameraArm->SetRelativeLocation(FVector(0, 0, 40.0f));
+	CameraArm->SetRelativeLocation(FVector(0, 0, 0));
 	CameraArm->TargetArmLength = 400.0f;
 	CameraArm->bUsePawnControlRotation = true;
 	CameraArm->bEnableCameraLag = true;
