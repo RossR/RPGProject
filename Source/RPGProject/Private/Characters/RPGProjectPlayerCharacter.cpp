@@ -55,9 +55,8 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
-	CameraArm->SetupAttachment(GetMesh(), FName("CameraSocket"));//RootComponent);
-	// CameraArm->SetRelativeLocation(FVector(0, 0, 40.0f));
-	CameraArm->SetRelativeLocation(FVector(0, 0, 0));
+	CameraArm->SetupAttachment(RootComponent);
+	CameraArm->SetRelativeLocation(FVector(0, 0, 40.0f));
 	CameraArm->TargetArmLength = 400.0f;
 	CameraArm->bUsePawnControlRotation = true;
 	CameraArm->bEnableCameraLag = true;
@@ -258,4 +257,10 @@ void ARPGProjectPlayerCharacter::SetPlayerCombatState(EPlayerCombatState NewStat
 {
 	LastPlayerCombatState = PlayerCombatState;
 	PlayerCombatState = NewState;
+}
+
+void ARPGProjectPlayerCharacter::ActivateRagdollCamera()
+{
+	CameraArm->SetupAttachment(GetMesh(), FName("CameraSocket"));
+	CameraArm->SetRelativeLocation(FVector(0, 0, 0));
 }

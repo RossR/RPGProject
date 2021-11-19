@@ -64,15 +64,9 @@ public:
 	FVector ImpulseVector;
 
 	UPROPERTY(EditAnywhere, Category = "Swing Settings")
-	float DirectionChangeTime;
-
-	UPROPERTY(EditAnywhere, Category = "Swing Settings")
 	float DirectionChangeAngle;
 
 protected:
-
-	UPROPERTY(VisibleAnywhere, Category = "Swing Settings")
-	float TimeCounter;
 	
 	float DeltaSeconds;
 

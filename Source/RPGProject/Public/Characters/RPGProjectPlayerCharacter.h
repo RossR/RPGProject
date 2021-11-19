@@ -88,7 +88,6 @@ public:
 	// Returns true if the Player Move State has changed this/last frame (not sure which)
 	bool HasPlayerMoveStateChanged() { return PlayerMoveState != LastPlayerMoveState; }
 
-
 	UFUNCTION(BlueprintCallable)
 	void SetPlayerCombatState(EPlayerCombatState NewState);
 	UFUNCTION(BlueprintCallable)
@@ -99,9 +98,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetIsRagdollDeath(bool IsActive) { IsRagdollDeath = IsActive; }
-
 	UFUNCTION(BlueprintCallable)
 	bool GetIsRagdollDeath() { return IsRagdollDeath; }
+
+	UFUNCTION(BlueprintCallable)
+	void ActivateRagdollCamera();
 
 protected:
 	// Called when the game starts or when spawned
