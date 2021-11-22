@@ -17,6 +17,8 @@ UDealDamageComponent::UDealDamageComponent()
 	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Capsule"));
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &UDealDamageComponent::OnOverlapBegin);
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &UDealDamageComponent::OnOverlapEnd);
+
+	bWasActiveLastTick = false;
 	
 }
 
@@ -34,39 +36,52 @@ void UDealDamageComponent::BeginPlay()
 void UDealDamageComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
 
+	//If the component is disabled, end the overlap with all currently overlapping actors
+	/*
 	if (!bActive)
 	{
-		if (GetWorld()->GetTimerManager().IsTimerActive(DamageOverTime))
+
+		if (bWasActiveLastTick)
 		{
-			GetWorld()->GetTimerManager().ClearTimer(DamageOverTime);
+			// int ArraySize = OverlappedComponentArray.Num();
+			for (int i = 0; i < OverlappedComponentArray.Num(); i++)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Ending Overlap with overlapped actors"));
+				FOverlapInfo DealDamageOverlapInfo(OverlappedComponentArray[i]);
+				TriggerCapsule->EndComponentOverlap(DealDamageOverlapInfo, true, false);
+				// OverlappedComponentArray.RemoveSingle(OverlappedComponentArray[i]);
+			}
+			OverlappedComponentArray.Empty();
+
+			// TriggerCapsule->SetGenerateOverlapEvents(false);
+
+			bWasActiveLastTick = false;
 		}
 		
-		if (TriggerCapsule->GetGenerateOverlapEvents())
-		{
-			FOverlapInfo DealDamageOverlapInfo(OtherComponent);
-			TriggerCapsule->EndComponentOverlap(DealDamageOverlapInfo, true, false);
-			TriggerCapsule->SetGenerateOverlapEvents(false);
-		}
 	}
+	*/
 	
 	if (bActive)
 	{
-		if (!TriggerCapsule->GetGenerateOverlapEvents())
+		//if (!bWasActiveLastTick)
+		//{
+		//	bWasActiveLastTick = true;
+		//}
+
+		//Renew fire on all overlapping ARPGProjectPlayerCharacter actors
+		for (int i = 0; i < OverlappedActorArray.Num(); i++)
 		{
-			TriggerCapsule->SetGenerateOverlapEvents(true);
-		}
+			PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(OverlappedActorArray[i]);
+			if (PlayerCharacter)
+			{
+				//TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
+				// FDamageEvent DamageEvent(ValidDamageTypeClass);
 
-		// TriggerCapsule->OnComponentHit()
+				PlayerCharacter->SetOnFire(BaseDamage, DamageTotalTime, TakeDamageInterval);
 
-		if (!TriggerCapsule->IsActive())
-		{
-			// ---------------------------------------------------------------------------------------------
-			// NO OVERLAP EVENT IS TRIGGERED IF PLAYER IS NOT MOVING AT TIME OF ACTIVATION
-			// FIGURE OUT SOLUTION
-			// ---------------------------------------------------------------------------------------------
-
-			//TriggerCapsule->Activate();
+			}
 		}
 	}
 }
@@ -80,57 +95,39 @@ void UDealDamageComponent::OnOverlapBegin(class UPrimitiveComponent* OverlappedC
 		return;
 	}
 
+	//if (!bActive)
+	//{
+	//	return;
+	//}
+
 	OtherComponent = OtherComp;
 
-	if (!bActive)
-	{
-		return;
-	}
+	// Add the overlapped actor into the array
+	OverlappedActorArray.Emplace(OtherActor);
+
+	// OverlappedComponentArray.Emplace(OtherComp);
 
 	//ARPGProjectPlayerCharacter* 
+	/*
 	PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(OtherActor);
 	if (PlayerCharacter)
 	{
-		/*TSubclassOf<UDamageType> const */ ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
+		//TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
 		// FDamageEvent DamageEvent(ValidDamageTypeClass);
 
 		PlayerCharacter->SetOnFire(BaseDamage, DamageTotalTime, TakeDamageInterval);
 
-		/*
-		if (bIsDamageOverTime)
-		{
-			
-			if (!GetWorld()->GetTimerManager().IsTimerActive(DamageOverTime))
-			{
-				DealDamage();
-			}
-			GetWorld()->GetTimerManager().SetTimer(DamageOverTime, [&]() {this->DealDamage(); }, TakeDamageInterval, true, -1.0f);
-		}
-		else
-		{
-			DealDamage();
-			
-		}
-		*/
 	}
+	*/
 }
 
 void UDealDamageComponent::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("UDealDamageComponent::OnOverlapEnd"));
-	if (bIsDamageOverTime)
-	{
-		GetWorld()->GetTimerManager().ClearTimer(DamageOverTime);
-	}
-	PlayerCharacter = nullptr;
-}
+	
+	// int32 ActorIndex = OverlappedActorArray.Find(OtherActor);
+	// OverlappedComponentArray.RemoveAt(ActorIndex);
+	OverlappedActorArray.RemoveSingle(OtherActor);
 
-void UDealDamageComponent::DealDamage()// FDamageEvent DamageEvent, ARPGProjectPlayerCharacter* PlayerCharacter)
-{
-	// ARPGProjectPlayerCharacter* PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(OtherActor);
-	if (PlayerCharacter)
-	{
-		FDamageEvent DamageEvent(ValidDamageTypeClass);
-		PlayerCharacter->TakeDamage(BaseDamage, DamageEvent, nullptr, GetOwner());
-	}
+	PlayerCharacter = nullptr;
 }

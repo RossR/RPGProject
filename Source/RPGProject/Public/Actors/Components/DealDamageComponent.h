@@ -37,9 +37,12 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void DealDamage();
+	UPROPERTY(EditAnywhere)
+	//Tracks wether the component is active or not
+	bool bActive = true;
 
 	UPROPERTY(EditAnywhere)
+	// Total damage dealt to the overlapped actors
 	float BaseDamage = 50.0f;
 
 	UPROPERTY(EditAnywhere)
@@ -50,11 +53,14 @@ protected:
 	// The duration that overlapped actors will take damage
 	float DamageTotalTime = 2.0f;
 
-	UPROPERTY(EditAnywhere)
-	bool bIsDamageOverTime;
-
 	UPROPERTY(EditAnywhere, NoClear)
 	UCapsuleComponent* TriggerCapsule;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<AActor*> OverlappedActorArray;
+
+	// UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	// TArray<UPrimitiveComponent*> OverlappedComponentArray;
 
 	ARPGProjectPlayerCharacter* PlayerCharacter;
 	TSubclassOf<UDamageType> ValidDamageTypeClass;
@@ -63,6 +69,6 @@ protected:
 
 	FTimerHandle DamageOverTime;
 	
-	UPROPERTY(EditAnywhere)
-	bool bActive = true;
+	bool bWasActiveLastTick;
+
 };
