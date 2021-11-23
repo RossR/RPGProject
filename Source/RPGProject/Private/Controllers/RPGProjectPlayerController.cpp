@@ -159,7 +159,7 @@ void ARPGProjectPlayerController::RelaxedMovementUpdate()
 {
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->HasPlayerMoveStateChanged())
+		if (PlayerCharacter->HasPlayerMoveStateChanged() || PlayerCharacter->HasPlayerCombatStateChanged())
 		{
 
 			switch (PlayerCharacter->GetPlayerMoveState())
@@ -215,7 +215,7 @@ void ARPGProjectPlayerController::CombatMovementUpdate()
 {
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->HasPlayerMoveStateChanged())
+		if (PlayerCharacter->HasPlayerMoveStateChanged() || PlayerCharacter->HasPlayerCombatStateChanged())
 		{
 
 			switch (PlayerCharacter->GetPlayerMoveState())
