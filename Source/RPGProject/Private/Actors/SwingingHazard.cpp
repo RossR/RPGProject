@@ -32,10 +32,10 @@ ASwingingHazard::ASwingingHazard()
 	Cable->EndLocation = { 0,0,0 };
 
 	PhysicsConstraint->SetupAttachment(RootComponent);
-	PhysicsConstraint->SetConstrainedComponents(HangingPoint, NAME_None, SwingingHazard, NAME_None);
+	
 	PhysicsConstraint->SetRelativeLocation({ 0.0f,0.0f,-50.0f });
 
-	SwingingAnticlockwiseFirst = false;
+	bSwingingClockwise = true;
 	StartSwingDelay = 1.0f;
 	ImpulseVector = { 0,0,0 };
 	DirectionChangeAngle = 60.0f;
@@ -51,8 +51,10 @@ ASwingingHazard::ASwingingHazard()
 void ASwingingHazard::BeginPlay()
 {
 	Super::BeginPlay();
+
+	PhysicsConstraint->SetConstrainedComponents(HangingPoint, NAME_None, SwingingHazard, NAME_None);
 	
-	GetWorldTimerManager().SetTimer(StartSwingDelayTimerHandle, this, &ASwingingHazard::StartSwingDelayFinished, StartSwingDelay, false);
+	// GetWorldTimerManager().SetTimer(StartSwingDelayTimerHandle, this, &ASwingingHazard::StartSwingDelayFinished, StartSwingDelay, false);
 
 }
 
@@ -62,6 +64,31 @@ void ASwingingHazard::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	DeltaSeconds = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
+
+	// If swinging on X-axis
+	if (ImpulseVector.X > ImpulseVector.Y || ImpulseVector.X > ImpulseVector.Z)
+	{
+		RotationToCheck = SwingingHazard->GetRelativeRotation().Pitch;
+	}
+	// If swinging on Y-axis
+	else if (ImpulseVector.Y > ImpulseVector.Z || ImpulseVector.Y > ImpulseVector.X)
+	{
+		RotationToCheck = SwingingHazard->GetRelativeRotation().Roll;
+	}
+	// If swinging on Z-axis
+	else if (ImpulseVector.Z > ImpulseVector.X || ImpulseVector.Z > ImpulseVector.Y)
+	{
+		RotationToCheck = SwingingHazard->GetRelativeRotation().Yaw;
+	}
+
+	if (bSwingingClockwise)
+	{
+		SwingClockwise();
+	} 
+	else if (!bSwingingClockwise)
+	{
+		SwingAnticlockwise();
+	}
 }
 
 
@@ -76,7 +103,7 @@ void ASwingingHazard::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, 
 		PlayerCharacter->SetIsRagdollDeath(true);
 		PlayerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		PlayerCharacter->TakeDamage(PlayerCharacter->GetCurrentHealth(), DamageEvent, nullptr, GetOwner());
-		PlayerCharacter->GetMesh()->AddImpulse(SwingingHazard->GetComponentVelocity());
+		// PlayerCharacter->GetMesh()->AddImpulse(SwingingHazard->GetComponentVelocity());
 	}
 }
 
@@ -85,7 +112,7 @@ void ASwingingHazard::StartSwingDelayFinished()
 {
 	GetWorldTimerManager().ClearTimer(StartSwingDelayTimerHandle);
 
-	if (!SwingingAnticlockwiseFirst)
+	if (!bSwingingClockwise)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::BeginPlay SwingClockwise timer started"));
 		GetWorldTimerManager().SetTimer(SwingClockwiseTimerHandle, this, &ASwingingHazard::SwingClockwise, DeltaSeconds, true);
@@ -99,31 +126,33 @@ void ASwingingHazard::StartSwingDelayFinished()
 
 void ASwingingHazard::SwingClockwise()
 {
-	SwingingHazard->AddImpulse(ImpulseVector);
+	SwingingHazard->AddImpulse(ImpulseVector * DeltaSeconds);
 
 	UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingClockwise called"));
 
-	if (SwingingHazard->GetRelativeRotation().Pitch > DirectionChangeAngle)
+	if (RotationToCheck > DirectionChangeAngle)
 	{
-		SwingingHazard->SetAllPhysicsLinearVelocity({ImpulseVector.X * 0.1f, ImpulseVector.Y * 0.1f, ImpulseVector.Z * 0.1f }, false);
-		UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingClockwise ended"));
-		GetWorldTimerManager().ClearTimer(SwingClockwiseTimerHandle);
-		GetWorldTimerManager().SetTimer(SwingAnticlockwiseTimerHandle, this, &ASwingingHazard::SwingAnticlockwise, DeltaSeconds, true);
+		SwingingHazard->SetAllPhysicsLinearVelocity({ (ImpulseVector.X * 0.1f) * DeltaSeconds, (ImpulseVector.Y * 0.1f) * DeltaSeconds, (ImpulseVector.Z * 0.1f) * DeltaSeconds }, false);
+		bSwingingClockwise = false;
+		// UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingClockwise ended"));
+		// GetWorldTimerManager().ClearTimer(SwingClockwiseTimerHandle);
+		// GetWorldTimerManager().SetTimer(SwingAnticlockwiseTimerHandle, this, &ASwingingHazard::SwingAnticlockwise, DeltaSeconds, true);
 	}
 }
 
 void ASwingingHazard::SwingAnticlockwise()
 {
 	// SwingingHazard->AddImpulse({ (ImpulseVector.X * -1), (ImpulseVector.Y * -1), (ImpulseVector.Z * -1) });
-	SwingingHazard->AddImpulse(-ImpulseVector);
+	SwingingHazard->AddImpulse(-ImpulseVector * DeltaSeconds);
 
 	UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingAnticlockwise called"));
 
-	if (SwingingHazard->GetRelativeRotation().Pitch < -DirectionChangeAngle)
+	if (RotationToCheck< -DirectionChangeAngle)
 	{
-		SwingingHazard->SetAllPhysicsLinearVelocity({ -ImpulseVector.X * 0.1f, -ImpulseVector.Y * 0.1f, -ImpulseVector.Z * 0.1f }, false);
-		UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingAnticlockwise ended"));
-		GetWorldTimerManager().ClearTimer(SwingAnticlockwiseTimerHandle);
-		GetWorldTimerManager().SetTimer(SwingClockwiseTimerHandle, this, &ASwingingHazard::SwingClockwise, DeltaSeconds, true);
+		SwingingHazard->SetAllPhysicsLinearVelocity({ (- ImpulseVector.X * 0.1f) * DeltaSeconds, (- ImpulseVector.Y * 0.1f) * DeltaSeconds, (- ImpulseVector.Z * 0.1f) * DeltaSeconds }, false);
+		bSwingingClockwise = true;
+		// UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingAnticlockwise ended"));
+		// GetWorldTimerManager().ClearTimer(SwingAnticlockwiseTimerHandle);
+		// GetWorldTimerManager().SetTimer(SwingClockwiseTimerHandle, this, &ASwingingHazard::SwingClockwise, DeltaSeconds, true);
 	}
 }

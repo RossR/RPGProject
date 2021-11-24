@@ -11,6 +11,7 @@ class UCableComponent;
 class UPhysicsConstraintComponent;
 class UCapsuleComponent;
 
+
 UCLASS()
 class RPGPROJECT_API ASwingingHazard : public AActor
 {
@@ -55,7 +56,7 @@ public:
 	UCapsuleComponent* TriggerCapsule;
 
 	UPROPERTY(EditAnywhere)
-	bool SwingingAnticlockwiseFirst;
+	bool bSwingingClockwise;
 
 	UPROPERTY(EditAnywhere)
 	float StartSwingDelay;
@@ -69,6 +70,8 @@ public:
 protected:
 	
 	float DeltaSeconds;
+
+	float RotationToCheck;
 
 	FTimerHandle StartSwingDelayTimerHandle;
 	FTimerHandle SwingClockwiseTimerHandle;
