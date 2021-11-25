@@ -17,7 +17,7 @@ public:
 	UStaminaComponent();
 
 	void TakeStaminaDamage(float Damage);
-	bool IsTired() { return CurrentStamina <= FLT_EPSILON; }
+	bool IsStaminaExhausted() { return CurrentStamina <= FLT_EPSILON; }
 
 	UFUNCTION(BlueprintCallable)
 	float GetMaxStamina() { return MaxStamina; }

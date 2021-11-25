@@ -3,6 +3,7 @@
 
 #include "Characters/RPGProjectPlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/ChildActorComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -16,6 +17,7 @@
 #include "Actors/Components/HealthComponent.h"
 #include "Actors/Components/StaminaComponent.h"
 #include "Actors/Components/DamageHandlerComponent.h"
+#include "Actors/Weapons/WeaponBase.h"
 
 
 
@@ -34,6 +36,7 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 
 	PlayerMoveState = EPlayerMoveState::PMS_Idle;
 	PlayerCombatState = EPlayerCombatState::PCS_Relaxed;
+	EquippedWeaponType = EWeaponType::WT_Unarmed;
 
 	LastPlayerMoveState = PlayerMoveState;
 	LastPlayerCombatState = PlayerCombatState;
@@ -50,8 +53,9 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	
-	IsCrouched = false;
-	IsRagdollDeath = false;
+	bIsCrouched = false;
+	bIsRagdollDeath = false;
+	bIsExhausted = false;
 
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
@@ -83,6 +87,8 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	
 	DamageHandlerComponent = CreateDefaultSubobject<UDamageHandlerComponent>(TEXT("DamageHandlerComponent"));
 
+	EquippedWeapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquippedWeapon"));
+	EquippedWeapon->SetupAttachment(GetMesh(), FName("BackSheath"));
 	// Tags.Add("Player");
 
 }
@@ -103,6 +109,7 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 
 	Super::Tick(DeltaTime);
 
+	CheckCharacterExhaustion();
 	
 }
 
@@ -152,6 +159,23 @@ void ARPGProjectPlayerCharacter::OnDeathTimerFinished()
 	{
 		PlayerController->RestartLevel();
 	}
+}
+
+void ARPGProjectPlayerCharacter::CheckCharacterExhaustion()
+{
+
+	if (StaminaComponent)
+	{
+		if (StaminaComponent->IsStaminaExhausted())
+		{
+			bIsExhausted = true;
+		}
+		else
+		{
+			bIsExhausted = false;
+		}
+	}
+
 }
 
 float ARPGProjectPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)

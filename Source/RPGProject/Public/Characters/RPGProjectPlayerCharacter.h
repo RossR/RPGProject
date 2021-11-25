@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Actors/Weapons/WeaponBase.h"
 #include "RPGProjectPlayerCharacter.generated.h"
 
 
@@ -33,6 +34,7 @@ class UParticleSystemComponent;
 class UHealthComponent;
 class UStaminaComponent;
 class UDamageHandlerComponent;
+class UChildActorComponent;
 
 UCLASS(BlueprintType)
 class RPGPROJECT_API ARPGProjectPlayerCharacter : public ACharacter
@@ -54,6 +56,7 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+	UFUNCTION(BlueprintCallable)
 	void TakeStaminaDamage(float Damage);
 
 	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
@@ -74,11 +77,14 @@ public:
 	bool IsStaminaFull();
 
 	UFUNCTION(BlueprintCallable)
-	void SetIsCrouched(bool IsActive) { IsCrouched = IsActive; }
+	bool IsCharacterExhausted() { return bIsExhausted; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetIsCrouched(bool IsActive) { bIsCrouched = IsActive; }
 
 	UFUNCTION(BlueprintCallable)
 	// Returns true if the character is crouching
-	bool GetIsCrouched() { return IsCrouched; }
+	bool GetIsCrouched() { return bIsCrouched; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetPlayerMoveState(EPlayerMoveState NewState);
@@ -97,12 +103,17 @@ public:
 	bool HasPlayerCombatStateChanged() { return PlayerCombatState != LastPlayerCombatState; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetIsRagdollDeath(bool IsActive) { IsRagdollDeath = IsActive; }
+	void SetIsRagdollDeath(bool IsActive) { bIsRagdollDeath = IsActive; }
 	UFUNCTION(BlueprintCallable)
-	bool GetIsRagdollDeath() { return IsRagdollDeath; }
+	bool GetIsRagdollDeath() { return bIsRagdollDeath; }
 
 	UFUNCTION(BlueprintCallable)
 	void ActivateRagdollCamera();
+
+	UFUNCTION(BlueprintCallable)
+	void SetEquippedWeaponType(EWeaponType NewType) { EquippedWeaponType = NewType; }
+	UFUNCTION(BlueprintCallable)
+	EWeaponType GetEquippedWeaponType() { return EquippedWeaponType; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -112,6 +123,8 @@ protected:
 
 	UFUNCTION()
 	void OnDeathTimerFinished();
+
+	void CheckCharacterExhaustion();
 
 public:
 
@@ -168,8 +181,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "On Death")
 	float TimeRestartAfterDeath = 5.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipped Weapon")
+	UChildActorComponent* EquippedWeapon;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Equipped Weapon")
+	EWeaponType EquippedWeaponType;
+
 	FTimerHandle RestartLevelTimerHandle;
 
-	bool IsCrouched;
-	bool IsRagdollDeath;
+	bool bIsCrouched;
+	bool bIsRagdollDeath;
+	bool bIsExhausted;
 };
