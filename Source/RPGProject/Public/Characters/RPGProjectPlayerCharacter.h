@@ -23,7 +23,7 @@ enum class EPlayerMoveState : uint8
 UENUM(BlueprintType)
 enum class EPlayerCombatState : uint8
 {
-	PCS_Relaxed UMETA(DisplayName = "Relaxed"),
+	PCS_AtEase UMETA(DisplayName = "At Ease"),
 	PCS_CombatReady UMETA(DisplayName = "Combat Ready"),
 
 	PCS_Max UMETA(Hidden)
@@ -78,6 +78,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool IsCharacterExhausted() { return bIsExhausted; }
+
+	UFUNCTION(BlueprintCallable)
+	bool IsCharacterFalling() { return bIsFalling; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetIsCrouched(bool IsActive) { bIsCrouched = IsActive; }
@@ -192,4 +195,5 @@ protected:
 	bool bIsCrouched;
 	bool bIsRagdollDeath;
 	bool bIsExhausted;
+	bool bIsFalling;
 };

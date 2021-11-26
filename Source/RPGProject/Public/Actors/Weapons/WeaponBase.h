@@ -11,9 +11,23 @@ class UStaticMeshComponent;
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
-	WT_None UMETA(DisplayName="None"),
-	WT_Unarmed UMETA(DisplayName="Unarmed"),
-	WT_Sword UMETA(DisplayName="Sword"),
+	WT_None				UMETA(DisplayName="None"),
+	WT_Unarmed			UMETA(DisplayName = "Unarmed"),
+	WT_Item				UMETA(DisplayName = "Item"),
+	WT_1HandDagger		UMETA(DisplayName = "One-handed Dagger"),
+	WT_1HandMace		UMETA(DisplayName = "One-handed Mace"),
+	WT_1HandPistol		UMETA(DisplayName = "One-handed Pistol"),
+	WT_1HandSpear		UMETA(DisplayName = "One-handed Spear"),
+	WT_1HandSword		UMETA(DisplayName = "One-handed Sword"),
+	WT_2HandAxe			UMETA(DisplayName = "Two-handed Axe"),
+	WT_2HandBow			UMETA(DisplayName = "Two-handed Bow"),
+	WT_2HandCrossbow	UMETA(DisplayName = "Two-handed Crossbow"),
+	WT_2HandShooter		UMETA(DisplayName = "Two-handed Shooter"),
+	WT_2HandSpear		UMETA(DisplayName = "Two-handed Spear"),
+	WT_2HandStaff		UMETA(DisplayName = "Two-handed Staff"),
+	WT_2HandSword		UMETA(DisplayName = "Two-handed Sword"),
+	WT_1HandShield		UMETA(DisplayName = "One-handed Shield"),
+
 
 	WT_Max UMETA(Hidden)
 };
@@ -78,10 +92,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	FWeaponInfo WeaponInfo
 	{
-		"WeaponBase", 
-		EWeaponType::WT_Unarmed, 
+		// Weapon Name
+		"WeaponBase",
+		// Weapon Type
+		EWeaponType::WT_None, 
+		// Weapon Weight
 		0.0f, 
+		// Weapon Condition
 		100.0f,
+		// Weapon Damage
 		50.0f,
 	};
 

@@ -112,9 +112,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
 	int32 CharacterMinAnalogWalkSpeed;
 
-	UPROPERTY(EditAnywhere)
-	float StaminaRegenDelay;
-
 	ARPGProjectPlayerCharacter* PlayerCharacter;
 
 	FTimerHandle SprintStaminaDrainTimerHandle;

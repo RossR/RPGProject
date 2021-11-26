@@ -35,7 +35,7 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	BaseLookUpRate = 70.0f;
 
 	PlayerMoveState = EPlayerMoveState::PMS_Idle;
-	PlayerCombatState = EPlayerCombatState::PCS_Relaxed;
+	PlayerCombatState = EPlayerCombatState::PCS_AtEase;
 	EquippedWeaponType = EWeaponType::WT_Unarmed;
 
 	LastPlayerMoveState = PlayerMoveState;
@@ -88,7 +88,7 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	DamageHandlerComponent = CreateDefaultSubobject<UDamageHandlerComponent>(TEXT("DamageHandlerComponent"));
 
 	EquippedWeapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquippedWeapon"));
-	EquippedWeapon->SetupAttachment(GetMesh(), FName("BackSheath"));
+	EquippedWeapon->SetupAttachment(GetMesh(), FName("SheathRBack"));
 	// Tags.Add("Player");
 
 }
@@ -97,6 +97,7 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 void ARPGProjectPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	
 	//GetComponents<UArrowComponent>(ArrowArray);
 }
@@ -108,6 +109,8 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 	// ControlInputVector;
 
 	Super::Tick(DeltaTime);
+
+	bIsFalling = GetVelocity().Z != 0;
 
 	CheckCharacterExhaustion();
 	

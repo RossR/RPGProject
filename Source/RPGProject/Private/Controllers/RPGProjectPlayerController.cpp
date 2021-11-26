@@ -32,7 +32,7 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 	WalkMovementSpeed = 150;
 	CrouchMovementSpeed = MovementSpeed * CrouchSpeedMultiplier;
 	SprintMovementSpeed = MovementSpeed * SprintSpeedMultiplier;
-	CombatMovementSpeed = 300 * CombatSpeedMultiplier;
+	CombatMovementSpeed = MovementSpeed * CombatSpeedMultiplier;
 
 }
 
@@ -76,12 +76,6 @@ void ARPGProjectPlayerController::BeginPlay()
 
 	PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(GetCharacter());
 
-	SprintSpeedMultiplier = 1.5f;
-	CrouchSpeedMultiplier = 0.66f;
-	CombatSpeedMultiplier = 0.5f;
-
-	MovementSpeed = 600;
-	WalkMovementSpeed = 150;
 	CrouchMovementSpeed = MovementSpeed * CrouchSpeedMultiplier;
 	SprintMovementSpeed = MovementSpeed * SprintSpeedMultiplier;
 	CombatMovementSpeed = MovementSpeed * CombatSpeedMultiplier;
@@ -133,23 +127,18 @@ void ARPGProjectPlayerController::TickMovementUpdate()
 {
 	if (PlayerCharacter)
 	{
-		if (true)// PlayerCharacter->HasPlayerCombatStateChanged())
+		switch (PlayerCharacter->GetPlayerCombatState())
 		{
-			// PlayerCharacter->SetPlayerCombatState(PlayerCharacter->GetPlayerCombatState());
-
-			switch (PlayerCharacter->GetPlayerCombatState())
+			case EPlayerCombatState::PCS_AtEase:
 			{
-				case EPlayerCombatState::PCS_Relaxed:
-				{
-					RelaxedMovementUpdate();
-					break;
-				}
-				case EPlayerCombatState::PCS_CombatReady:
-				{
-					CombatMovementUpdate();
-					StopAiming();
-					break;
-				}
+				RelaxedMovementUpdate();
+				break;
+			}
+			case EPlayerCombatState::PCS_CombatReady:
+			{
+				CombatMovementUpdate();
+				StopAiming();
+				break;
 			}
 		}
 	}
@@ -314,8 +303,11 @@ void ARPGProjectPlayerController::SprintTimerFinished()
 	if (PlayerCharacter)
 	{
 		float Damage = PlayerCharacter->StaminaDamagePerInterval;
-		
-		if (CharacterSpeed > 0)	{ PlayerCharacter->TakeStaminaDamage(Damage); }
+
+		if (CharacterSpeed > 0  && !PlayerCharacter->IsCharacterFalling())	
+		{ 
+			PlayerCharacter->TakeStaminaDamage(Damage); 
+		}
 	}
 }
 
@@ -450,7 +442,7 @@ void ARPGProjectPlayerController::Aim()
 {
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->GetPlayerCombatState() == EPlayerCombatState::PCS_Relaxed)
+		if (PlayerCharacter->GetPlayerCombatState() == EPlayerCombatState::PCS_AtEase)
 		{
 			PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
 			PlayerCharacter->bUseControllerRotationYaw = true;
