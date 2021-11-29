@@ -19,6 +19,8 @@
 #include "Actors/Components/DamageHandlerComponent.h"
 #include "Actors/Weapons/WeaponBase.h"
 
+#include "Controllers/RPGProjectPlayerController.h"
+
 
 
 // Sets default values
@@ -97,6 +99,8 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 void ARPGProjectPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	PC = Cast<ARPGProjectPlayerController>(GetWorld()->GetFirstPlayerController());
 	
 	//GetComponents<UArrowComponent>(ArrowArray);
 }
@@ -217,6 +221,9 @@ void ARPGProjectPlayerCharacter::HandleItemCollected()
 	ItemsCollected++;
 
 	// Play effects here
+	PC->PlayerCameraManager->StartCameraShake(CamShake, 1.0f);
+
+	PC->PlayDynamicForceFeedback(ForceFeedbackIntensity, ForceFeedbackDuration, true, false, true, false, EDynamicForceFeedbackAction::Start);
 
 	ItemCollected();
 }

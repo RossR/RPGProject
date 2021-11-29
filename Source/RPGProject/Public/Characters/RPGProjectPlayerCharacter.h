@@ -29,12 +29,16 @@ enum class EPlayerCombatState : uint8
 	PCS_Max UMETA(Hidden)
 };
 
+class ARPGProjectPlayerController;
+
+class UCameraShakeBase;
 class UParticleSystemComponent;
+class UChildActorComponent;
 
 class UHealthComponent;
 class UStaminaComponent;
 class UDamageHandlerComponent;
-class UChildActorComponent;
+
 
 UCLASS(BlueprintType)
 class RPGPROJECT_API ARPGProjectPlayerCharacter : public ACharacter
@@ -141,6 +145,8 @@ protected:
 
 	void CheckCharacterExhaustion();
 
+
+
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -178,6 +184,11 @@ public:
 
 protected:
 
+	ARPGProjectPlayerController* PC;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	TSubclassOf<UCameraShakeBase> CamShake;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseTurnRate;
 
@@ -211,4 +222,11 @@ protected:
 	bool bIsRagdollDeath;
 	bool bIsExhausted;
 	bool bIsFalling;
+
+	// Force Feedback values
+	UPROPERTY(EditAnywhere, Category = "Force Feedback")
+	float ForceFeedbackIntensity = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Force Feedback")
+	float ForceFeedbackDuration = 1.0f;
+
 };
