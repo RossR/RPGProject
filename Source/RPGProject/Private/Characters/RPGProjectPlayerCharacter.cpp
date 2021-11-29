@@ -98,7 +98,6 @@ void ARPGProjectPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	
 	//GetComponents<UArrowComponent>(ArrowArray);
 }
 
@@ -213,6 +212,15 @@ void ARPGProjectPlayerCharacter::SetOnFire(float BaseDamage, float DamageTotalTi
 	}
 }
 
+void ARPGProjectPlayerCharacter::HandleItemCollected()
+{
+	ItemsCollected++;
+
+	// Play effects here
+
+	ItemCollected();
+}
+
 void ARPGProjectPlayerCharacter::MoveCameraToArrowLocation(FName ArrowName)
 {
 	UArrowComponent* ArrowComp = Cast<UArrowComponent>(GetDefaultSubobjectByName(ArrowName));
@@ -290,4 +298,14 @@ void ARPGProjectPlayerCharacter::ActivateRagdollCamera()
 {
 	CameraArm->SetupAttachment(GetMesh(), FName("CameraSocket"));
 	CameraArm->SetRelativeLocation(FVector(0, 0, 0));
+}
+
+void ARPGProjectPlayerCharacter::SetCapsuleHeight(float NewCapsuleHeight)
+{ 
+	GetCapsuleComponent()->SetCapsuleHalfHeight(NewCapsuleHeight); 
+}
+
+void ARPGProjectPlayerCharacter::ResetCapsuleHeight() 
+{ 
+	GetCapsuleComponent()->SetCapsuleHalfHeight(96.0f); 
 }

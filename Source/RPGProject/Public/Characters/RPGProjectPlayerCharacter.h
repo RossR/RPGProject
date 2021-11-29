@@ -62,6 +62,12 @@ public:
 	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
 
 	UFUNCTION(BlueprintCallable)
+	void HandleItemCollected();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ItemCollected();
+
+	UFUNCTION(BlueprintCallable)
 	void MoveCameraToArrowLocation(FName ArrowName);
 
 	UFUNCTION(BlueprintCallable)
@@ -88,6 +94,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	// Returns true if the character is crouching
 	bool GetIsCrouched() { return bIsCrouched; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetCapsuleHeight(float NewCapsuleHeight);
+
+	UFUNCTION(BlueprintCallable)
+	void ResetCapsuleHeight();
 
 	UFUNCTION(BlueprintCallable)
 	void SetPlayerMoveState(EPlayerMoveState NewState);
@@ -160,6 +172,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stamina)
 	float StaminaDamagePerInterval = 1.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int ItemsCollected = 0;
 
 protected:
 

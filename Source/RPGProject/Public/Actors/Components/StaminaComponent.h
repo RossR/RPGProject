@@ -46,7 +46,7 @@ protected:
 	float StaminaRegenInterval;
 
 	UPROPERTY(EditAnywhere)
-	float StaminaRegenDelay = 5.0f;
+	float StaminaRegenDelay = 2.5f;
 
 	UPROPERTY(VisibleAnywhere)
 	bool IsRegeneratingStamina = true;

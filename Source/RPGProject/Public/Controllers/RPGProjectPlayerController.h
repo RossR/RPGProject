@@ -112,6 +112,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
 	int32 CharacterMinAnalogWalkSpeed;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = CharacterMovement)
+	float CapsuleCrouchHeight;
+
 	ARPGProjectPlayerCharacter* PlayerCharacter;
 
 	FTimerHandle SprintStaminaDrainTimerHandle;

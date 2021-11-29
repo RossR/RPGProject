@@ -34,6 +34,7 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 	SprintMovementSpeed = MovementSpeed * SprintSpeedMultiplier;
 	CombatMovementSpeed = MovementSpeed * CombatSpeedMultiplier;
 
+	CapsuleCrouchHeight = 68.0f;
 }
 
 void ARPGProjectPlayerController::SetupInputComponent()
@@ -394,6 +395,8 @@ void ARPGProjectPlayerController::HoldCrouch()
 	{
 		PlayerCharacter->SetIsCrouched(true);
 		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Crouching);
+		PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
+		PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 1.0f) });
 	}
 
 	/*
@@ -408,6 +411,8 @@ void ARPGProjectPlayerController::StopCrouching()
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->SetIsCrouched(false);
+		PlayerCharacter->ResetCapsuleHeight();
+		PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-95.0f });
 		
 		if (PlayerCharacter->GetPlayerMoveState() == EPlayerMoveState::PMS_Crouching)
 		{
@@ -430,6 +435,8 @@ void ARPGProjectPlayerController::ToggleCrouch()
 		if (PlayerCharacter->GetIsCrouched())
 		{
 			PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Crouching);
+			PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
+			PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 1.0f) });
 		}
 		else if (!PlayerCharacter->GetIsCrouched())
 		{
