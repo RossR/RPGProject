@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Components/TextRenderComponent.h"
+#include "Components/AudioComponent.h"
 #include "InteractionComponent.generated.h"
 
 class AActor;
@@ -12,7 +14,7 @@ class UPrimitiveComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionSuccess);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class RPGPROJECT_API UInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -45,6 +47,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void InteractionCancel();
 
+	UFUNCTION(BlueprintCallable)
+	virtual void InteractionRequested();
+
 protected:
 
 	UPROPERTY(EditAnywhere)
@@ -57,5 +62,8 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere)
 	AActor* InteractingActor;
+
+	UAudioComponent* AudioComponent;
+	UTextRenderComponent* TextRenderComponent;
 
 };

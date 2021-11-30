@@ -12,7 +12,7 @@
 #include "Actors/Components/InteractionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
-
+#include "Characters/RPGProjectPlayerCharacter.h"
 
 constexpr float FLT_METERS(float meters) { return meters * 100.0f; }
 
@@ -47,6 +47,16 @@ void UDoorInteractionComponent::BeginPlay()
 	// Ensure TimeToRotate is greater than EPSILON
 	CurrentRotationTime = 0.0f;
 
+	AudioComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+	// Causes crash if fails
+	// check(AudioComponent);
+
+	if (!AudioComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UDoorInteractionComponent::BeginPlay Missing Audio Component"));
+	}
+
+	TextRenderComponent = GetOwner()->FindComponentByClass<UTextRenderComponent>();
 }
 
 void UDoorInteractionComponent::InteractionStart()
@@ -58,7 +68,9 @@ void UDoorInteractionComponent::InteractionStart()
 	if (InteractingActor)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UDoorInterationComponent::InteractionStart OpenDoor called"));
-		OpenDoor();
+		// OpenDoor();
+
+		InteractionRequested();
 		
 	}
 }
@@ -72,29 +84,38 @@ void UDoorInteractionComponent::InteractionCancel()
 	CloseDoor();
 }
 
+void UDoorInteractionComponent::InteractionRequested()
+{
+	Super::InteractionRequested();
+
+	// Check that the interacting actor is allowed to interact
+	if (InteractingActor)
+	{
+		// What is bActive used for?
+		// bActive = false;
+		if (TextRenderComponent)
+		{
+			TextRenderComponent->SetText(InteractionPrompt);
+			TextRenderComponent->SetVisibility(false);
+		}
+
+		ARPGProjectPlayerCharacter* PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(InteractingActor);
+		if (PlayerCharacter)
+		{
+			PlayerCharacter->DoorOpenInteractionStarted(GetOwner());
+		}
+
+		// This will be called from the owner to be in sync with animation
+		//OpenDoor();
+	}
+}
+
 // Called every frame
 void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (DoorState == EDoorState::DS_Closed)
-	{
-		/*
-		if (TriggerCapsule && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
-		{
-			APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
-			if (PlayerPawn && TriggerCapsule->IsOverlappingActor(PlayerPawn))
-			{
-				DoorState = EDoorState::DS_Opening;
-			}
-			else if (PlayerPawn && TriggerCapsule->IsOverlappingActor(PlayerPawn) == false)
-			{
-				DoorState = EDoorState::DS_Closed;
-			}
-		}
-		*/
-	}
-	else if (DoorState == EDoorState::DS_Opening)
+	if (DoorState == EDoorState::DS_Opening)
 	{
 		CurrentRotationTime += DeltaTime;
 		const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
@@ -105,17 +126,6 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		{
 			OnDoorOpen();
 		}
-		/*
-		if (TriggerCapsule && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
-		{
-			APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
-			if (PlayerPawn && TriggerCapsule->IsOverlappingActor(PlayerPawn))
-			{
-				DoorState = EDoorState::DS_Opening;
-
-
-			}
-		*/
 	}
 	else if (DoorState == EDoorState::DS_Open)
 	{
@@ -152,6 +162,11 @@ void UDoorInteractionComponent::OpenDoor()
 	if (IsOpen() || DoorState == EDoorState::DS_Opening)
 	{
 		return;
+	}
+
+	if (AudioComponent)
+	{
+		AudioComponent->Play();
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("ADoorInteractionComponent::OpenDoor door is opening"));

@@ -34,6 +34,10 @@ public:
 
 	static void OnDebugToggled(IConsoleVariable* Var);
 
+	// Request to open the door
+	UFUNCTION(BlueprintCallable)
+	void OpenDoor();
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -44,9 +48,9 @@ protected:
 	// Bound to interaction input from playercontroller
 	void InteractionCancel() override;
 
-	// Request to open the door
-	UFUNCTION(BlueprintCallable)
-	void OpenDoor();
+	void InteractionRequested() override;
+
+	
 
 	// Request to close the door
 	UFUNCTION(BlueprintCallable)

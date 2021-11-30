@@ -71,6 +71,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ItemCollected();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoorOpenInteractionStarted(AActor* InteractableActor);
+
 	UFUNCTION(BlueprintCallable)
 	void MoveCameraToArrowLocation(FName ArrowName);
 

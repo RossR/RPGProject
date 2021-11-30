@@ -11,6 +11,8 @@
 // #include "PlayerCharacter.h"
 // #include "Weapon.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/TextRenderComponent.h"
+#include "Components/AudioComponent.h"
 
 // Sets default values for this component's properties
 UInteractionComponent::UInteractionComponent()
@@ -61,7 +63,7 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 
 	if (InteractingActor)
 	{
-		DrawDebugString(GetWorld(), PromptOffset, InteractionPrompt.ToString(), GetOwner(), FColor::Blue, 0.0f);
+		// DrawDebugString(GetWorld(), PromptOffset, InteractionPrompt.ToString(), GetOwner(), FColor::Blue, 0.0f);
 	}
 }
 
@@ -74,6 +76,12 @@ void UInteractionComponent::OnOverlapBegin(class UPrimitiveComponent* Overlapped
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UInteractionComponent::OnOverlapBegin OtherActor is Player!"));
 		InteractingActor = OtherActor;
+
+		if (TextRenderComponent)
+		{
+			TextRenderComponent->SetText(InteractionPrompt);
+			TextRenderComponent->SetVisibility(true);
+		}
 	}
 	else if (!OtherActor->ActorHasTag("Player"))
 	{
@@ -86,6 +94,11 @@ void UInteractionComponent::OnOverlapEnd(class UPrimitiveComponent* OverlappedCo
 	UE_LOG(LogTemp, Warning, TEXT("UInteractionComponent::OnOverlapEnd"));
 
 	InteractingActor = nullptr;
+
+	if (TextRenderComponent)
+	{
+		TextRenderComponent->SetVisibility(false);
+	}
 }
 
 // BeginPlay bind
@@ -99,4 +112,9 @@ void UInteractionComponent::InteractionStart()
 void UInteractionComponent::InteractionCancel()
 {
 	UE_LOG(LogTemp, Warning, TEXT("UInteractionComponent::InteractionCancel called"));
+}
+
+void UInteractionComponent::InteractionRequested()
+{
+	UE_LOG(LogTemp, Warning, TEXT("UInteractionComponent::InteractionRequested called"));
 }
