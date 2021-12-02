@@ -66,6 +66,7 @@ protected:
 
 	void SprintTimerFinished();
 
+	void CalculateDesiredActorRotation();
 	void CheckSpeedToSetMoveState();
 
 protected:
@@ -76,44 +77,62 @@ protected:
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
 	float CharacterSpeed;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	int32 MovementSpeed;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	int32 CombatMovementSpeed;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	int32 WalkMovementSpeed;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
 	int32 CrouchMovementSpeed;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
 	int32 SprintMovementSpeed;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	float CombatSpeedMultiplier;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	float SprintSpeedMultiplier;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	float CrouchSpeedMultiplier;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	int32 WalkingMaxAcceleration;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	int32 SprintingMaxAcceleration;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	int32 CharacterMinAnalogWalkSpeed;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = CharacterMovement)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement")
 	float CapsuleCrouchHeight;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
+	FRotator DesiredActorRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
+	FRotator PlayerInputRotation = FRotator::ZeroRotator;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement")
+	float CharacterTurnSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
+	float ForwardValue;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
+	float RightValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CharacterMovement")
+	bool bIsMovementStopped;
+	
 
 	ARPGProjectPlayerCharacter* PlayerCharacter;
 

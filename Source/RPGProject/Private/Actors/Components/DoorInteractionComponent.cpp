@@ -67,7 +67,7 @@ void UDoorInteractionComponent::InteractionStart()
 	
 	if (InteractingActor)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UDoorInterationComponent::InteractionStart OpenDoor called"));
+		// UE_LOG(LogTemp, Warning, TEXT("UDoorInterationComponent::InteractionStart OpenDoor called"));
 		// OpenDoor();
 
 		InteractionRequested();
@@ -88,9 +88,12 @@ void UDoorInteractionComponent::InteractionRequested()
 {
 	Super::InteractionRequested();
 
+	UE_LOG(LogTemp, Warning, TEXT("UDoorInteractionComponent::InteractionRequested called"))
+
 	// Check that the interacting actor is allowed to interact
 	if (InteractingActor)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UDoorInteractionComponent::InteractionRequested Actor is Player"))
 		// What is bActive used for?
 		// bActive = false;
 		if (TextRenderComponent)

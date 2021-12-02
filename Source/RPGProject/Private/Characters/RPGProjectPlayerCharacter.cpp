@@ -51,13 +51,14 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Character Movement settings
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	
 	bIsCrouched = false;
 	bIsRagdollDeath = false;
 	bIsExhausted = false;
+	bIsAttacking = false;
 
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
@@ -65,6 +66,9 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	CameraArm->SetRelativeLocation(FVector(0, 0, 40.0f));
 	CameraArm->TargetArmLength = 400.0f;
 	CameraArm->bUsePawnControlRotation = true;
+	CameraArm->bInheritPitch = true;
+	CameraArm->bInheritYaw = true;
+	CameraArm->bInheritRoll = false;
 	CameraArm->bEnableCameraLag = true;
 	CameraArm->CameraLagSpeed = 10.0f;
 

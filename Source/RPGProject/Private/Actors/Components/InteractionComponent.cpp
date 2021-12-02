@@ -93,7 +93,10 @@ void UInteractionComponent::OnOverlapEnd(class UPrimitiveComponent* OverlappedCo
 {
 	UE_LOG(LogTemp, Warning, TEXT("UInteractionComponent::OnOverlapEnd"));
 
-	InteractingActor = nullptr;
+	if (OtherActor->ActorHasTag("Player"))
+	{
+		InteractingActor = nullptr;
+	}
 
 	if (TextRenderComponent)
 	{

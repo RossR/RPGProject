@@ -19,6 +19,9 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 	BaseTurnRate = 70.0f;
 	BaseLookUpRate = 70.0f;
 	
+	CharacterTurnSpeed = 10.0f;
+	bIsMovementStopped = false;
+
 	// Variables for movement functions
 	SprintSpeedMultiplier = 1.5f;
 	CrouchSpeedMultiplier = 0.66f;
@@ -100,17 +103,7 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 	DeltaSeconds = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
 	if (PlayerCharacter) { CharacterSpeed = UKismetMathLibrary::VSizeXY(PlayerCharacter->GetVelocity()); }
 
-	/*if (PlayerCharacter)
-	{
-		if (PlayerCharacter->GetIsCrouched())
-		{
-			GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * CrouchSpeedMultiplier;
-		}
-		else if (!PlayerCharacter->GetIsCrouched() && PlayerCharacter->GetPlayerMoveState() != EPlayerMoveState::PMS_Sprinting)
-		{
-			GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-		}
-	}*/
+	CalculateDesiredActorRotation();
 
 	if (PlayerCharacter)
 	{
@@ -324,6 +317,13 @@ void ARPGProjectPlayerController::CheckSpeedToSetMoveState()
 	}
 }
 
+void ARPGProjectPlayerController::CalculateDesiredActorRotation()
+{
+	
+	PlayerInputRotation = { 0, (GetDesiredRotation().Yaw + UKismetMathLibrary::MakeRotFromX({ForwardValue, RightValue, 0}).Yaw), 0 };
+
+	DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0 }, PlayerInputRotation, DeltaSeconds, CharacterTurnSpeed);
+}
 
 //--------------------------------------------------------------
 // Action Mappings
@@ -396,7 +396,7 @@ void ARPGProjectPlayerController::HoldCrouch()
 		PlayerCharacter->SetIsCrouched(true);
 		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Crouching);
 		PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
-		PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 1.0f) });
+		PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
 	}
 
 	/*
@@ -436,7 +436,7 @@ void ARPGProjectPlayerController::ToggleCrouch()
 		{
 			PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Crouching);
 			PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
-			PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 1.0f) });
+			PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
 		}
 		else if (!PlayerCharacter->GetIsCrouched())
 		{
@@ -500,7 +500,9 @@ void ARPGProjectPlayerController::Dodge()
 
 void ARPGProjectPlayerController::MoveForward(float Value)
 {
-	if (Value != 0 && PlayerCharacter)
+	ForwardValue = Value;
+
+	if (Value != 0 && PlayerCharacter && !bIsMovementStopped)
 	{
 		// PlayerMoveState = EPlayerMoveState::PMS_Walking;
 
@@ -511,15 +513,23 @@ void ARPGProjectPlayerController::MoveForward(float Value)
 
 		PlayerCharacter->AddMovementInput(Direction, Value);
 
-		// FString DisplayValue = "MoveForward: " + FString::SanitizeFloat(Value);
-		// GEngine->AddOnScreenDebugMessage(1, 0.5, FColor::Emerald, DisplayValue);
+		// FRotator TargetRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0}, { 0, GetDesiredRotation().Yaw, 0 }, DeltaSeconds, 5.0f);
+
+		PlayerCharacter->SetActorRotation(DesiredActorRotation);
+
+		//FString DString = "MoveForward: " + Direction.ToString();
+		//GEngine->AddOnScreenDebugMessage(-1, DeltaSeconds, FColor::Yellow, DString);
+		//FString DisplayValue = "MoveForward: " + FString::SanitizeFloat(Value);
+		//GEngine->AddOnScreenDebugMessage(1, 0.5, FColor::Emerald, DisplayValue);
 
 	}
 }
 
 void ARPGProjectPlayerController::MoveRight(float Value)
 {
-	if (Value != 0 && PlayerCharacter)
+	RightValue = Value;
+
+	if (Value != 0 && PlayerCharacter && !bIsMovementStopped)
 	{
 		// PlayerMoveState = EPlayerMoveState::PMS_Walking;
 		
@@ -530,8 +540,12 @@ void ARPGProjectPlayerController::MoveRight(float Value)
 
 		PlayerCharacter->AddMovementInput(Direction, Value);
 
-		// FString DisplayValue = "MoveRight: " + FString::SanitizeFloat(Value);
-		// GEngine->AddOnScreenDebugMessage(2, 0.5, FColor::Emerald, DisplayValue);
+		PlayerCharacter->SetActorRotation(DesiredActorRotation);
+
+		//FString DString = "MoveRight: " + Direction.ToString();
+		//GEngine->AddOnScreenDebugMessage(-1, GetWorld()->GetDeltaSeconds(), FColor::Yellow, DString);
+		//FString DisplayValue = "MoveRight: " + FString::SanitizeFloat(Value);
+		//GEngine->AddOnScreenDebugMessage(2, 0.5, FColor::Emerald, DisplayValue);
 
 	}
 }

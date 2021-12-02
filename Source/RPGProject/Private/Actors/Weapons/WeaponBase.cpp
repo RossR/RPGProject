@@ -3,6 +3,8 @@
 
 #include "Actors/Weapons/WeaponBase.h"
 #include "Components/StaticMeshComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()
@@ -30,3 +32,20 @@ void AWeaponBase::Tick(float DeltaTime)
 
 }
 
+void AWeaponBase::PlayRandomAttackSound()
+{
+	if (WeaponInfo.RandomAttackSoundArray.Num() != 0)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, FString::FromInt(WeaponInfo.RandomAttackSoundArray.Num()));
+		int32 RandomItem = UKismetMathLibrary::RandomIntegerInRange(0, (WeaponInfo.RandomAttackSoundArray.Num() - 1));
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, FString::FromInt(RandomItem));
+		if (WeaponInfo.RandomAttackSoundArray[RandomItem])
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponInfo.RandomAttackSoundArray[RandomItem], GetActorLocation());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AWeaponBase::PlayRandomAttackSound Random sound is nullptr"));
+		}
+	}
+}

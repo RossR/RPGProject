@@ -114,12 +114,12 @@ void ASwingingHazard::StartSwingDelayFinished()
 
 	if (!bSwingingClockwise)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::BeginPlay SwingClockwise timer started"));
+		// UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::BeginPlay SwingClockwise timer started"));
 		GetWorldTimerManager().SetTimer(SwingClockwiseTimerHandle, this, &ASwingingHazard::SwingClockwise, DeltaSeconds, true);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::BeginPlay SwingClockwise timer started"));
+		// UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::BeginPlay SwingClockwise timer started"));
 		GetWorldTimerManager().SetTimer(SwingAnticlockwiseTimerHandle, this, &ASwingingHazard::SwingAnticlockwise, DeltaSeconds, true);
 	}
 }
@@ -128,7 +128,7 @@ void ASwingingHazard::SwingClockwise()
 {
 	SwingingHazard->AddImpulse(ImpulseVector * DeltaSeconds);
 
-	UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingClockwise called"));
+	// UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingClockwise called"));
 
 	if (RotationToCheck > DirectionChangeAngle)
 	{
@@ -145,7 +145,7 @@ void ASwingingHazard::SwingAnticlockwise()
 	// SwingingHazard->AddImpulse({ (ImpulseVector.X * -1), (ImpulseVector.Y * -1), (ImpulseVector.Z * -1) });
 	SwingingHazard->AddImpulse(-ImpulseVector * DeltaSeconds);
 
-	UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingAnticlockwise called"));
+	// UE_LOG(LogTemp, Warning, TEXT("ASwingingHazard::SwingAnticlockwise called"));
 
 	if (RotationToCheck< -DirectionChangeAngle)
 	{

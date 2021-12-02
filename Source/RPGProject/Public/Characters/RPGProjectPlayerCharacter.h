@@ -226,6 +226,9 @@ protected:
 	bool bIsExhausted;
 	bool bIsFalling;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
+	bool bIsAttacking;
+
 	// Force Feedback values
 	UPROPERTY(EditAnywhere, Category = "Force Feedback")
 	float ForceFeedbackIntensity = 1.0f;
