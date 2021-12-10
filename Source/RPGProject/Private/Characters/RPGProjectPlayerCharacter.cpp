@@ -36,14 +36,29 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	BaseTurnRate = 70.0f;
 	BaseLookUpRate = 70.0f;
 
-	PlayerMoveState = EPlayerMoveState::PMS_Idle;
+	PlayerVerticalMobilityState = EPlayerVerticalMobility::PVM_Standing;
+	PlayerHorizontalMobilityState = EPlayerHorizontalMobility::PHM_Idle;
 	PlayerCombatState = EPlayerCombatState::PCS_AtEase;
-	EquippedWeaponType = EWeaponType::WT_Unarmed;
+	PlayerActionState = EPlayerActionState::PAS_Idle;
 
-	LastPlayerMoveState = PlayerMoveState;
+	LastPlayerVerticalMobilityState = PlayerVerticalMobilityState;
+	LastPlayerHorizontalMobilityState = PlayerHorizontalMobilityState;
 	LastPlayerCombatState = PlayerCombatState;
+	LastPlayerActionState = PlayerActionState;
 
-	MovementSpeed = 600;
+	EquippedWeaponType = EWeaponType::WT_None;
+
+	// Variables for character movement
+	SprintSpeedMultiplier = 1.6875f;
+	CrouchSpeedMultiplier = 0.66f;
+	CombatSpeedMultiplier = 1.0f;
+
+	NormalMaxAcceleration = 2048;
+	SprintingMaxAcceleration = 8192;
+	CharacterMinAnalogWalkSpeed = 0;
+
+	MovementSpeed = 400;
+	WalkMovementSpeed = 150;
 	
 	// Don't rotate when the controller rotates. Let that just affect the camera. - Taken from 3rdP Character BP
 	bUseControllerRotationPitch = false;
@@ -59,6 +74,8 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	bIsRagdollDeath = false;
 	bIsExhausted = false;
 	bIsAttacking = false;
+	bCanAttack = true;
+	bIsInUninterruptableAction = false;
 
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
@@ -119,8 +136,23 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 
 	bIsFalling = GetVelocity().Z != 0;
 
+	CrouchMovementSpeed = MovementSpeed * CrouchSpeedMultiplier;
+	SprintMovementSpeed = MovementSpeed * SprintSpeedMultiplier;
+	CombatMovementSpeed = MovementSpeed * CombatSpeedMultiplier;
+
+	CurrentCharacterXYVelocity = UKismetMathLibrary::VSizeXY(GetVelocity());
+
 	CheckCharacterExhaustion();
-	
+
+	CheckPlayerVerticalMobility();
+	CheckPlayerHorizontalMobility();
+	CheckPlayerCombatState();
+	CheckPlayerActionState();
+
+	PlayerVerticalMobilityUpdate();
+	PlayerHorizontalMobilityUpdate();
+	PlayerCombatStateUpdate();
+	PlayerActionStateUpdate();
 }
 
 // Called to bind functionality to 
@@ -170,6 +202,197 @@ void ARPGProjectPlayerCharacter::OnDeathTimerFinished()
 		PlayerController->RestartLevel();
 	}
 }
+
+//--------------------------------------------------------------
+// State Machine Functions
+//--------------------------------------------------------------
+
+//-------------------------------------
+// EPlayerVerticalMobility functions
+//-------------------------------------
+
+void ARPGProjectPlayerCharacter::SetPlayerVerticalMobilityState(EPlayerVerticalMobility NewState)
+{
+	LastPlayerVerticalMobilityState = PlayerVerticalMobilityState;
+	PlayerVerticalMobilityState = NewState;
+}
+
+void ARPGProjectPlayerCharacter::CheckPlayerVerticalMobility()
+{
+
+}
+
+void ARPGProjectPlayerCharacter::PlayerVerticalMobilityUpdate()
+{
+	if (true)//HasPlayerVerticalMobilityStateChanged())
+	{
+		switch (PlayerVerticalMobilityState)
+		{
+			case EPlayerVerticalMobility::PVM_Standing:
+			{
+				break;
+			}
+			case EPlayerVerticalMobility::PVM_Crouching:
+			{
+				GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+
+				break;
+			}
+			case EPlayerVerticalMobility::PVM_Crawling:
+			{
+				break;
+			}
+			case EPlayerVerticalMobility::PVM_Jumping:
+			{
+				break;
+			}
+			case EPlayerVerticalMobility::PVM_Falling:
+			{
+				break;
+			}
+		}
+	}
+}
+
+void ARPGProjectPlayerCharacter::ClearLastPlayerVerticalMobilityStateChanges()
+{
+	// Crouch needs to stop crouching
+}
+
+//-------------------------------------
+// EPlayerHorizontalMobilty functions
+//-------------------------------------
+
+void ARPGProjectPlayerCharacter::SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility NewState)
+{
+	LastPlayerHorizontalMobilityState = PlayerHorizontalMobilityState;
+	PlayerHorizontalMobilityState = NewState;
+}
+
+void ARPGProjectPlayerCharacter::CheckPlayerHorizontalMobility()
+{
+	// Need to fix the code below so it does not override input functions of PC
+
+	/*if (PlayerHorizontalMobilityState != EPlayerHorizontalMobility::PHM_Sprinting || PlayerHorizontalMobilityState != EPlayerHorizontalMobility::PHM_Walking)
+	{
+		if (CurrentCharacterXYVelocity > WalkMovementSpeed)
+		{
+			PlayerHorizontalMobilityState = EPlayerHorizontalMobility::PHM_Jogging;
+		}
+		else if (CurrentCharacterXYVelocity == 0.0f)
+		{
+			PlayerHorizontalMobilityState = EPlayerHorizontalMobility::PHM_Idle;
+		}
+	}*/
+}
+
+void ARPGProjectPlayerCharacter::PlayerHorizontalMobilityUpdate()
+{
+	if (true)//HasPlayerHorizontalMobilityStateChanged())
+	{
+		switch (PlayerHorizontalMobilityState)
+		{
+			case EPlayerHorizontalMobility::PHM_Idle:
+			{
+				/*GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;*/
+				
+				break;
+			}
+			case EPlayerHorizontalMobility::PHM_Walking:
+			{
+				GetCharacterMovement()->MaxWalkSpeed = WalkMovementSpeed;
+				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+
+				break;
+			}
+			case EPlayerHorizontalMobility::PHM_Jogging:
+			{
+				GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+
+				break;
+			}
+			case EPlayerHorizontalMobility::PHM_Sprinting:
+			{
+				GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed;
+				GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+				GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
+				
+				if (CurrentCharacterXYVelocity > 0 && PlayerVerticalMobilityState == EPlayerVerticalMobility::PVM_Standing)
+				{
+					TakeStaminaDamage(StaminaDamagePerInterval);
+				}
+
+				break;
+			}
+		}
+	}
+}
+
+void ARPGProjectPlayerCharacter::ClearLastPlayerHorizontalMobilityStateChanges()
+{
+	//Sprint needs to stop sprinting function
+}
+
+//-------------------------------------
+// EPlayerCombatState functions
+//-------------------------------------
+
+void ARPGProjectPlayerCharacter::SetPlayerCombatState(EPlayerCombatState NewState)
+{
+	LastPlayerCombatState = PlayerCombatState;
+	PlayerCombatState = NewState;
+}
+
+void ARPGProjectPlayerCharacter::CheckPlayerCombatState()
+{
+
+}
+
+void ARPGProjectPlayerCharacter::PlayerCombatStateUpdate()
+{
+
+}
+
+void ARPGProjectPlayerCharacter::ClearLastPlayerCombatStateChanges()
+{
+
+}
+
+//-------------------------------------
+// EPlayerActionState functions
+//-------------------------------------
+
+void ARPGProjectPlayerCharacter::SetPlayerActionState(EPlayerActionState NewState)
+{
+	LastPlayerActionState = PlayerActionState;
+	PlayerActionState = NewState;
+}
+
+void ARPGProjectPlayerCharacter::CheckPlayerActionState()
+{
+
+}
+
+void ARPGProjectPlayerCharacter::PlayerActionStateUpdate()
+{
+
+}
+
+void ARPGProjectPlayerCharacter::ClearLastPlayerActionStateChanges()
+{
+
+}
+
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
 
 void ARPGProjectPlayerCharacter::CheckCharacterExhaustion()
 {
@@ -291,18 +514,6 @@ const float ARPGProjectPlayerCharacter::GetCurrentStamina() const
 bool ARPGProjectPlayerCharacter::IsStaminaFull()
 {
 	return StaminaComponent->GetCurrentStamina() == StaminaComponent->GetMaxStamina();
-}
-
-void ARPGProjectPlayerCharacter::SetPlayerMoveState(EPlayerMoveState NewState)
-{
-	LastPlayerMoveState = PlayerMoveState;
-	PlayerMoveState = NewState;
-}
-
-void ARPGProjectPlayerCharacter::SetPlayerCombatState(EPlayerCombatState NewState)
-{
-	LastPlayerCombatState = PlayerCombatState;
-	PlayerCombatState = NewState;
 }
 
 void ARPGProjectPlayerCharacter::ActivateRagdollCamera()

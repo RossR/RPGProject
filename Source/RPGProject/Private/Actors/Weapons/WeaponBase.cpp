@@ -37,11 +37,11 @@ void AWeaponBase::PlayRandomAttackSound()
 	if (WeaponInfo.RandomAttackSoundArray.Num() != 0)
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, FString::FromInt(WeaponInfo.RandomAttackSoundArray.Num()));
-		int32 RandomItem = UKismetMathLibrary::RandomIntegerInRange(0, (WeaponInfo.RandomAttackSoundArray.Num() - 1));
+		const int32 RandomItem = UKismetMathLibrary::RandomIntegerInRange(0, (WeaponInfo.RandomAttackSoundArray.Num() - 1));
 		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, FString::FromInt(RandomItem));
-		if (WeaponInfo.RandomAttackSoundArray[RandomItem])
+		if (USoundWave* RandomSound = WeaponInfo.RandomAttackSoundArray[RandomItem])
 		{
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponInfo.RandomAttackSoundArray[RandomItem], GetActorLocation());
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), RandomSound, GetActorLocation());
 		}
 		else
 		{

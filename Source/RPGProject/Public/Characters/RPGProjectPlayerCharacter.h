@@ -9,17 +9,36 @@
 
 
 UENUM(BlueprintType)
-enum class EPlayerMoveState : uint8
+enum class EPlayerVerticalMobility : uint8
 {
+	PVM_Standing UMETA(DisplayName = "Standing"),
+	PVM_Crouching UMETA(DisplayName = "Crouching"),
+	PVM_Crawling UMETA(DisplayName = "Crawling"),
+	PVM_Jumping UMETA(DisplayName = "Jumping"),
+	PVM_Falling UMETA(DisplayName = "Falling"),
+
+	/*
 	PMS_Idle UMETA(DisplayName = "Idle"),
 	PMS_Walking UMETA(DisplayName = "Walking"),
 	PMS_Jogging UMETA(DisplayName = "Jogging"),
 	PMS_Sprinting UMETA(DisplayName = "Sprinting"),
 	PMS_Crouching UMETA(DisplayName = "Crouching"),
+	*/
 
-	PMS_Max UMETA(Hidden)
+	PVM_Max UMETA(Hidden)
 };
 	
+UENUM(BlueprintType)
+enum class EPlayerHorizontalMobility : uint8
+{
+	PHM_Idle UMETA(DisplayName = "Idle"),
+	PHM_Walking UMETA(DisplayName = "Walking"),
+	PHM_Jogging UMETA(DisplayName = "Jogging"),
+	PHM_Sprinting UMETA(DisplayName = "Sprinting"),
+
+	PHM_Max UMETA(Hidden)
+};
+
 UENUM(BlueprintType)
 enum class EPlayerCombatState : uint8
 {
@@ -27,6 +46,19 @@ enum class EPlayerCombatState : uint8
 	PCS_CombatReady UMETA(DisplayName = "Combat Ready"),
 
 	PCS_Max UMETA(Hidden)
+};
+
+UENUM(BlueprintType)
+enum class EPlayerActionState : uint8
+{
+	PAS_Idle UMETA(DisplayName = "Idle"),
+	PAS_Dodging UMETA(DisplayName = "Dodging"),
+	PAS_Interacting UMETA(DisplayName = "Interacting"),
+	PAS_Guarding UMETA(DisplayName = "Guarding"),
+	PAS_Aiming UMETA(DisplayName = "Aiming"),
+	PAS_Casting UMETA(DisplayName = "Casting"),
+
+	PAS_MAX UMETA(Hidden)
 };
 
 class ARPGProjectPlayerController;
@@ -109,22 +141,6 @@ public:
 	void ResetCapsuleHeight();
 
 	UFUNCTION(BlueprintCallable)
-	void SetPlayerMoveState(EPlayerMoveState NewState);
-	UFUNCTION(BlueprintCallable)
-	EPlayerMoveState GetPlayerMoveState() { return PlayerMoveState; }
-	UFUNCTION(BlueprintCallable)
-	// Returns true if the Player Move State has changed this/last frame (not sure which)
-	bool HasPlayerMoveStateChanged() { return PlayerMoveState != LastPlayerMoveState; }
-
-	UFUNCTION(BlueprintCallable)
-	void SetPlayerCombatState(EPlayerCombatState NewState);
-	UFUNCTION(BlueprintCallable)
-	EPlayerCombatState GetPlayerCombatState() { return PlayerCombatState; }
-	UFUNCTION(BlueprintCallable)
-	// Returns true if the Player Combat State has changed this/last frame (not sure which)
-	bool HasPlayerCombatStateChanged() { return PlayerCombatState != LastPlayerCombatState; }
-
-	UFUNCTION(BlueprintCallable)
 	void SetIsRagdollDeath(bool IsActive) { bIsRagdollDeath = IsActive; }
 	UFUNCTION(BlueprintCallable)
 	bool GetIsRagdollDeath() { return bIsRagdollDeath; }
@@ -137,6 +153,86 @@ public:
 	UFUNCTION(BlueprintCallable)
 	EWeaponType GetEquippedWeaponType() { return EquippedWeaponType; }
 
+	//--------------------------------------------------------------
+	// State Machine Functions
+	//--------------------------------------------------------------
+
+	//-------------------------------------
+	// EPlayerVerticalMobility functions
+	//-------------------------------------
+
+	UFUNCTION(BlueprintCallable)
+	// Set the character's vertical mobility state
+	void SetPlayerVerticalMobilityState(EPlayerVerticalMobility NewState);
+
+	UFUNCTION(BlueprintCallable)
+	// Get the character's vertical mobility state
+	EPlayerVerticalMobility GetPlayerVerticalMobilityState() { return PlayerVerticalMobilityState; }
+
+	UFUNCTION(BlueprintCallable)
+	// Returns true if the Player Move State has changed this/last frame (not sure which)
+	bool HasPlayerVerticalMobilityStateChanged() { return PlayerVerticalMobilityState != LastPlayerVerticalMobilityState; }
+
+	// Clear the changes made by the previous vertical mobility state
+	void ClearLastPlayerVerticalMobilityStateChanges();
+
+	//-------------------------------------
+	// EPlayerHorizontalMobility functions
+	//-------------------------------------
+
+	UFUNCTION(BlueprintCallable)
+	// Set the character's combat state
+	void SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility NewState);
+
+	UFUNCTION(BlueprintCallable)
+	// Get the character's horizontal mobility state
+	EPlayerHorizontalMobility GetPlayerHorizontalMobilityState() { return PlayerHorizontalMobilityState; }
+
+	UFUNCTION(BlueprintCallable)
+	// Returns true if the Player Move State has changed this/last frame (not sure which)
+	bool HasPlayerHorizontalMobilityStateChanged() { return PlayerHorizontalMobilityState != LastPlayerHorizontalMobilityState; }
+
+	// Clear the changes made by the previous horizontal mobility state
+	void ClearLastPlayerHorizontalMobilityStateChanges();
+
+	//-------------------------------------
+	// EPlayerCombatState functions
+	//-------------------------------------
+
+	UFUNCTION(BlueprintCallable)
+	// Set the character's combat state
+	void SetPlayerCombatState(EPlayerCombatState NewState);
+
+	UFUNCTION(BlueprintCallable)
+	// Get the character's combat state
+	EPlayerCombatState GetPlayerCombatState() { return PlayerCombatState; }
+
+	UFUNCTION(BlueprintCallable)
+	// Returns true if the Player Combat State has changed this/last frame (not sure which)
+	bool HasPlayerCombatStateChanged() { return PlayerCombatState != LastPlayerCombatState; }
+
+	// Clear the changes made by the previous combat state
+	void ClearLastPlayerCombatStateChanges();
+
+	//-------------------------------------
+	// EPlayerActionState functions
+	//-------------------------------------
+
+	UFUNCTION(BlueprintCallable)
+	// Set the character's action state
+	void SetPlayerActionState(EPlayerActionState NewState);
+
+	UFUNCTION(BlueprintCallable)
+	// Get the character's action state
+	EPlayerActionState GetPlayerActionState() { return PlayerActionState; }
+
+	UFUNCTION(BlueprintCallable)
+	// Returns true if the Player Combat State has changed this/last frame (not sure which)
+	bool HasPlayerActionStateChanged() { return PlayerActionState != LastPlayerActionState; }
+
+	// Clear the changes made by the previous action state
+	void ClearLastPlayerActionStateChanges();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -146,9 +242,21 @@ protected:
 	UFUNCTION()
 	void OnDeathTimerFinished();
 
+	// State machine check functions
+
+	void CheckPlayerVerticalMobility();
+	void CheckPlayerHorizontalMobility();
+	void CheckPlayerCombatState();
+	void CheckPlayerActionState();
+
+	// State machine update functions
+
+	void PlayerVerticalMobilityUpdate();
+	void PlayerHorizontalMobilityUpdate();
+	void PlayerCombatStateUpdate();
+	void PlayerActionStateUpdate();
+
 	void CheckCharacterExhaustion();
-
-
 
 public:
 
@@ -167,18 +275,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Particle System")
 	UParticleSystemComponent* ParticleSystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerMoveState PlayerMoveState;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerMoveState LastPlayerMoveState;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerCombatState PlayerCombatState;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerCombatState LastPlayerCombatState;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stamina)
 	float StaminaDamagePerInterval = 1.0f;
 
@@ -186,6 +282,71 @@ public:
 	int ItemsCollected = 0;
 
 protected:
+
+	// Player state variables
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerVerticalMobility PlayerVerticalMobilityState;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerVerticalMobility LastPlayerVerticalMobilityState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerHorizontalMobility PlayerHorizontalMobilityState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerHorizontalMobility LastPlayerHorizontalMobilityState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerCombatState PlayerCombatState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerCombatState LastPlayerCombatState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerActionState PlayerActionState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
+	EPlayerActionState LastPlayerActionState;
+
+	// Movement variables
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
+	float CurrentCharacterXYVelocity;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
+	int32 MovementSpeed;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
+	int32 CombatMovementSpeed;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
+	int32 WalkMovementSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
+	int32 CrouchMovementSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
+	int32 SprintMovementSpeed;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
+	float CombatSpeedMultiplier;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
+	float SprintSpeedMultiplier;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
+	float CrouchSpeedMultiplier;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
+	int32 NormalMaxAcceleration;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
+	int32 SprintingMaxAcceleration;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
+	int32 CharacterMinAnalogWalkSpeed;
+
+	//-----
 
 	ARPGProjectPlayerController* PC;
 
@@ -197,9 +358,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMovement)
-	int32 MovementSpeed;
 
 	UPROPERTY(EditAnywhere)
 	UHealthComponent* HealthComponent;
@@ -227,7 +385,15 @@ protected:
 	bool bIsFalling;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
+	bool bCanAttack;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bIsAttacking;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player Actions")
+	bool bIsInUninterruptableAction;
+
+	
 
 	// Force Feedback values
 	UPROPERTY(EditAnywhere, Category = "Force Feedback")

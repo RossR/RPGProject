@@ -19,23 +19,9 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 	BaseTurnRate = 70.0f;
 	BaseLookUpRate = 70.0f;
 	
-	CharacterTurnSpeed = 10.0f;
+	MaxCharacterTurnSpeed = 10.0f;
+	CharacterTurnSpeed = MaxCharacterTurnSpeed;
 	bIsMovementStopped = false;
-
-	// Variables for movement functions
-	SprintSpeedMultiplier = 1.5f;
-	CrouchSpeedMultiplier = 0.66f;
-	CombatSpeedMultiplier = 0.5f;
-
-	WalkingMaxAcceleration = 2048;
-	SprintingMaxAcceleration = 8192;
-	CharacterMinAnalogWalkSpeed = 0;
-
-	MovementSpeed = 600;
-	WalkMovementSpeed = 150;
-	CrouchMovementSpeed = MovementSpeed * CrouchSpeedMultiplier;
-	SprintMovementSpeed = MovementSpeed * SprintSpeedMultiplier;
-	CombatMovementSpeed = MovementSpeed * CombatSpeedMultiplier;
 
 	CapsuleCrouchHeight = 68.0f;
 }
@@ -43,6 +29,10 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 void ARPGProjectPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
+	// Binding = &
+	InputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &ARPGProjectPlayerController::StartInteraction);
+	// Binding = &
+	InputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &ARPGProjectPlayerController::StopInteraction);
 
 	InputComponent->BindAction("Jump", IE_Pressed, this, &ARPGProjectPlayerController::Jump);
 	InputComponent->BindAction("Jump", IE_Released, this, &ARPGProjectPlayerController::StopJumping);
@@ -63,15 +53,16 @@ void ARPGProjectPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("Turn", this, &ARPGProjectPlayerController::AddControllerYawInput);
 	InputComponent->BindAxis("LookUpRate", this, &ARPGProjectPlayerController::LookUpRate);
 	InputComponent->BindAxis("LookUp", this, &ARPGProjectPlayerController::AddControllerPitchInput);
-
+	
 	// FInputActionBinding* Binding;
 
-	// Binding = &
-	InputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &ARPGProjectPlayerController::StartInteraction);
-	// Binding = &
-	InputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &ARPGProjectPlayerController::StopInteraction);
+	
 
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponent Set up successfully!"));
+	// Prevent dodge & interacting from consuming the input
+	InputComponent->GetActionBinding(0).bConsumeInput = false; // 9 or 11 (Dodge)
+	InputComponent->GetActionBinding(13).bConsumeInput = false;
+
+	// GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponent Set up successfully!"));
 }
 
 void ARPGProjectPlayerController::BeginPlay()
@@ -80,9 +71,6 @@ void ARPGProjectPlayerController::BeginPlay()
 
 	PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(GetCharacter());
 
-	CrouchMovementSpeed = MovementSpeed * CrouchSpeedMultiplier;
-	SprintMovementSpeed = MovementSpeed * SprintSpeedMultiplier;
-	CombatMovementSpeed = MovementSpeed * CombatSpeedMultiplier;
 }
 
 void ARPGProjectPlayerController::StartInteraction()
@@ -101,7 +89,6 @@ void ARPGProjectPlayerController::StopInteraction()
 void ARPGProjectPlayerController::Tick(float DeltaTime)
 {
 	DeltaSeconds = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
-	if (PlayerCharacter) { CharacterSpeed = UKismetMathLibrary::VSizeXY(PlayerCharacter->GetVelocity()); }
 
 	CalculateDesiredActorRotation();
 
@@ -113,11 +100,11 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 		}
 	}
 
-	TickMovementUpdate();
+	CombatModeUpdate();
 		
 }
 
-void ARPGProjectPlayerController::TickMovementUpdate()
+void ARPGProjectPlayerController::CombatModeUpdate()
 {
 	if (PlayerCharacter)
 	{
@@ -125,12 +112,12 @@ void ARPGProjectPlayerController::TickMovementUpdate()
 		{
 			case EPlayerCombatState::PCS_AtEase:
 			{
-				RelaxedMovementUpdate();
+				//RelaxedMovementUpdate();
 				break;
 			}
 			case EPlayerCombatState::PCS_CombatReady:
 			{
-				CombatMovementUpdate();
+				//CombatMovementUpdate();
 				StopAiming();
 				break;
 			}
@@ -138,184 +125,184 @@ void ARPGProjectPlayerController::TickMovementUpdate()
 	}
 }
 
-void ARPGProjectPlayerController::RelaxedMovementUpdate()
-{
-	if (PlayerCharacter)
-	{
-		if (PlayerCharacter->HasPlayerMoveStateChanged() || PlayerCharacter->HasPlayerCombatStateChanged())
-		{
+//void ARPGProjectPlayerController::RelaxedMovementUpdate()
+//{
+//	if (PlayerCharacter)
+//	{
+//		if (PlayerCharacter->HasPlayerMoveStateChanged() || PlayerCharacter->HasPlayerCombatStateChanged())
+//		{
+//
+//			switch (PlayerCharacter->GetPlayerMoveState())
+//			{
+//				case EPlayerMoveState::PMS_Idle:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+//					break;
+//				}
+//
+//				case EPlayerMoveState::PMS_Walking:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = WalkMovementSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+//					break;
+//				}
+//
+//				case EPlayerMoveState::PMS_Jogging:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+//					break;
+//				}
+//
+//				case EPlayerMoveState::PMS_Sprinting:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
+//					break;
+//				}
+//
+//				case EPlayerMoveState::PMS_Crouching:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+//					break;
+//				}
+//			}
+//
+//			StopPreviousStateEffects();
+//
+//		}
+//	}
+//}
+//
+//void ARPGProjectPlayerController::CombatMovementUpdate()
+//{
+//	if (PlayerCharacter)
+//	{
+//		if (PlayerCharacter->HasPlayerMoveStateChanged() || PlayerCharacter->HasPlayerCombatStateChanged())
+//		{
+//
+//			switch (PlayerCharacter->GetPlayerMoveState())
+//			{
+//				case EPlayerMoveState::PMS_Idle:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * CombatSpeedMultiplier;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+//					break;
+//				}
+//
+//				case EPlayerMoveState::PMS_Walking:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = WalkMovementSpeed * CombatSpeedMultiplier;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+//					break;
+//				}
+//
+//				case EPlayerMoveState::PMS_Jogging:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * CombatSpeedMultiplier;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+//					break;
+//				}
+//
+//				case EPlayerMoveState::PMS_Sprinting:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed * CombatSpeedMultiplier;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
+//					break;
+//				}
+//
+//				case EPlayerMoveState::PMS_Crouching:
+//				{
+//					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed * CombatSpeedMultiplier;
+//					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+//					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
+//					break;
+//				}
+//			}
+//
+//			StopPreviousStateEffects();
+//			
+//		}
+//	}
+//}
+//
+//void ARPGProjectPlayerController::StopPreviousStateEffects()
+//{
+//	if (PlayerCharacter->HasPlayerMoveStateChanged())
+//	{
+//		switch (PlayerCharacter->LastPlayerMoveState)
+//		{
+//			case EPlayerMoveState::PMS_Idle:
+//			{
+//
+//				break;
+//			}
+//
+//			case EPlayerMoveState::PMS_Walking:
+//			{
+//
+//				break;
+//			}
+//
+//			case EPlayerMoveState::PMS_Jogging:
+//			{
+//
+//				break;
+//			}
+//
+//			case EPlayerMoveState::PMS_Sprinting:
+//			{
+//				StopSprinting();
+//				break;
+//			}
+//
+//			case EPlayerMoveState::PMS_Crouching:
+//			{
+//				StopCrouching();
+//				break;
+//			}
+//		}
+//
+//		PlayerCharacter->SetPlayerMoveState(PlayerCharacter->GetPlayerMoveState());
+//	}
+//}
 
-			switch (PlayerCharacter->GetPlayerMoveState())
-			{
-				case EPlayerMoveState::PMS_Idle:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
-					break;
-				}
+//void ARPGProjectPlayerController::SprintTimerFinished()
+//{
+//	// UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::SprintTimerFinished called"));
+//	if (PlayerCharacter)
+//	{
+//		float Damage = PlayerCharacter->StaminaDamagePerInterval;
+//
+//		if (CharacterSpeed > 0  && !PlayerCharacter->IsCharacterFalling())	
+//		{ 
+//			PlayerCharacter->TakeStaminaDamage(Damage); 
+//		}
+//	}
+//}
 
-				case EPlayerMoveState::PMS_Walking:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = WalkMovementSpeed;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
-					break;
-				}
-
-				case EPlayerMoveState::PMS_Jogging:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
-					break;
-				}
-
-				case EPlayerMoveState::PMS_Sprinting:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
-					break;
-				}
-
-				case EPlayerMoveState::PMS_Crouching:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
-					break;
-				}
-			}
-
-			StopPreviousStateEffects();
-
-		}
-	}
-}
-
-void ARPGProjectPlayerController::CombatMovementUpdate()
-{
-	if (PlayerCharacter)
-	{
-		if (PlayerCharacter->HasPlayerMoveStateChanged() || PlayerCharacter->HasPlayerCombatStateChanged())
-		{
-
-			switch (PlayerCharacter->GetPlayerMoveState())
-			{
-				case EPlayerMoveState::PMS_Idle:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * CombatSpeedMultiplier;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
-					break;
-				}
-
-				case EPlayerMoveState::PMS_Walking:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = WalkMovementSpeed * CombatSpeedMultiplier;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
-					break;
-				}
-
-				case EPlayerMoveState::PMS_Jogging:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * CombatSpeedMultiplier;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
-					break;
-				}
-
-				case EPlayerMoveState::PMS_Sprinting:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed * CombatSpeedMultiplier;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
-					break;
-				}
-
-				case EPlayerMoveState::PMS_Crouching:
-				{
-					PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed * CombatSpeedMultiplier;
-					PlayerCharacter->GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					PlayerCharacter->GetCharacterMovement()->MaxAcceleration = WalkingMaxAcceleration;
-					break;
-				}
-			}
-
-			StopPreviousStateEffects();
-			
-		}
-	}
-}
-
-void ARPGProjectPlayerController::StopPreviousStateEffects()
-{
-	if (PlayerCharacter->HasPlayerMoveStateChanged())
-	{
-		switch (PlayerCharacter->LastPlayerMoveState)
-		{
-			case EPlayerMoveState::PMS_Idle:
-			{
-
-				break;
-			}
-
-			case EPlayerMoveState::PMS_Walking:
-			{
-
-				break;
-			}
-
-			case EPlayerMoveState::PMS_Jogging:
-			{
-
-				break;
-			}
-
-			case EPlayerMoveState::PMS_Sprinting:
-			{
-				StopSprinting();
-				break;
-			}
-
-			case EPlayerMoveState::PMS_Crouching:
-			{
-				StopCrouching();
-				break;
-			}
-		}
-
-		PlayerCharacter->SetPlayerMoveState(PlayerCharacter->GetPlayerMoveState());
-	}
-}
-
-void ARPGProjectPlayerController::SprintTimerFinished()
-{
-	// UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::SprintTimerFinished called"));
-	if (PlayerCharacter)
-	{
-		float Damage = PlayerCharacter->StaminaDamagePerInterval;
-
-		if (CharacterSpeed > 0  && !PlayerCharacter->IsCharacterFalling())	
-		{ 
-			PlayerCharacter->TakeStaminaDamage(Damage); 
-		}
-	}
-}
-
-void ARPGProjectPlayerController::CheckSpeedToSetMoveState()
-{
-	if (CharacterSpeed > 0)
-	{
-		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Jogging);
-	}
-	else
-	{
-		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Idle);
-	}
-}
+//void ARPGProjectPlayerController::CheckSpeedToSetMoveState()
+//{
+//	if (CharacterSpeed > 0)
+//	{
+//		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Jogging);
+//	}
+//	else
+//	{
+//		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Idle);
+//	}
+//}
 
 void ARPGProjectPlayerController::CalculateDesiredActorRotation()
 {
@@ -358,11 +345,12 @@ void ARPGProjectPlayerController::StopJumping()
 
 void ARPGProjectPlayerController::Sprint()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::Sprint called"));
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Sprinting);
+		PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Sprinting);
 
-		GetWorld()->GetTimerManager().SetTimer(SprintStaminaDrainTimerHandle, this, &ARPGProjectPlayerController::SprintTimerFinished, DeltaSeconds, true, -1.0f);
+		//GetWorld()->GetTimerManager().SetTimer(SprintStaminaDrainTimerHandle, this, &ARPGProjectPlayerController::SprintTimerFinished, DeltaSeconds, true, -1.0f);
 	}
 	else
 	{
@@ -372,12 +360,13 @@ void ARPGProjectPlayerController::Sprint()
 
 void ARPGProjectPlayerController::StopSprinting()
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopSprinting called"));
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->GetPlayerMoveState() == EPlayerMoveState::PMS_Sprinting)
+		if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Sprinting)
 		{
-			CheckSpeedToSetMoveState();
+			// CheckSpeedToSetMoveState();
+			PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Jogging);
 		}
 		
 	}
@@ -386,7 +375,7 @@ void ARPGProjectPlayerController::StopSprinting()
 		UE_LOG(LogTemp, Error, TEXT("ARPGProjectPlayerController::StopSprinting PlayerCharacter is nullptr."));
 	}
 
-	GetWorld()->GetTimerManager().ClearTimer(SprintStaminaDrainTimerHandle);
+	//GetWorld()->GetTimerManager().ClearTimer(SprintStaminaDrainTimerHandle);
 }
 
 void ARPGProjectPlayerController::HoldCrouch()
@@ -394,7 +383,7 @@ void ARPGProjectPlayerController::HoldCrouch()
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->SetIsCrouched(true);
-		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Crouching);
+		PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Crouching);
 		PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
 		PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
 	}
@@ -412,11 +401,11 @@ void ARPGProjectPlayerController::StopCrouching()
 	{
 		PlayerCharacter->SetIsCrouched(false);
 		PlayerCharacter->ResetCapsuleHeight();
-		PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-95.0f });
+		PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-103.0f });
 		
-		if (PlayerCharacter->GetPlayerMoveState() == EPlayerMoveState::PMS_Crouching)
+		if (PlayerCharacter->GetPlayerVerticalMobilityState() == EPlayerVerticalMobility::PVM_Crouching)
 		{
-			CheckSpeedToSetMoveState();
+			PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Standing);
 		}
 	}
 	/*
@@ -434,7 +423,7 @@ void ARPGProjectPlayerController::ToggleCrouch()
 
 		if (PlayerCharacter->GetIsCrouched())
 		{
-			PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Crouching);
+			PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Crouching);
 			PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
 			PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
 		}
@@ -453,7 +442,7 @@ void ARPGProjectPlayerController::Aim()
 		{
 			PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
 			PlayerCharacter->bUseControllerRotationYaw = true;
-			IsAiming = true;
+			bIsAiming = true;
 		}
 	}
 }
@@ -465,32 +454,36 @@ void ARPGProjectPlayerController::StopAiming()
 		// UArrowComponent* ArrowComp = PlayerCharacter->ChaseArrow;
 		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("Chase")));
 		PlayerCharacter->bUseControllerRotationYaw = false;
-		IsAiming = false;
+		bIsAiming = false;
 	}
 }
 
 void ARPGProjectPlayerController::Walking()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::Walking called"));
+
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->SetPlayerMoveState(EPlayerMoveState::PMS_Walking);
+		PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Walking);
 	}
 }
 
 void ARPGProjectPlayerController::StopWalking()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopWalking called"));
+
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->GetPlayerMoveState() == EPlayerMoveState::PMS_Walking)
+		if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Walking)
 		{
-			CheckSpeedToSetMoveState(); 
+			PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Jogging);
 		}
 	}
 }
 
 void ARPGProjectPlayerController::Dodge()
 {
-
+	
 }
 
 
