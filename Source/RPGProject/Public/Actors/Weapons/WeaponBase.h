@@ -80,19 +80,11 @@ public:
 	// Sets default values for this actor's properties
 	AWeaponBase();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(BlueprintCallable)
+		FWeaponInfo GetWeaponInfo() { return WeaponInfo; }
 
 	UFUNCTION(BlueprintCallable)
-	FWeaponInfo GetWeaponInfo() { return WeaponInfo; }
-
-	UFUNCTION(BlueprintCallable)
-	void PlayRandomAttackSound();
+		void PlayRandomAttackSound();
 
 	/*UFUNCTION(BlueprintCallable)
 	FName GetWeaponName() { return WeaponInfo.WeaponName; }
@@ -117,6 +109,23 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetWeaponDamage() { return WeaponInfo.WeaponDamage; }*/
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing", Meta = (MakeEditWidget = true))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	USceneComponent* WeaponTraceStart;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	USceneComponent* WeaponTraceEnd;
+
+	
 
 
 protected:

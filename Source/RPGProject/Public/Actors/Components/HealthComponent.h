@@ -16,7 +16,9 @@ public:
 	// Sets default values for this component's properties
 	UHealthComponent();
 
+	UFUNCTION(BlueprintCallable)
 	void TakeDamage(float Damage) { CurrentHealth -= Damage; }
+	UFUNCTION(BlueprintCallable)
 	bool IsDead() { return CurrentHealth <= FLT_EPSILON; }
 
 	UFUNCTION(BlueprintCallable)
