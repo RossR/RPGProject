@@ -81,34 +81,13 @@ public:
 	AWeaponBase();
 
 	UFUNCTION(BlueprintCallable)
-		FWeaponInfo GetWeaponInfo() { return WeaponInfo; }
+	FWeaponInfo GetWeaponInfo() { return WeaponInfo; }
 
 	UFUNCTION(BlueprintCallable)
-		void PlayRandomAttackSound();
+	void PlayRandomAttackSound();
 
-	/*UFUNCTION(BlueprintCallable)
-	FName GetWeaponName() { return WeaponInfo.WeaponName; }
-
-	UFUNCTION(BlueprintCallable)
-	EWeaponType GetWeaponType() { return WeaponInfo.WeaponType; }
-
-	UFUNCTION(BlueprintCallable)
-	UAnimMontage* GetAttackMontage() { return WeaponInfo.AttackMontage; }
-
-	UFUNCTION(BlueprintCallable)
-	uint8 GetLightAttackComboLimit() { return WeaponInfo.LightAttackComboLimit; }
-
-	UFUNCTION(BlueprintCallable)
-	uint8 GetHeavyAttackComboLimit() { return WeaponInfo.HeavyAttackComboLimit; }
-
-	UFUNCTION(BlueprintCallable)
-	float GetWeaponWeight() { return WeaponInfo.WeaponWeight; }
-
-	UFUNCTION(BlueprintCallable)
-	float GetWeaponCondition() { return WeaponInfo.WeaponCondition; }
-
-	UFUNCTION(BlueprintCallable)
-	float GetWeaponDamage() { return WeaponInfo.WeaponDamage; }*/
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void WeaponTrace();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -118,14 +97,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing", Meta = (MakeEditWidget = true))
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
-	USceneComponent* WeaponTraceStart;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
-	USceneComponent* WeaponTraceEnd;
-
-	
 
 
 protected:
@@ -157,4 +128,16 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	UStaticMeshComponent* WeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	TArray<USceneComponent*> WeaponTraceStart;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	TArray<USceneComponent*> WeaponTraceEnd;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	bool bWeaponTraceHasHit = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	TArray<FHitResult> WeaponTraceHitResult;
 };

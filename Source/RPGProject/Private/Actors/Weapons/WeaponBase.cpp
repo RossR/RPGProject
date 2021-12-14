@@ -16,11 +16,12 @@ AWeaponBase::AWeaponBase()
 
 	SetRootComponent(WeaponMesh);
 
-	WeaponTraceStart = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponTraceStart"));
-	WeaponTraceEnd = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponTraceEnd"));
+	WeaponTraceStart.Add(CreateDefaultSubobject<USceneComponent>(TEXT("WeaponTraceStart1")));
 
-	WeaponTraceStart->SetupAttachment(RootComponent);
-	WeaponTraceEnd->SetupAttachment(RootComponent);
+	WeaponTraceEnd.Add(CreateDefaultSubobject<USceneComponent>(TEXT("WeaponTraceEnd1")));
+
+	WeaponTraceStart[0]->SetupAttachment(RootComponent);
+	WeaponTraceEnd[0]->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
