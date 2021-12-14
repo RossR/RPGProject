@@ -61,6 +61,16 @@ enum class EPlayerActionState : uint8
 	PAS_MAX UMETA(Hidden)
 };
 
+UENUM(BlueprintType)
+enum class EAttackType : uint8
+{
+	AT_None UMETA(DisplayName = "None"),
+	AT_LightAttack UMETA(DisplayName = "Light Attack"),
+	AT_HeavyAttack UMETA(DisplayName = "Heavy Attack"),
+
+	AT_MAX UMETA(Hidden)
+};
+
 class ARPGProjectPlayerController;
 
 class UCameraShakeBase;
@@ -233,6 +243,19 @@ public:
 	// Clear the changes made by the previous action state
 	void ClearLastPlayerActionStateChanges();
 
+	//-------------------------------------
+	// EAttackType functions
+	//-------------------------------------
+
+	UFUNCTION(BlueprintCallable)
+	// Set the attack type
+	void SetAttackType(EAttackType NewState) { AttackType = NewState; }
+
+	UFUNCTION(BlueprintCallable)
+	// Get the current attack type
+	EAttackType GetAttackType() { return AttackType; }
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -307,6 +330,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
 	EPlayerActionState LastPlayerActionState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	EAttackType AttackType;
 
 	// Movement variables
 

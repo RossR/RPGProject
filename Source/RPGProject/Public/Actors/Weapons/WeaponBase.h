@@ -129,6 +129,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	UStaticMeshComponent* WeaponMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	FName SheathSocket;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	FName EquippedSocket;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
 	TArray<USceneComponent*> WeaponTraceStart;
 
@@ -140,4 +146,5 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
 	TArray<FHitResult> WeaponTraceHitResult;
+
 };
