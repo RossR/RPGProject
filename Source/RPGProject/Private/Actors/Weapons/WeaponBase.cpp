@@ -55,3 +55,65 @@ void AWeaponBase::PlayRandomAttackSound()
 		}
 	}
 }
+
+
+void AWeaponBase::SetCurrentTraceStart(USceneComponent* _WeaponTraceStart)
+{
+	CurrentTraceStart = _WeaponTraceStart->GetComponentLocation();
+}
+
+void AWeaponBase::SetCurrentTraceEnd(USceneComponent* _WeaponTraceEnd)
+{
+	CurrentTraceEnd = _WeaponTraceEnd->GetComponentLocation();
+}
+
+void AWeaponBase::SetTraceAlpha(int CurrentTraceSectionIndex)
+{
+	TraceAlpha = (float)CurrentTraceSectionIndex / (float)TotalTraceSections;
+}
+
+void AWeaponBase::SetCurrentTraceSection()
+{
+	CurrentTraceSection = (CurrentTraceStart * TraceAlpha) + (CurrentTraceEnd * (1.0f - TraceAlpha));
+}
+
+void AWeaponBase::SetLastTraceSection()
+{
+	LastTraceSection = (LastTraceStart * TraceAlpha) + (LastTraceEnd * (1 - TraceAlpha));
+}
+
+void AWeaponBase::SetTraceOrientation(USceneComponent* _WeaponTraceStart)
+{
+	TraceOrientation = _WeaponTraceStart->GetRelativeRotation() + WeaponMesh->GetComponentRotation();
+}
+
+void AWeaponBase::SetTraceResults(TArray<FHitResult> OutHits, bool TraceReturnValue)
+{
+	if (TraceReturnValue)
+	{
+		for (int i = 0; i < OutHits.Num(); i++)
+		{
+			WeaponTraceHitResult.Add(OutHits[i]);
+
+			bWeaponTraceHasHit = true;
+		}
+	}
+}
+
+void AWeaponBase::CheckIfFirstTrace()
+{
+	if (!bIsFirstTrace)
+	{
+		TraceBetweenTraces();
+	}
+	else
+	{
+		bIsFirstTrace = false;
+	}
+}
+
+void AWeaponBase::SetLastTraceVariables()
+{
+	LastTraceStart = CurrentTraceStart;
+	LastTraceEnd = CurrentTraceEnd;
+}
