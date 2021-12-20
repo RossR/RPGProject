@@ -112,7 +112,7 @@ protected:
 	void SetCurrentTraceSection();
 
 	UFUNCTION(BlueprintCallable)
-	void SetLastTraceSection();
+	void SetLastTraceSection(int Index);
 
 	UFUNCTION(BlueprintCallable)
 	void SetTraceOrientation(USceneComponent* _WeaponTraceStart);
@@ -124,7 +124,10 @@ protected:
 	void CheckIfFirstTrace();
 
 	UFUNCTION(BlueprintCallable)
-	void SetLastTraceVariables();
+	void SetIsFirstTrace(bool bActive) { bIsFirstTrace = bActive; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetLastTraceVariables(int Index);
 
 public:	
 
@@ -171,6 +174,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
 	TArray<USceneComponent*> WeaponTraceEnd;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
+	int TraceIndex;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
 	bool bWeaponTraceHasHit = false;
 
@@ -193,10 +199,10 @@ protected:
 	FVector CurrentTraceEnd = FVector::ZeroVector;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
-	FVector LastTraceStart = FVector::ZeroVector;
+	TArray<FVector> LastTraceStart;//= FVector::ZeroVector;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
-	FVector LastTraceEnd = FVector::ZeroVector;
+	TArray<FVector> LastTraceEnd;// = FVector::ZeroVector;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
 	FVector CurrentTraceSection = FVector::ZeroVector;

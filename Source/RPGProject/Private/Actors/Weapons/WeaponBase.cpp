@@ -77,9 +77,9 @@ void AWeaponBase::SetCurrentTraceSection()
 	CurrentTraceSection = (CurrentTraceStart * TraceAlpha) + (CurrentTraceEnd * (1.0f - TraceAlpha));
 }
 
-void AWeaponBase::SetLastTraceSection()
+void AWeaponBase::SetLastTraceSection(int Index)
 {
-	LastTraceSection = (LastTraceStart * TraceAlpha) + (LastTraceEnd * (1 - TraceAlpha));
+	LastTraceSection = (LastTraceStart[Index] * TraceAlpha) + (LastTraceEnd[Index] * (1 - TraceAlpha));
 }
 
 void AWeaponBase::SetTraceOrientation(USceneComponent* _WeaponTraceStart)
@@ -106,14 +106,12 @@ void AWeaponBase::CheckIfFirstTrace()
 	{
 		TraceBetweenTraces();
 	}
-	else
-	{
-		bIsFirstTrace = false;
-	}
 }
 
-void AWeaponBase::SetLastTraceVariables()
+void AWeaponBase::SetLastTraceVariables(int Index)
 {
-	LastTraceStart = CurrentTraceStart;
-	LastTraceEnd = CurrentTraceEnd;
+	LastTraceStart.SetNum(WeaponTraceStart.Num(), true);
+	LastTraceEnd.SetNum(WeaponTraceEnd.Num(), true);
+	LastTraceStart[Index] = CurrentTraceStart;
+	LastTraceEnd[Index] =CurrentTraceEnd;
 }
