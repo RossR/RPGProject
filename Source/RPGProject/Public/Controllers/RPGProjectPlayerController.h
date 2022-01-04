@@ -26,6 +26,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	void SetIsInMenu(bool bActive) { bIsInMenu = bActive; }
+	UFUNCTION(BlueprintCallable)
+	bool GetIsInMenu() { return bIsInMenu; }
+
 public:
 
 	FOnInteractionStart OnInteractionStart;
@@ -94,6 +99,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CharacterMovement")
 	bool bIsMovementStopped;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "UI Controls")
+	bool bIsInMenu;
 
 	ARPGProjectPlayerCharacter* PlayerCharacter;
 

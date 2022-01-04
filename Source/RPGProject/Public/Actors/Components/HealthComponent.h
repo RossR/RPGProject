@@ -19,6 +19,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void TakeDamage(float Damage) { CurrentHealth -= Damage; }
 	UFUNCTION(BlueprintCallable)
+	void HealDamage(float HealAmount) { CurrentHealth += HealAmount; }
+
+	UFUNCTION(BlueprintCallable)
 	bool IsDead() { return CurrentHealth <= FLT_EPSILON; }
 
 	UFUNCTION(BlueprintCallable)
@@ -26,7 +29,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentHealth() { return CurrentHealth; }
 	UFUNCTION(BlueprintCallable)
-	void SetCurrentHealth(float Health) { CurrentHealth = Health; }
+	void SetCurrentHealth(float NewHealth) { CurrentHealth = NewHealth; }
+	UFUNCTION(BlueprintCallable)
+	void SetMaxHealth(float NewMaxHealth) { MaxHealth = NewMaxHealth; }
 
 protected:
 	// Called when the game starts
@@ -39,6 +44,7 @@ protected:
 	float CurrentHealth = 0.0f;
 
 public:	
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-		
 };

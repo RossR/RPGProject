@@ -22,6 +22,7 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 	MaxCharacterTurnSpeed = 10.0f;
 	CharacterTurnSpeed = MaxCharacterTurnSpeed;
 	bIsMovementStopped = false;
+	bIsInMenu = false;
 
 	CapsuleCrouchHeight = 68.0f;
 }
@@ -41,8 +42,8 @@ void ARPGProjectPlayerController::SetupInputComponent()
 	InputComponent->BindAction("HoldCrouch", IE_Pressed, this, &ARPGProjectPlayerController::HoldCrouch);
 	InputComponent->BindAction("HoldCrouch", IE_Released, this, &ARPGProjectPlayerController::StopCrouching);
 	InputComponent->BindAction("ToggleCrouch", IE_Pressed, this, &ARPGProjectPlayerController::ToggleCrouch);
-	InputComponent->BindAction("Aim", IE_Pressed, this, &ARPGProjectPlayerController::Aim);
-	InputComponent->BindAction("Aim", IE_Released, this, &ARPGProjectPlayerController::StopAiming);
+	InputComponent->BindAction("OffhandSkills", IE_Pressed, this, &ARPGProjectPlayerController::Aim);
+	InputComponent->BindAction("OffhandSkills", IE_Released, this, &ARPGProjectPlayerController::StopAiming);
 	InputComponent->BindAction("Walk", IE_Pressed, this, &ARPGProjectPlayerController::Walking);
 	InputComponent->BindAction("Walk", IE_Released, this, &ARPGProjectPlayerController::StopWalking);
 	InputComponent->BindAction("Dodge", IE_Pressed, this, &ARPGProjectPlayerController::Dodge);
@@ -545,20 +546,28 @@ void ARPGProjectPlayerController::MoveRight(float Value)
 
 void ARPGProjectPlayerController::TurnRate(float Rate)
 {
+	if (bIsInMenu) { return; }
+
 	AddYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
 void ARPGProjectPlayerController::AddControllerYawInput(float Value)
 {
+	if (bIsInMenu) { return; }
+
 	AddYawInput(Value);
 }
 
 void ARPGProjectPlayerController::LookUpRate(float Rate)
 {
+	if (bIsInMenu) { return; }
+
 	AddPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
 void ARPGProjectPlayerController::AddControllerPitchInput(float Value)
 {
+	if (bIsInMenu) { return; }
+
 	AddPitchInput(Value);
 }

@@ -14,13 +14,13 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Particles/ParticleSystemComponent.h"
 
+#include "Actors/Components/CharacterStatisticComponent.h"
 #include "Actors/Components/HealthComponent.h"
 #include "Actors/Components/StaminaComponent.h"
 #include "Actors/Components/DamageHandlerComponent.h"
 #include "Actors/Weapons/WeaponBase.h"
 
 #include "Controllers/RPGProjectPlayerController.h"
-
 
 
 // Sets default values
@@ -104,6 +104,8 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
 	ParticleSystemComponent->SetupAttachment(RootComponent);
 
+	CharacterStatisticComponent = CreateDefaultSubobject<UCharacterStatisticComponent>(TEXT("CharacterStatComponent"));
+
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
 	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
@@ -122,7 +124,20 @@ void ARPGProjectPlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	PC = Cast<ARPGProjectPlayerController>(GetWorld()->GetFirstPlayerController());
-	
+
+	if (HealthComponent)
+	{
+		FCharacterStatistics CharacterStatistics = CharacterStatisticComponent->GetCharacterStatistics();
+
+		HealthComponent->SetMaxHealth(CharacterStatistics.HealthPoints);
+	}
+
+	if (StaminaComponent)
+	{
+		FCharacterStatistics CharacterStatistics = CharacterStatisticComponent->GetCharacterStatistics();
+		StaminaComponent->SetMaxStamina(CharacterStatistics.StaminaPoints);
+	}
+
 	//GetComponents<UArrowComponent>(ArrowArray);
 }
 
@@ -133,6 +148,10 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 	// ControlInputVector;
 
 	Super::Tick(DeltaTime);
+
+	DeltaSeconds = DeltaTime;
+
+	CharacterStatisticsUpdate();
 
 	bIsFalling = GetVelocity().Z != 0;
 
@@ -203,6 +222,56 @@ void ARPGProjectPlayerCharacter::OnDeathTimerFinished()
 	}
 }
 
+void ARPGProjectPlayerCharacter::CharacterStatisticsUpdate()
+{
+	//if (CharacterStatComponent)
+	//{
+	//	int OldStamina = 0;
+
+	//	FString AdditionalHealthPointsString = "AdditionalHealthPoints: " + FString::FromInt(CharacterStatComponent->AdditionalHealthPoints);
+	//	// GEngine->AddOnScreenDebugMessage(1, DeltaSeconds, FColor::Yellow, AdditionalHealthPointsString);
+
+	//	if (CharacterStatComponent->HaveStatisticsChanged())
+	//	{
+	//		OldStamina = CharacterStatComponent->AdditionalStaminaPoints;
+
+	//		
+	//	}
+
+	//	FCharacterStatistics CharacterStatistics = CharacterStatComponent->GetCharacterStatistics();
+	//	
+	//	if (HealthComponent)
+	//	{
+	//		
+	//		
+
+	//		if (CharacterStatComponent->HaveStatisticsChanged())
+	//		{
+	//			HealthComponent->HealDamage(CharacterStatComponent->StatChangeHealthDifference);
+
+	//			FString OldHealthPointsString = "OldHealthPoints: " + FString::FromInt(CharacterStatComponent->OldHealthPoints);
+	//			GEngine->AddOnScreenDebugMessage(2, 2.0f, FColor::Red, OldHealthPointsString);
+	//			
+	//			FString HealthToHealString = "HealthToHeal: " + FString::FromInt(CharacterStatComponent->StatChangeHealthDifference);
+	//			GEngine->AddOnScreenDebugMessage(3, 2.0f, FColor::Emerald, HealthToHealString);
+	//		}
+	//	}
+
+	//	if (StaminaComponent)
+	//	{
+	//		StaminaComponent->SetMaxStamina(CharacterStatistics.StaminaPoints);
+
+	//		if (CharacterStatComponent->HaveStatisticsChanged())
+	//		{
+	//			StaminaComponent->TakeStaminaDamage(OldStamina - CharacterStatComponent->AdditionalStaminaPoints);
+	//		}
+	//	}
+
+	//	// CharacterStatComponent->OldHealthPoints = CharacterStatComponent->AdditionalHealthPoints;
+	//	CharacterStatComponent->SetHaveStatisticsChanged(false);
+	//}
+}
+
 //--------------------------------------------------------------
 // State Machine Functions
 //--------------------------------------------------------------
@@ -234,10 +303,6 @@ void ARPGProjectPlayerCharacter::PlayerVerticalMobilityUpdate()
 			}
 			case EPlayerVerticalMobility::PVM_Crouching:
 			{
-				GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
-				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
-
 				break;
 			}
 			case EPlayerVerticalMobility::PVM_Crawling:
@@ -296,9 +361,16 @@ void ARPGProjectPlayerCharacter::PlayerHorizontalMobilityUpdate()
 		{
 			case EPlayerHorizontalMobility::PHM_Idle:
 			{
-				/*GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;*/
+				if (PlayerVerticalMobilityState == EPlayerVerticalMobility::PVM_Crouching)
+				{
+					GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+				}
+				else
+				{
+					GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+					GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+					GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+				}
 				
 				break;
 			}
@@ -312,9 +384,16 @@ void ARPGProjectPlayerCharacter::PlayerHorizontalMobilityUpdate()
 			}
 			case EPlayerHorizontalMobility::PHM_Jogging:
 			{
-				GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+				if (PlayerVerticalMobilityState == EPlayerVerticalMobility::PVM_Crouching)
+				{
+					GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+				}
+				else
+				{
+					GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+					GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+					GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+				}
 
 				break;
 			}

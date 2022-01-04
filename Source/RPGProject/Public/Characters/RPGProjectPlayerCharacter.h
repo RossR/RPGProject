@@ -77,6 +77,7 @@ class UCameraShakeBase;
 class UParticleSystemComponent;
 class UChildActorComponent;
 
+class UCharacterStatisticComponent;
 class UHealthComponent;
 class UStaminaComponent;
 class UDamageHandlerComponent;
@@ -265,6 +266,10 @@ protected:
 	UFUNCTION()
 	void OnDeathTimerFinished();
 
+	// CharacterStatComponent functions
+
+	void CharacterStatisticsUpdate();
+
 	// State machine check functions
 
 	void CheckPlayerVerticalMobility();
@@ -386,6 +391,9 @@ protected:
 	float BaseLookUpRate;
 
 	UPROPERTY(EditAnywhere)
+	UCharacterStatisticComponent* CharacterStatisticComponent;
+
+	UPROPERTY(EditAnywhere)
 	UHealthComponent* HealthComponent;
 
 	UPROPERTY(EditAnywhere)
@@ -427,4 +435,5 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Force Feedback")
 	float ForceFeedbackDuration = 1.0f;
 
+	float DeltaSeconds;
 };

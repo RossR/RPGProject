@@ -24,6 +24,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentStamina() { return CurrentStamina; }
 	UFUNCTION(BlueprintCallable)
+	void SetMaxStamina(float NewMaxStamina) { MaxStamina = NewMaxStamina; }
+	UFUNCTION(BlueprintCallable)
 	void SetCurrentStamina(float Stamina) { CurrentStamina = Stamina; }
 	UFUNCTION(BlueprintCallable)
 	void RegenerateStamina();
