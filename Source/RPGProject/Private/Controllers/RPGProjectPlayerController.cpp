@@ -76,6 +76,10 @@ void ARPGProjectPlayerController::BeginPlay()
 
 void ARPGProjectPlayerController::StartInteraction()
 {
+	//if (PlayerCharacter)
+	//{
+	//	PlayerCharacter->SetPlayerActionState(EPlayerActionState::PAS_Interacting);
+	//}
 	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StartInteraction called"));
 	OnInteractionStart.Broadcast();
 }
@@ -385,8 +389,8 @@ void ARPGProjectPlayerController::HoldCrouch()
 	{
 		PlayerCharacter->SetIsCrouched(true);
 		PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Crouching);
-		PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
-		PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
+		//PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
+		//PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
 	}
 
 	/*
@@ -401,8 +405,8 @@ void ARPGProjectPlayerController::StopCrouching()
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->SetIsCrouched(false);
-		PlayerCharacter->ResetCapsuleHeight();
-		PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-103.0f });
+		//PlayerCharacter->ResetCapsuleHeight();
+		//PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-103.0f });
 		
 		if (PlayerCharacter->GetPlayerVerticalMobilityState() == EPlayerVerticalMobility::PVM_Crouching)
 		{
@@ -425,8 +429,8 @@ void ARPGProjectPlayerController::ToggleCrouch()
 		if (PlayerCharacter->GetIsCrouched())
 		{
 			PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Crouching);
-			PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
-			PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
+			//PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
+			//PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
 		}
 		else if (!PlayerCharacter->GetIsCrouched())
 		{

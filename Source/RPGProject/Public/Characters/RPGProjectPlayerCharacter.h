@@ -379,6 +379,7 @@ protected:
 
 	//-----
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player Controller")
 	ARPGProjectPlayerController* PC;
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
