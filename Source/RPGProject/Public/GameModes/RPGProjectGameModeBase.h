@@ -18,6 +18,11 @@ public:
 
 	void StartPlay() override;
 
+	UFUNCTION(BlueprintCallable)
+	UUserWidget* GetPlayerHudWidget() { return PlayerHUDWidget; }
+
+public:
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> ObjectiveWidgetClass;
 
@@ -27,5 +32,6 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> PlayerHUDWidgetClass;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UUserWidget* PlayerHUDWidget;
 };

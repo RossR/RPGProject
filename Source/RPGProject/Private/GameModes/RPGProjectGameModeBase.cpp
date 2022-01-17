@@ -29,7 +29,7 @@ void ARPGProjectGameModeBase::StartPlay()
 		ObjectiveWorldSubsystem->OnMapStart();
 	}
 
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	/*APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	PlayerHUDWidget = CreateWidget<UUserWidget>(PlayerController, PlayerHUDWidgetClass);
 
 	if (PlayerHUDWidget)
@@ -39,5 +39,5 @@ void ARPGProjectGameModeBase::StartPlay()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ARPGProjectGameModeBase::ARPGProjectGameModeBase PlayerHUDWidget is null"));
-	}
+	}*/
 }

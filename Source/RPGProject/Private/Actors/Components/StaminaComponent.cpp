@@ -44,8 +44,10 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	else if (!IsRegeneratingStamina && CurrentStamina < MaxStamina /* And if didn't take stamina damage this tick */)
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("UStaminaComponent::TickComponent StaminaRegenTimerHandle Set"));
-		IsRegeneratingStamina = true;
-		GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &UStaminaComponent::RegenerateStamina, StaminaRegenInterval, true, StaminaRegenDelay);
+		if (!GetWorld()->GetTimerManager().IsTimerActive(StaminaRegenTimerHandle))
+		{
+			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &UStaminaComponent::RegenerateStamina, StaminaRegenInterval, true, StaminaRegenDelay);
+		}
 	}
 }
 
@@ -61,5 +63,6 @@ void UStaminaComponent::TakeStaminaDamage(float Damage)
 
 void UStaminaComponent::RegenerateStamina() 
 { 
+	IsRegeneratingStamina = true;
 	CurrentStamina += StaminaRegenPerInterval; 
 }

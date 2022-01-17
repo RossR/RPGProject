@@ -136,6 +136,7 @@ void ARPGProjectPlayerCharacter::BeginPlay()
 	{
 		FCharacterStatistics CharacterStatistics = CharacterStatisticComponent->GetCharacterStatistics();
 		StaminaComponent->SetMaxStamina(CharacterStatistics.StaminaPoints);
+		StaminaComponent->SetCurrentStamina(CharacterStatistics.StaminaPoints);
 	}
 
 	//GetComponents<UArrowComponent>(ArrowArray);

@@ -23,7 +23,7 @@ UCharacterStatisticComponent::UCharacterStatisticComponent()
 	CharismaAttribute = 0;
 	LuckAttribute = 0;
 
-	TotalAttributePointsSpent = StrengthAttribute + DexterityAttribute + VitalityAttribute + GritAttribute + IntelligenceAttribute + WisdomAttribute + CharismaAttribute + LuckAttribute;
+	TotalAttributePointsSpent = 0;
 
 	bHaveStatisticsChanged = false;
 	OldHealthPoints = 0;
@@ -37,18 +37,9 @@ void UCharacterStatisticComponent::BeginPlay()
 
 	ResetNewAttributes();
 
-	TotalAttributePointsSpent = StrengthAttribute + DexterityAttribute + VitalityAttribute + GritAttribute + IntelligenceAttribute + WisdomAttribute + CharismaAttribute + LuckAttribute;
+	UpdateCharacterStatistics();
 
-	AdditionalHealthPoints = (10 * StrengthAttribute) + (10 * DexterityAttribute) + (20 * VitalityAttribute) + (10 * GritAttribute);
-
-	CharacterStatistics.HealthPoints = BaseCharacterStatistics.HealthPoints + AdditionalHealthPoints;
-
-	AdditionalStaminaPoints = (5 * StrengthAttribute) + (10 * DexterityAttribute) + (5 * VitalityAttribute) + (5 * GritAttribute);
-
-	CharacterStatistics.StaminaPoints = BaseCharacterStatistics.StaminaPoints;
-
-	// ...
-	
+	UpdateTotalAttributePointsSpent();
 }
 
 
@@ -57,27 +48,13 @@ void UCharacterStatisticComponent::TickComponent(float DeltaTime, ELevelTick Tic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	TotalAttributePointsSpent = StrengthAttribute + DexterityAttribute + VitalityAttribute + GritAttribute + IntelligenceAttribute + WisdomAttribute + CharismaAttribute + LuckAttribute;
-
-	NewTotalAttributePointsSpent = NewStrengthAttribute + NewDexterityAttribute + NewVitalityAttribute + NewGritAttribute + NewIntelligenceAttribute + NewWisdomAttribute + NewCharismaAttribute + NewLuckAttribute;
-
-	AdditionalHealthPoints = (10 * StrengthAttribute) + (10 * DexterityAttribute) + (20 * VitalityAttribute) + (10 * GritAttribute);
-	CharacterStatistics.HealthPoints = BaseCharacterStatistics.HealthPoints + AdditionalHealthPoints;
-	
-	AdditionalStaminaPoints = (5 * StrengthAttribute) + (10 * DexterityAttribute) + (5 * VitalityAttribute) + (5 * GritAttribute);
-	CharacterStatistics.StaminaPoints = BaseCharacterStatistics.StaminaPoints + AdditionalStaminaPoints;
-
-	NewStrengthAttribute = FMath::Clamp(NewStrengthAttribute, StrengthAttribute, 9999);
-	NewDexterityAttribute = FMath::Clamp(NewDexterityAttribute, DexterityAttribute, 9999);
-	NewVitalityAttribute = FMath::Clamp(NewVitalityAttribute, VitalityAttribute, 9999);
-	NewGritAttribute = FMath::Clamp(NewGritAttribute, GritAttribute, 9999);
-	NewIntelligenceAttribute = FMath::Clamp(NewIntelligenceAttribute, IntelligenceAttribute, 9999);
-	NewWisdomAttribute = FMath::Clamp(NewWisdomAttribute, WisdomAttribute, 9999);
-	NewCharismaAttribute = FMath::Clamp(NewCharismaAttribute, CharismaAttribute, 9999);
-	NewLuckAttribute = FMath::Clamp(NewLuckAttribute, LuckAttribute, 9999);
+	UpdateCharacterStatistics();
+	UpdateDisplayedCharacterStatistics();
 
 	if (bHaveStatisticsChanged)
 	{
+		UpdateTotalAttributePointsSpent();
+
 		int StatChangeHealthDifference = AdditionalHealthPoints - OldHealthPoints;
 
 		UHealthComponent* HealthComponent = Cast<UHealthComponent>(GetOwner()->GetComponentByClass(UHealthComponent::StaticClass()));
@@ -108,6 +85,8 @@ void UCharacterStatisticComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 	OldHealthPoints = AdditionalHealthPoints;
 	OldStaminaPoints = AdditionalStaminaPoints;
+
+	ClampNewAttributes();
 }
 
 void UCharacterStatisticComponent::IncreaseAttribute()
@@ -171,35 +150,92 @@ void UCharacterStatisticComponent::DecreaseAttribute()
 		switch (SelectedAttributeType)
 		{
 		case EAttributeType::EAT_Strength:
-			NewStrengthAttribute--;
+			if (NewStrengthAttribute == StrengthAttribute)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AttributeButtonTimerHandle);
+			} 
+			else
+			{
+				NewStrengthAttribute--;
+			}
+			
 			break;
 
 		case EAttributeType::EAT_Dexterity:
-			NewDexterityAttribute--;
+			if (NewDexterityAttribute == DexterityAttribute)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AttributeButtonTimerHandle);
+			}
+			else
+			{
+				NewDexterityAttribute--;
+			}
 			break;
 
 		case EAttributeType::EAT_Vitality:
-			NewVitalityAttribute--;
+			if (NewVitalityAttribute == VitalityAttribute)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AttributeButtonTimerHandle);
+			}
+			else
+			{
+				NewVitalityAttribute--;
+			}
 			break;
 
 		case EAttributeType::EAT_Grit:
-			NewGritAttribute--;
+			if (NewGritAttribute == GritAttribute)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AttributeButtonTimerHandle);
+			}
+			else
+			{
+				NewGritAttribute--;
+			}
 			break;
 
 		case EAttributeType::EAT_Intelligence:
-			NewIntelligenceAttribute--;
+			if (NewIntelligenceAttribute == IntelligenceAttribute)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AttributeButtonTimerHandle);
+			}
+			else
+			{
+				NewIntelligenceAttribute--;
+			}
 			break;
 
 		case EAttributeType::EAT_Wisdom:
-			NewWisdomAttribute--;
+			if (NewWisdomAttribute == WisdomAttribute)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AttributeButtonTimerHandle);
+			}
+			else
+			{
+				NewWisdomAttribute--;
+			}
 			break;
 
 		case EAttributeType::EAT_Charisma:
-			NewCharismaAttribute--;
+			if (NewCharismaAttribute == CharismaAttribute)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AttributeButtonTimerHandle);
+			}
+			else
+			{
+				NewCharismaAttribute--;
+			}
 			break;
 
 		case EAttributeType::EAT_Luck:
-			NewLuckAttribute--;
+			if (NewLuckAttribute == LuckAttribute)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AttributeButtonTimerHandle);
+			}
+			else
+			{
+				NewLuckAttribute--;
+			}
 			break;
 
 		default:
@@ -368,4 +404,40 @@ void UCharacterStatisticComponent::SetAttribute(EAttributeType Attribute, int Ne
 	default:
 		break;
 	}
+}
+
+void UCharacterStatisticComponent::UpdateTotalAttributePointsSpent()
+{
+	TotalAttributePointsSpent = StrengthAttribute + DexterityAttribute + VitalityAttribute + GritAttribute + IntelligenceAttribute + WisdomAttribute + CharismaAttribute + LuckAttribute;
+}
+
+void UCharacterStatisticComponent::UpdateCharacterStatistics()
+{
+
+	AdditionalHealthPoints = (10 * StrengthAttribute) + (10 * DexterityAttribute) + (20 * VitalityAttribute) + (10 * GritAttribute);
+	AdditionalStaminaPoints = (5 * StrengthAttribute) + (10 * DexterityAttribute) + (5 * VitalityAttribute) + (5 * GritAttribute);
+
+	CharacterStatistics.HealthPoints = BaseCharacterStatistics.HealthPoints + AdditionalHealthPoints;
+	CharacterStatistics.StaminaPoints = BaseCharacterStatistics.StaminaPoints + AdditionalStaminaPoints;
+}
+
+void UCharacterStatisticComponent::UpdateDisplayedCharacterStatistics()
+{
+	NewTotalAttributePointsSpent = NewStrengthAttribute + NewDexterityAttribute + NewVitalityAttribute + NewGritAttribute + NewIntelligenceAttribute + NewWisdomAttribute + NewCharismaAttribute + NewLuckAttribute;
+
+	DisplayedCharacterStatistics.HealthPoints = BaseCharacterStatistics.HealthPoints + (10 * NewStrengthAttribute) + (10 * NewDexterityAttribute) + (20 * NewVitalityAttribute) + (10 * NewGritAttribute);
+	
+	DisplayedCharacterStatistics.StaminaPoints = BaseCharacterStatistics.StaminaPoints + (5 * NewStrengthAttribute) + (10 * NewDexterityAttribute) + (5 * NewVitalityAttribute) + (5 * NewGritAttribute);
+}
+
+void UCharacterStatisticComponent::ClampNewAttributes()
+{
+	NewStrengthAttribute = FMath::Clamp(NewStrengthAttribute, StrengthAttribute, 9999);
+	NewDexterityAttribute = FMath::Clamp(NewDexterityAttribute, DexterityAttribute, 9999);
+	NewVitalityAttribute = FMath::Clamp(NewVitalityAttribute, VitalityAttribute, 9999);
+	NewGritAttribute = FMath::Clamp(NewGritAttribute, GritAttribute, 9999);
+	NewIntelligenceAttribute = FMath::Clamp(NewIntelligenceAttribute, IntelligenceAttribute, 9999);
+	NewWisdomAttribute = FMath::Clamp(NewWisdomAttribute, WisdomAttribute, 9999);
+	NewCharismaAttribute = FMath::Clamp(NewCharismaAttribute, CharismaAttribute, 9999);
+	NewLuckAttribute = FMath::Clamp(NewLuckAttribute, LuckAttribute, 9999);
 }

@@ -43,9 +43,6 @@ public:
 	// Sets default values for this component's properties
 	UCharacterStatisticComponent();
 
-	UFUNCTION(BlueprintCallable)
-	FCharacterStatistics GetCharacterStatistics() { return CharacterStatistics; }
-
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -54,17 +51,37 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	//-------------------------------------
+	// Button Functions
+	//-------------------------------------
+
 	UFUNCTION(BlueprintCallable)
+	// Button Function - Increase the selected attribute by 1
 	void IncreaseAttribute();
 
 	UFUNCTION(BlueprintCallable)
+	// Button Function - Decrease the selected attribute by 1
 	void DecreaseAttribute();
 
 	UFUNCTION(BlueprintCallable)
+	// Button Function - Save the changes to the character's attributes
 	void ApplyNewAttributes();
 
 	UFUNCTION(BlueprintCallable)
+	// Button Function - Clear the changes to the character's attributes
 	void ResetNewAttributes();
+
+	//-------------------------------------
+	// Get Character Statistic Functions
+	//-------------------------------------
+
+	UFUNCTION(BlueprintCallable)
+	FCharacterStatistics GetCharacterStatistics() { return CharacterStatistics; }
+
+	UFUNCTION(BlueprintCallable)
+	FCharacterStatistics GetDisplayedCharacterStatistics() { return DisplayedCharacterStatistics; }
+
+	//----------------
 
 	UFUNCTION(BlueprintCallable)
 	// Get the character's total amount of attribute points
@@ -81,12 +98,15 @@ public:
 	void SetHaveStatisticsChanged(bool bActive) { bHaveStatisticsChanged = bActive; }
 
 	UFUNCTION(BlueprintCallable)
+	// Get the value of the selected attribute
 	int GetAttribute(EAttributeType Attribute);
 
 	UFUNCTION(BlueprintCallable)
+	// Get the new value of the selected attribute
 	int GetNewAttribute(EAttributeType Attribute);
 
 	UFUNCTION(BlueprintCallable)
+	// Set the value of the selected attribute
 	void SetAttribute(EAttributeType Attribute, int NewValue);
 
 	UFUNCTION(BlueprintCallable)
@@ -96,57 +116,64 @@ public:
 	// Set the value of the Strength attribute
 	void SetStrengthAttribute(int NewValue) { StrengthAttribute = NewValue; }
 
-	UFUNCTION(BlueprintCallable)
-	// Get the value of the Dexterity attribute
-	int GetDexterityAttribute() { return DexterityAttribute; }
-	UFUNCTION(BlueprintCallable)
-	// Set the value of the Dexterity attribute
-	void SetDexterityAttribute(int NewValue) { DexterityAttribute = NewValue; }
+	//UFUNCTION(BlueprintCallable)
+	//// Get the value of the Dexterity attribute
+	//int GetDexterityAttribute() { return DexterityAttribute; }
+	//UFUNCTION(BlueprintCallable)
+	//// Set the value of the Dexterity attribute
+	//void SetDexterityAttribute(int NewValue) { DexterityAttribute = NewValue; }
 
-	UFUNCTION(BlueprintCallable)
-	// Get the value of the Vitality attribute
-	int GetVitalityAttribute() { return VitalityAttribute; }
-	UFUNCTION(BlueprintCallable)
-	// Set the value of the Vitality attribute
-	void SetVitalityAttribute(int NewValue) { VitalityAttribute = NewValue; }
+	//UFUNCTION(BlueprintCallable)
+	//// Get the value of the Vitality attribute
+	//int GetVitalityAttribute() { return VitalityAttribute; }
+	//UFUNCTION(BlueprintCallable)
+	//// Set the value of the Vitality attribute
+	//void SetVitalityAttribute(int NewValue) { VitalityAttribute = NewValue; }
 
-	UFUNCTION(BlueprintCallable)
-	// Get the value of the Grit attribute
-	int GetGritAttribute() { return GritAttribute; }
-	UFUNCTION(BlueprintCallable)
-	// Set the value of the Grit attribute
-	void SetGritAttribute(int NewValue) { GritAttribute = NewValue; }
+	//UFUNCTION(BlueprintCallable)
+	//// Get the value of the Grit attribute
+	//int GetGritAttribute() { return GritAttribute; }
+	//UFUNCTION(BlueprintCallable)
+	//// Set the value of the Grit attribute
+	//void SetGritAttribute(int NewValue) { GritAttribute = NewValue; }
 
-	UFUNCTION(BlueprintCallable)
-	// Get the value of the Intelligence attribute
-	int GetIntelligenceAttribute() { return IntelligenceAttribute; }
-	UFUNCTION(BlueprintCallable)
-	// Set the value of the Intelligence attribute
-	void SetIntelligenceAttribute(int NewValue) { IntelligenceAttribute = NewValue; }
+	//UFUNCTION(BlueprintCallable)
+	//// Get the value of the Intelligence attribute
+	//int GetIntelligenceAttribute() { return IntelligenceAttribute; }
+	//UFUNCTION(BlueprintCallable)
+	//// Set the value of the Intelligence attribute
+	//void SetIntelligenceAttribute(int NewValue) { IntelligenceAttribute = NewValue; }
 
-	UFUNCTION(BlueprintCallable)
-	// Get the value of the Wisdom attribute
-	int GetWisdomAttribute() { return WisdomAttribute; }
-	UFUNCTION(BlueprintCallable)
-	// Set the value of the Wisdom attribute
-	void SetWisdomAttribute(int NewValue) { WisdomAttribute = NewValue; }
+	//UFUNCTION(BlueprintCallable)
+	//// Get the value of the Wisdom attribute
+	//int GetWisdomAttribute() { return WisdomAttribute; }
+	//UFUNCTION(BlueprintCallable)
+	//// Set the value of the Wisdom attribute
+	//void SetWisdomAttribute(int NewValue) { WisdomAttribute = NewValue; }
 
-	UFUNCTION(BlueprintCallable)
-	// Get the value of the Charisma attribute
-	int GetCharismaAttribute() { return CharismaAttribute; }
-	UFUNCTION(BlueprintCallable)
-	// Set the value of the Charisma attribute
-	void SetCharismaAttribute(int NewValue) { CharismaAttribute = NewValue; }
+	//UFUNCTION(BlueprintCallable)
+	//// Get the value of the Charisma attribute
+	//int GetCharismaAttribute() { return CharismaAttribute; }
+	//UFUNCTION(BlueprintCallable)
+	//// Set the value of the Charisma attribute
+	//void SetCharismaAttribute(int NewValue) { CharismaAttribute = NewValue; }
 
-	UFUNCTION(BlueprintCallable)
-	// Get the value of the Luck attribute
-	int GetLuckStat() { return LuckAttribute; }
-	UFUNCTION(BlueprintCallable)
-	// Set the value of the Luck attribute
-	void SetLuckStat(int NewValue) { LuckAttribute = NewValue; }
+	//UFUNCTION(BlueprintCallable)
+	//// Get the value of the Luck attribute
+	//int GetLuckStat() { return LuckAttribute; }
+	//UFUNCTION(BlueprintCallable)
+	//// Set the value of the Luck attribute
+	//void SetLuckStat(int NewValue) { LuckAttribute = NewValue; }
 
-public:
+protected:
 
+	void UpdateTotalAttributePointsSpent();
+
+	void UpdateCharacterStatistics();
+
+	void UpdateDisplayedCharacterStatistics();
+
+	void ClampNewAttributes();
 
 protected:
 
@@ -206,9 +233,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "New Character Attributes")
 	int NewLuckAttribute;
 
-	//-----
+	//-------------------------------------
+	// Character Statistics - Variables
+	//-------------------------------------
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Statistics")
+	// Base values for the character's statistics, will be determined by "class" in the future
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Character Statistics")
 		FCharacterStatistics BaseCharacterStatistics
 	{
 		// Health Points
@@ -217,6 +247,7 @@ protected:
 		400,
 	};
 
+	// Current values for the character's statistics
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Statistics")
 	FCharacterStatistics CharacterStatistics
 	{
@@ -224,6 +255,16 @@ protected:
 		300,
 		// Stamina Points
 		400,
+	};
+
+	// New values for the character's statistics, determined by attribute increases the player is planning on applying
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "New Character Statistics")
+	FCharacterStatistics DisplayedCharacterStatistics
+	{
+		// Health Points
+		0,
+		// Stamina Points
+		0,
 	};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Statistics")
