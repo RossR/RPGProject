@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Actors/Weapons/WeaponBase.h"
+#include "Actors/ItemTypes/WeaponBase.h"
 #include "RPGProjectPlayerCharacter.generated.h"
 
 
@@ -81,7 +81,7 @@ class UCharacterStatisticComponent;
 class UHealthComponent;
 class UStaminaComponent;
 class UDamageHandlerComponent;
-
+class UInventoryComponent;
 
 UCLASS(BlueprintType)
 class RPGPROJECT_API ARPGProjectPlayerCharacter : public ACharacter
@@ -391,17 +391,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UCharacterStatisticComponent* CharacterStatisticComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UHealthComponent* HealthComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaminaComponent* StaminaComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UDamageHandlerComponent* DamageHandlerComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UInventoryComponent* InventoryComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "On Death")
 	float TimeRestartAfterDeath = 5.0f;

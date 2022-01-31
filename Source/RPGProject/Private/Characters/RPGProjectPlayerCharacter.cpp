@@ -18,7 +18,8 @@
 #include "Actors/Components/HealthComponent.h"
 #include "Actors/Components/StaminaComponent.h"
 #include "Actors/Components/DamageHandlerComponent.h"
-#include "Actors/Weapons/WeaponBase.h"
+#include "Actors/Components/InventoryComponent.h"
+#include "Actors/ItemTypes/WeaponBase.h"
 
 #include "Controllers/RPGProjectPlayerController.h"
 
@@ -111,6 +112,8 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
 	
 	DamageHandlerComponent = CreateDefaultSubobject<UDamageHandlerComponent>(TEXT("DamageHandlerComponent"));
+
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 
 	EquippedWeapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquippedWeapon"));
 	EquippedWeapon->SetupAttachment(GetMesh(), FName("SheathRBack"));

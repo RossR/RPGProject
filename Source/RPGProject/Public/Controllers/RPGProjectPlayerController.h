@@ -31,6 +31,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetIsInMenu() { return bIsInMenu; }
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void InventoryUpdate();
+
 public:
 
 	FOnInteractionStart OnInteractionStart;

@@ -107,6 +107,7 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 
 	CombatModeUpdate();
 		
+	InventoryUpdate();
 }
 
 void ARPGProjectPlayerController::CombatModeUpdate()
