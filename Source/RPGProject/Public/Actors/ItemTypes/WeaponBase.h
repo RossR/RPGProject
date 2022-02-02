@@ -41,9 +41,6 @@ struct FWeaponInfo
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	FName WeaponName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	EWeaponType WeaponType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
@@ -57,9 +54,6 @@ struct FWeaponInfo
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	UAnimSequence* CombatIdle;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	float WeaponWeight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	float WeaponCondition;
@@ -136,29 +130,7 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	FWeaponInfo WeaponInfo
-	{
-		// Weapon Name
-		"WeaponBase",
-		// Weapon Type
-		EWeaponType::WT_None, 
-		// Attack Montage
-		nullptr,
-		// Light Attack Combo Limit
-		4,
-		// Heavy Attack Combo Limit
-		2,
-		// Combat Idle Animation
-		nullptr,
-		// Weapon Weight
-		0.0f, 
-		// Weapon Condition
-		100.0f,
-		// Weapon Damage
-		50.0f,
-		// Attack Sounds Array
-		//{ nullptr },
-	};
+	FWeaponInfo WeaponInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	UStaticMeshComponent* WeaponMesh;

@@ -8,7 +8,6 @@
 #include "Actors/ItemTypes/WeaponBase.h"
 #include "InventoryComponent.generated.h"
 
-//class AItemBase;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPGPROJECT_API UInventoryComponent : public UActorComponent
@@ -71,4 +70,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TMap<int, FWeaponInfo> InventoryWeaponInfoMap;
 	
+	// Struct of structs / parent structs and child structs
+	// pointers to data assets
+
 };

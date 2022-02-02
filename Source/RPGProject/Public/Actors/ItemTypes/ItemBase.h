@@ -37,10 +37,13 @@ struct FItemInfo
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+	EItemCategory ItemCategory;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	FName ItemName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	EItemCategory ItemCategory;
+	FText ItemDescription;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	EItemRarity ItemRarity;
@@ -48,8 +51,14 @@ struct FItemInfo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	int ItemQualityRating;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	FText ItemDescription;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+	float ItemWeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+	float ItemMaxDurability;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+	float ItemCurrentDurability;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	UTexture2D* ItemIcon;
