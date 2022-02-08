@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Actors/ItemTypes/ItemBase.h"
-#include "Actors/ItemTypes/WeaponBase.h"
+#include "Actors/ItemTypes/ItemWeapon.h"
 #include "InventoryComponent.generated.h"
 
 
@@ -66,6 +66,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TMap<int, FItemInfo> InventoryItemMap;
 	//TMap<int, TSubclassOf<AItemBase>> CharacterInventory;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TMap<int, FItemInfo> TestMap;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TMap<int, FWeaponInfo> InventoryWeaponInfoMap;

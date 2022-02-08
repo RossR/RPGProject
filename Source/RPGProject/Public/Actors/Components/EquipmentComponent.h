@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Actors/ItemTypes/ItemBase.h"
-#include "Actors/ItemTypes/WeaponBase.h"
+#include "Actors/ItemTypes/ItemWeapon.h"
 #include "EquipmentComponent.generated.h"
 
 UENUM(BlueprintType)
@@ -51,8 +51,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
 	TMap<int, FItemInfo> ItemInfoMap;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
-	TMap<int, FWeaponInfo> WeaponInfoMap;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
+	//TMap<int, FWeaponInfo2> WeaponInfoMap;
 
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
 	// TMap<int, FEquipmentInfo> EquipmentInfoMap;

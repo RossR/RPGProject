@@ -19,7 +19,7 @@
 #include "Actors/Components/StaminaComponent.h"
 #include "Actors/Components/DamageHandlerComponent.h"
 #include "Actors/Components/InventoryComponent.h"
-#include "Actors/ItemTypes/WeaponBase.h"
+#include "Actors/ItemTypes/ItemWeapon.h"
 
 #include "Controllers/RPGProjectPlayerController.h"
 

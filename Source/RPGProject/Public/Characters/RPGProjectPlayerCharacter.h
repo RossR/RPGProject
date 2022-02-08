@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Actors/ItemTypes/WeaponBase.h"
+#include "Actors/ItemTypes/ItemWeapon.h"
 #include "RPGProjectPlayerCharacter.generated.h"
 
 
