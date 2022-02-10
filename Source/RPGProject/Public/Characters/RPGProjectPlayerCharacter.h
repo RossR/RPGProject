@@ -345,19 +345,19 @@ protected:
 	float CurrentCharacterXYVelocity;
 
 	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	int32 MovementSpeed;
+	float MovementSpeed;
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	int32 CombatMovementSpeed;
+	float CombatMovementSpeed;
 
 	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	int32 WalkMovementSpeed;
+	float WalkMovementSpeed;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
-	int32 CrouchMovementSpeed;
+	float CrouchMovementSpeed;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
-	int32 SprintMovementSpeed;
+	float SprintMovementSpeed;
 
 	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	float CombatSpeedMultiplier;
@@ -366,7 +366,7 @@ protected:
 	float SprintSpeedMultiplier;
 
 	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	float CrouchSpeedMultiplier;
+	float CrouchSprintSpeedMultiplier;
 
 	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
 	int32 NormalMaxAcceleration;

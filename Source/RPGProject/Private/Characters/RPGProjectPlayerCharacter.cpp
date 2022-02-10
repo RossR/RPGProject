@@ -51,7 +51,7 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 
 	// Variables for character movement
 	SprintSpeedMultiplier = 1.6875f;
-	CrouchSpeedMultiplier = 0.66f;
+	CrouchSprintSpeedMultiplier = 1.25f;
 	CombatSpeedMultiplier = 1.0f;
 
 	NormalMaxAcceleration = 2048;
@@ -59,6 +59,7 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	CharacterMinAnalogWalkSpeed = 0;
 
 	MovementSpeed = 400;
+	CrouchMovementSpeed = 265;
 	WalkMovementSpeed = 150;
 	
 	// Don't rotate when the controller rotates. Let that just affect the camera. - Taken from 3rdP Character BP
@@ -67,10 +68,16 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Character Movement settings
+	GetCharacterMovement()->GravityScale = 2.0f;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed;
+	GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
+	GetCharacterMovement()->CrouchedHalfHeight = 66.0f;
 	
+	JumpMaxHoldTime = 0.2f;
+
 	bIsCrouched = false;
 	bIsRagdollDeath = false;
 	bIsExhausted = false;
@@ -159,7 +166,7 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 
 	bIsFalling = GetVelocity().Z != 0;
 
-	CrouchMovementSpeed = MovementSpeed * CrouchSpeedMultiplier;
+	// CrouchMovementSpeed = MovementSpeed * 0.66f;
 	SprintMovementSpeed = MovementSpeed * SprintSpeedMultiplier;
 	CombatMovementSpeed = MovementSpeed * CombatSpeedMultiplier;
 
@@ -365,22 +372,17 @@ void ARPGProjectPlayerCharacter::PlayerHorizontalMobilityUpdate()
 		{
 			case EPlayerHorizontalMobility::PHM_Idle:
 			{
-				if (PlayerVerticalMobilityState == EPlayerVerticalMobility::PVM_Crouching)
-				{
-					GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
-				}
-				else
-				{
-					GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-					GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
-				}
-				
+				GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed;
+				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+							
 				break;
 			}
 			case EPlayerHorizontalMobility::PHM_Walking:
 			{
 				GetCharacterMovement()->MaxWalkSpeed = WalkMovementSpeed;
+				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed;
 				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
 				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
 
@@ -388,26 +390,21 @@ void ARPGProjectPlayerCharacter::PlayerHorizontalMobilityUpdate()
 			}
 			case EPlayerHorizontalMobility::PHM_Jogging:
 			{
-				if (PlayerVerticalMobilityState == EPlayerVerticalMobility::PVM_Crouching)
-				{
-					GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
-				}
-				else
-				{
-					GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-					GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-					GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
-				}
-
+				GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed;
+				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
+				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+				
 				break;
 			}
 			case EPlayerHorizontalMobility::PHM_Sprinting:
 			{
 				GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed;
+				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed * CrouchSprintSpeedMultiplier;
 				GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 				GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
 				
-				if (CurrentCharacterXYVelocity > 0 && PlayerVerticalMobilityState == EPlayerVerticalMobility::PVM_Standing)
+				if (CurrentCharacterXYVelocity > 0 && GetCharacterMovement()->IsMovingOnGround()) //&& PlayerVerticalMobilityState == EPlayerVerticalMobility::PVM_Standing)
 				{
 					TakeStaminaDamage(StaminaDamagePerInterval);
 				}
