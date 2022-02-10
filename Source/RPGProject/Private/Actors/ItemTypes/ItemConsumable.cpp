@@ -3,3 +3,7 @@
 
 #include "Actors/ItemTypes/ItemConsumable.h"
 
+AItemConsumable::AItemConsumable()
+{
+
+}

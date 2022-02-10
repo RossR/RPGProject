@@ -21,6 +21,10 @@ AItemWeapon::AItemWeapon()
 
 	WeaponTraceStart[0]->SetupAttachment(RootComponent);
 	WeaponTraceEnd[0]->SetupAttachment(RootComponent);
+
+	ItemDataInstance = CreateDefaultSubobject<UItemWeaponData>(TEXT("Weapon Data Instance"));
+
+	WeaponData = Cast<UItemWeaponData>(ItemDataInstance);
 }
 
 // Called when the game starts or when spawned
@@ -39,18 +43,21 @@ void AItemWeapon::Tick(float DeltaTime)
 
 void AItemWeapon::PlayRandomAttackSound()
 {
-	if (WeaponInfo.RandomAttackSoundArray.Num() != 0)
+	if (WeaponData)
 	{
-		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, FString::FromInt(WeaponInfo.RandomAttackSoundArray.Num()));
-		const int32 RandomItem = UKismetMathLibrary::RandomIntegerInRange(0, (WeaponInfo.RandomAttackSoundArray.Num() - 1));
-		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, FString::FromInt(RandomItem));
-		if (USoundWave* RandomSound = WeaponInfo.RandomAttackSoundArray[RandomItem])
+		if (WeaponData->RandomAttackSoundArray.Num() != 0)
 		{
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), RandomSound, GetActorLocation());
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("AItemWeapon::PlayRandomAttackSound Random sound is nullptr"));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, FString::FromInt(WeaponInfo.RandomAttackSoundArray.Num()));
+			const int32 RandomItem = UKismetMathLibrary::RandomIntegerInRange(0, (WeaponData->RandomAttackSoundArray.Num() - 1));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, FString::FromInt(RandomItem));
+			if (USoundWave* RandomSound = WeaponData->RandomAttackSoundArray[RandomItem])
+			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), RandomSound, GetActorLocation());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AItemWeapon::PlayRandomAttackSound Random sound is nullptr"));
+			}
 		}
 	}
 }

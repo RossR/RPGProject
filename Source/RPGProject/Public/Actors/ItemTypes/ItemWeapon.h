@@ -12,65 +12,104 @@
 class UStaticMeshComponent;
 class UAnimSequence;
 
-UENUM(BlueprintType)
-enum class EWeaponType : uint8
-{
-	WT_None				UMETA(DisplayName="None"),
-	WT_Unarmed			UMETA(DisplayName = "Unarmed"),
-	WT_Item				UMETA(DisplayName = "Item"),
-	WT_1HandDagger		UMETA(DisplayName = "One-handed Dagger"),
-	WT_1HandMace		UMETA(DisplayName = "One-handed Mace"),
-	WT_1HandPistol		UMETA(DisplayName = "One-handed Pistol"),
-	WT_1HandSpear		UMETA(DisplayName = "One-handed Spear"),
-	WT_1HandSword		UMETA(DisplayName = "One-handed Sword"),
-	WT_2HandAxe			UMETA(DisplayName = "Two-handed Axe"),
-	WT_2HandBow			UMETA(DisplayName = "Two-handed Bow"),
-	WT_2HandCrossbow	UMETA(DisplayName = "Two-handed Crossbow"),
-	WT_2HandShooter		UMETA(DisplayName = "Two-handed Shooter"),
-	WT_2HandSpear		UMETA(DisplayName = "Two-handed Spear"),
-	WT_2HandStaff		UMETA(DisplayName = "Two-handed Staff"),
-	WT_2HandSword		UMETA(DisplayName = "Two-handed Sword"),
-	WT_1HandShield		UMETA(DisplayName = "One-handed Shield"),
-
-	WT_Max UMETA(Hidden)
-};
-
-USTRUCT(BlueprintType)
-struct FWeaponInfo : public FItemInfo
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	EWeaponType WeaponType;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	TArray<USoundWave*> RandomAttackSoundArray;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	UAnimSequence* CombatIdle;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	UAnimMontage* AttackMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	uint8 LightAttackComboLimit;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	uint8 HeavyAttackComboLimit;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	FName SheathSocket;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	FName EquippedSocket;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	float WeaponCondition;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	float WeaponDamage;
-
-};
+//UENUM(BlueprintType)
+//enum class EWeaponType : uint8
+//{
+//	WT_None				UMETA(DisplayName="None"),
+//	WT_Unarmed			UMETA(DisplayName = "Unarmed"),
+//	WT_Item				UMETA(DisplayName = "Item"),
+//	WT_1HandDagger		UMETA(DisplayName = "One-handed Dagger"),
+//	WT_1HandMace		UMETA(DisplayName = "One-handed Mace"),
+//	WT_1HandPistol		UMETA(DisplayName = "One-handed Pistol"),
+//	WT_1HandSpear		UMETA(DisplayName = "One-handed Spear"),
+//	WT_1HandSword		UMETA(DisplayName = "One-handed Sword"),
+//	WT_2HandAxe			UMETA(DisplayName = "Two-handed Axe"),
+//	WT_2HandBow			UMETA(DisplayName = "Two-handed Bow"),
+//	WT_2HandCrossbow	UMETA(DisplayName = "Two-handed Crossbow"),
+//	WT_2HandShooter		UMETA(DisplayName = "Two-handed Shooter"),
+//	WT_2HandSpear		UMETA(DisplayName = "Two-handed Spear"),
+//	WT_2HandStaff		UMETA(DisplayName = "Two-handed Staff"),
+//	WT_2HandSword		UMETA(DisplayName = "Two-handed Sword"),
+//	WT_1HandShield		UMETA(DisplayName = "One-handed Shield"),
+//
+//	WT_Max UMETA(Hidden)
+//};
+//
+//USTRUCT(BlueprintType)
+//struct FWeaponInfo : public FItemInfo
+//{
+//	GENERATED_BODY()
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	EWeaponType WeaponType;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	TArray<USoundWave*> RandomAttackSoundArray;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	UAnimSequence* CombatIdle;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	UAnimMontage* AttackMontage;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	uint8 LightAttackComboLimit;
+//	
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	uint8 HeavyAttackComboLimit;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	FName SheathSocket;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	FName EquippedSocket;
+//	
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	float WeaponCondition;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	float WeaponDamage;
+//
+//};
+//
+//
+//UCLASS()
+//class RPGPROJECT_API UItemWeaponData : public UItemData
+//{
+//	GENERATED_BODY()
+//
+//protected:
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	EWeaponType WeaponType;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	TArray<USoundWave*> RandomAttackSoundArray;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	UAnimSequence* CombatIdle;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	UAnimMontage* AttackMontage;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	uint8 LightAttackComboLimit;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	uint8 HeavyAttackComboLimit;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	FName SheathSocket;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	FName EquippedSocket;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	float WeaponCondition;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+//	float WeaponDamage;
+//};
 
 UCLASS()
 class RPGPROJECT_API AItemWeapon : public AItemBase
@@ -81,11 +120,8 @@ public:
 	// Sets default values for this actor's properties
 	AItemWeapon();
 
-	UFUNCTION(BlueprintCallable)
-	FWeaponInfo GetWeaponInfo() { return WeaponInfo; }
-
-	//UFUNCTION(BlueprintCallable)
-	//virtual FItemInfo GetItemInfo() override { return WeaponInfo; }
+	// UFUNCTION(BlueprintCallable)
+	virtual UItemData* GetItemData() override { return ItemDataInstance; }
 	
 
 	UFUNCTION(BlueprintCallable)
@@ -139,67 +175,67 @@ public:
 
 protected:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	FWeaponInfo WeaponInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Data")
+	UItemWeaponData* WeaponData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	UStaticMeshComponent* WeaponMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	TArray<USceneComponent*> WeaponTraceStart;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	TArray<USceneComponent*> WeaponTraceEnd;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	int TraceIndex;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	bool bWeaponTraceHasHit = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	TArray<FHitResult> WeaponTraceHitResult;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	int TotalTraceSections = 10;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	float TraceAlpha;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	bool bIsFirstTrace = true;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	FVector CurrentTraceStart = FVector::ZeroVector;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	FVector CurrentTraceEnd = FVector::ZeroVector;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	TArray<FVector> LastTraceStart;//= FVector::ZeroVector;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	TArray<FVector> LastTraceEnd;// = FVector::ZeroVector;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	FVector CurrentTraceSection = FVector::ZeroVector;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	FVector LastTraceSection = FVector::ZeroVector;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	FVector TraceBoxHalfSize = FVector::ZeroVector;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	float TraceRadius;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	float TraceHalfHeight;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	FRotator TraceOrientation = FRotator::ZeroRotator;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Line Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	TArray<AActor*> IgnoredActorArray;
-
+	
 };

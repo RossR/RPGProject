@@ -4,69 +4,110 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "DataAssets/ItemData.h"
 #include "ItemBase.generated.h"
 
 class UStaticMeshComponent;
 
-UENUM(BlueprintType)
-enum class EItemCategory : uint8
-{
-	EIC_Default UMETA(DisplayName="Default"),
-	EIC_Consumable UMETA(DisplayName="Consumable"),
-	EIC_Weapon UMETA(DisplayName="Weapon"),
+//UENUM(BlueprintType)
+//enum class EItemCategory : uint8
+//{
+//	EIC_Default UMETA(DisplayName="Default"),
+//	EIC_Consumable UMETA(DisplayName="Consumable"),
+//	EIC_Weapon UMETA(DisplayName="Weapon"),
+//
+//	EIC_Max UMETA(Hidden)
+//};
+//
+//UENUM(BlueprintType)
+//enum class EItemRarity : uint8
+//{
+//	EIR_Default UMETA(DisplayName="Default"),
+//	EIR_Common UMETA(DisplayName="Common"),
+//	EIR_Uncommon UMETA(DisplayName="Uncommon"),
+//	EIR_Rare UMETA(DisplayName="Rare"),
+//	EIR_Mythic UMETA(DisplayName="Mythic"),
+//	EIR_Legendary UMETA(DisplayName="Legendary"),
+//
+//	EIR_Max UMETA(Hidden)
+//};
+//
+//USTRUCT(BlueprintType)
+//struct FItemInfo
+//{
+//	GENERATED_BODY()
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	EItemCategory ItemCategory;
+//	
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	FName ItemName;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	FText ItemDescription;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	EItemRarity ItemRarity;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	int ItemQualityRating;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+//	float ItemWeight;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+//	float ItemMaxDurability;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+//	float ItemCurrentDurability;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	UTexture2D* ItemIcon;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	TSubclassOf<AActor> ClassToSpawn;
+//
+//};
 
-	EIC_Max UMETA(Hidden)
-};
+//UCLASS(BlueprintType)
+//class RPGPROJECT_API UItemData : public UDataAsset
+//{
+//	GENERATED_BODY()
+//
+//protected:
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	EItemCategory ItemCategory;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	FName ItemName;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	FText ItemDescription;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	EItemRarity ItemRarity;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	int ItemQualityRating;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+//	float ItemWeight;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+//	float ItemMaxDurability;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+//	float ItemCurrentDurability;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	UTexture2D* ItemIcon;
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+//	TSubclassOf<AActor> ClassToSpawn;
+//};
 
-UENUM(BlueprintType)
-enum class EItemRarity : uint8
-{
-	EIR_Default UMETA(DisplayName="Default"),
-	EIR_Common UMETA(DisplayName="Common"),
-	EIR_Uncommon UMETA(DisplayName="Uncommon"),
-	EIR_Rare UMETA(DisplayName="Rare"),
-	EIR_Mythic UMETA(DisplayName="Mythic"),
-	EIR_Legendary UMETA(DisplayName="Legendary"),
 
-	EIR_Max UMETA(Hidden)
-};
-
-USTRUCT(BlueprintType)
-struct FItemInfo
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	EItemCategory ItemCategory;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	FName ItemName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	FText ItemDescription;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	EItemRarity ItemRarity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	int ItemQualityRating;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
-	float ItemWeight;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
-	float ItemMaxDurability;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
-	float ItemCurrentDurability;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	UTexture2D* ItemIcon;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	TSubclassOf<AActor> ClassToSpawn;
-
-};
 
 
 UCLASS()
@@ -87,15 +128,17 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	FItemInfo GetItemInfo() { return ItemInfo; }
+	virtual UItemData* GetItemData() { return ItemDataInstance; }
 
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
-	FItemInfo ItemInfo;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
 	UStaticMeshComponent* ItemMesh;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Data")
+	UItemData* ItemData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category = "Item Data")
+	UItemData* ItemDataInstance;
 
 };

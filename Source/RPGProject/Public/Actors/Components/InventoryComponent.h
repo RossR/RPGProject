@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "Actors/ItemTypes/ItemBase.h"
 #include "Actors/ItemTypes/ItemWeapon.h"
+#include "Actors/ItemTypes/ItemEquipment.h"
+#include "Actors/ItemTypes/ItemConsumable.h"
 #include "InventoryComponent.generated.h"
 
 
@@ -41,16 +43,11 @@ public:
 	bool MoveItemToIndex(int CurrentItemKey, int NewItemKey);
 
 	UFUNCTION(BlueprintCallable)
-	FItemInfo GetInventoryItemInfo(int ItemKey) { return InventoryItemMap[ItemKey]; }
+	UItemData* GetInventoryItemData(int ItemKey) { return InventoryItemDataMap[ItemKey]; }
 
 	UFUNCTION(BlueprintCallable)
-	FWeaponInfo GetInventoryWeaponInfo(int ItemKey) { return InventoryWeaponInfoMap[ItemKey]; }
+	TMap<int, UItemData*> GetInventoryItemDataMap() { return InventoryItemDataMap; }
 
-	UFUNCTION(BlueprintCallable)
-	TMap<int, FItemInfo> GetInventoryItemMap() { return InventoryItemMap; }
-
-	UFUNCTION(BlueprintCallable)
-	TMap<int, FWeaponInfo> GetInventoryWeaponInfoMap() { return InventoryWeaponInfoMap; }
 
 protected:
 
@@ -64,14 +61,8 @@ protected:
 	int InventoryHeight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TMap<int, FItemInfo> InventoryItemMap;
-	//TMap<int, TSubclassOf<AItemBase>> CharacterInventory;
+	TMap<int, UItemData*> InventoryItemDataMap;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TMap<int, FItemInfo> TestMap;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TMap<int, FWeaponInfo> InventoryWeaponInfoMap;
 	
 	// Struct of structs / parent structs and child structs
 	// pointers to data assets

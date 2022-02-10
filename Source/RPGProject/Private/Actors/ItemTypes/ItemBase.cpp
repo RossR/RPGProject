@@ -13,12 +13,15 @@ AItemBase::AItemBase()
 
 	SetRootComponent(ItemMesh);
 
+	ItemDataInstance = CreateDefaultSubobject<UItemData>(TEXT("Item Data Instance"));
+
 }
 
 // Called when the game starts or when spawned
 void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	
 }
 
@@ -30,4 +33,3 @@ void AItemBase::Tick(float DeltaTime)
 	
 
 }
-

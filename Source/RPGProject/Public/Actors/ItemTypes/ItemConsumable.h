@@ -14,4 +14,12 @@ class RPGPROJECT_API AItemConsumable : public AItemBase
 {
 	GENERATED_BODY()
 	
+public:
+
+	AItemConsumable();
+
+protected:
+
+
+
 };

@@ -13,8 +13,8 @@ UInventoryComponent::UInventoryComponent()
 	InventorySize = 56;
 	InventoryWidth = 8;
 	InventoryHeight = InventorySize / InventoryWidth;
-}
 
+}
 
 // Called when the game starts
 void UInventoryComponent::BeginPlay()
@@ -26,7 +26,6 @@ void UInventoryComponent::BeginPlay()
 	// ...
 	
 }
-
 
 // Called every frame
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -52,37 +51,12 @@ bool UInventoryComponent::AddItemToInventory(AActor* ItemActor, int ItemKey)
 			// Check each inventory slot to find an empty slot
 			for (int i = 0; i < InventorySize; i++)
 			{
-				if (!InventoryItemMap.Find(i))
+				if (!InventoryItemDataMap.Find(i))
 				{
 					// Populate the empty inventory slot with the item
 					bIsInventoryFull = false;
-					InventoryItemMap.Emplace(i, Item->GetItemInfo());
 
-					switch (Item->GetItemInfo().ItemCategory)
-					{
-					case EItemCategory::EIC_Default:
-						break;
-					case EItemCategory::EIC_Consumable:
-						break;
-					case EItemCategory::EIC_Weapon:
-					{
-						AWeaponBase* WeaponItem = Cast<AWeaponBase>(ItemActor);
-
-						if (WeaponItem)
-						{
-							InventoryWeaponInfoMap.Emplace(i, WeaponItem->GetWeaponInfo());
-						}
-						else
-						{
-							UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::AddItemToInventory WeaponItem is NULL."))
-						}
-
-						break;
-					}
-					default:
-						break;
-					}
-
+					InventoryItemDataMap.Emplace(i, Item->GetItemData());
 					// Item was successfully added to inventory
 					return true;
 				}
@@ -94,36 +68,15 @@ bool UInventoryComponent::AddItemToInventory(AActor* ItemActor, int ItemKey)
 			}
 
 		}
+		// Add item to specified inventory slot
 		else
 		{
-			if (!InventoryItemMap.Find(ItemKey))
+			// Check that the inventory slot is empty
+			if (!InventoryItemDataMap.Find(ItemKey))
 			{
-				InventoryItemMap.Emplace(ItemKey, Item->GetItemInfo());
 
-				switch (Item->GetItemInfo().ItemCategory)
-				{
-				case EItemCategory::EIC_Default:
-					break;
-				case EItemCategory::EIC_Consumable:
-					break;
-				case EItemCategory::EIC_Weapon:
-				{
-					AWeaponBase* WeaponItem = Cast<AWeaponBase>(ItemActor);
+				InventoryItemDataMap.Emplace(ItemKey, Item->GetItemData());
 
-					if (WeaponItem)
-					{
-						InventoryWeaponInfoMap.Emplace(ItemKey, WeaponItem->GetWeaponInfo());
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::AddItemToInventory WeaponItem is NULL."))
-					}
-
-					break;
-				}
-				default:
-					break;
-				}
 			}
 			else
 			{
@@ -145,9 +98,10 @@ bool UInventoryComponent::AddItemToInventory(AActor* ItemActor, int ItemKey)
 
 bool UInventoryComponent::RemoveItemFromInventory(int ItemKey)
 {
-	if (InventoryItemMap.Contains(ItemKey))
+	
+	if (InventoryItemDataMap.Contains(ItemKey))
 	{
-		InventoryItemMap.Remove(ItemKey);
+		InventoryItemDataMap.Remove(ItemKey);
 		return true;
 		// FString RemovedMessage = "UInventoryComponent::RemoveItemFromInventory Item in slot '" + FString::FromInt(ItemKey) + "' has been removed.";
 	}
@@ -167,77 +121,50 @@ bool UInventoryComponent::SwapItems(int FirstItemKey, int SecondItemKey)
 
 		return false;
 	}
-	else if (InventoryItemMap.Contains(FirstItemKey) && InventoryItemMap.Contains(SecondItemKey))
+
+	// If both inventory slots are in use
+	if (InventoryItemDataMap.Contains(FirstItemKey) && InventoryItemDataMap.Contains(SecondItemKey))
 	{
 		// 1. Store info structs of first index
 		// 2. Store any other info structs of first index
 		// 3. Overwrite first index info structs
 		// 4. Overwrite second index info structs
 		
-		FItemInfo FirstItemInfo = InventoryItemMap[FirstItemKey];
-		FWeaponInfo FirstWeaponInfo;
-		// Any other info type
+		UItemData* FirstItemData = InventoryItemDataMap[FirstItemKey];
 		
-		InventoryItemMap[FirstItemKey] = InventoryItemMap[SecondItemKey];
-		InventoryItemMap[SecondItemKey] = FirstItemInfo;
-
-		if (InventoryWeaponInfoMap.Contains(FirstItemKey) && InventoryWeaponInfoMap.Contains(SecondItemKey))
-		{
-			FirstWeaponInfo = InventoryWeaponInfoMap[FirstItemKey];
-
-			InventoryWeaponInfoMap[FirstItemKey] = InventoryWeaponInfoMap[SecondItemKey];
-			InventoryWeaponInfoMap[SecondItemKey] = FirstWeaponInfo;
-		}
-		else if (InventoryWeaponInfoMap.Contains(FirstItemKey) || InventoryWeaponInfoMap.Contains(SecondItemKey))
-		{
-			if (InventoryWeaponInfoMap.Contains(FirstItemKey))
-			{
-				InventoryWeaponInfoMap.Emplace(SecondItemKey, InventoryWeaponInfoMap[FirstItemKey]);
-				InventoryWeaponInfoMap.Remove(FirstItemKey);
-			}
-			else if (InventoryWeaponInfoMap.Contains(SecondItemKey))
-			{
-				InventoryWeaponInfoMap.Emplace(FirstItemKey, InventoryWeaponInfoMap[SecondItemKey]);
-				InventoryWeaponInfoMap.Remove(SecondItemKey);
-			}
-		}
+		InventoryItemDataMap[FirstItemKey] = InventoryItemDataMap[SecondItemKey];
+		InventoryItemDataMap[SecondItemKey] = FirstItemData;
 
 		return true;
-
 	}
-	else if (!InventoryItemMap.Contains(FirstItemKey))
+	else if (!InventoryItemDataMap.Contains(FirstItemKey))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::SwapItems FirstItemKey is invalid."));
 	}
-	else if (!InventoryItemMap.Contains(SecondItemKey))
+	else if (!InventoryItemDataMap.Contains(SecondItemKey))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::SwapItems SecondItemKey is invalid."));
 	}
-
+	
 	return false;
 }
 
 bool UInventoryComponent::MoveItemToIndex(int CurrentItemKey, int NewItemKey)
 {
-
+	
 	// Check that the item being moved has a valid index
-	if (!InventoryItemMap.Find(CurrentItemKey))
+	if (!InventoryItemDataMap.Contains(CurrentItemKey))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::MoveItemToIndex CurrentItemKey is invalid."));
 		return false;
 	}
-
+	
 	// Move the item info if the new index is not populated
-	if (!InventoryItemMap.Find(NewItemKey))
+	if (!InventoryItemDataMap.Contains(NewItemKey))
 	{
-		InventoryItemMap.Emplace(NewItemKey, InventoryItemMap[CurrentItemKey]);
-		InventoryItemMap.Remove(CurrentItemKey);
+		InventoryItemDataMap.Emplace(NewItemKey, InventoryItemDataMap[CurrentItemKey]);
 
-		if (InventoryWeaponInfoMap.Find(CurrentItemKey))
-		{
-			InventoryWeaponInfoMap.Emplace(NewItemKey, InventoryWeaponInfoMap[CurrentItemKey]);
-			InventoryWeaponInfoMap.Remove(CurrentItemKey);
-		}
+		RemoveItemFromInventory(CurrentItemKey);
 
 		return true;
 	}
@@ -247,4 +174,6 @@ bool UInventoryComponent::MoveItemToIndex(int CurrentItemKey, int NewItemKey)
 
 		return SwapItems(CurrentItemKey, NewItemKey);
 	}
+	
+	return false;
 }
