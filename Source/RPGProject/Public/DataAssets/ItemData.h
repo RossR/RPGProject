@@ -119,6 +119,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	TSubclassOf<AActor> ClassToSpawn;
+
+	// ToDo - Smort thing to do
+	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+	TSoftClassPtr<AActor> SoftClassToSpawn;*/
 };
 
 //--------------------------------------------------------------
