@@ -32,6 +32,7 @@ void UEquipmentComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	// ToDo - Be smort, move to equip & unequip functions
 	for (uint8 i = 1; i < (uint8)EEquipmentSlot::EES_MAX; i++)
 	{
 		if (WornEquipmentData.Contains((EEquipmentSlot)i))
@@ -46,6 +47,9 @@ void UEquipmentComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			if (EquippedItem)
 			{
 				EquippedItem->SetItemData(WornEquipmentData[(EEquipmentSlot)i]);
+				// Equip Event
+				// Change collision
+				// data stuff
 			}
 		}
 		else if (WornEquipmentActors[(EEquipmentSlot)i]->GetChildActorClass() != nullptr)
