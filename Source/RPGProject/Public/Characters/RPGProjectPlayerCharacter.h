@@ -82,6 +82,7 @@ class UHealthComponent;
 class UStaminaComponent;
 class UDamageHandlerComponent;
 class UInventoryComponent;
+class UEquipmentComponent;
 
 UCLASS(BlueprintType)
 class RPGPROJECT_API ARPGProjectPlayerCharacter : public ACharacter
@@ -406,11 +407,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UInventoryComponent* InventoryComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UEquipmentComponent* EquipmentComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "On Death")
 	float TimeRestartAfterDeath = 5.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipped Weapon")
-	UChildActorComponent* EquippedWeapon;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipped Weapon")
+	//UChildActorComponent* EquippedWeapon;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Equipped Weapon")
 	EWeaponType EquippedWeaponType;

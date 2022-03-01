@@ -12,8 +12,9 @@ AItemBase::AItemBase()
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item Mesh"));
 
 	SetRootComponent(ItemMesh);
+	ItemMesh->SetCollisionProfileName("Item");
 
-	ItemDataInstance = CreateDefaultSubobject<UItemData>(TEXT("Item Data Instance"));
+	ItemData = CreateDefaultSubobject<UItemData>(TEXT("Item Data Instance"));
 
 }
 
@@ -30,6 +31,12 @@ void AItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	
-
+	if (ItemData->bIsEquipped)
+	{
+		ItemMesh->SetCollisionProfileName("EquippedItem");
+	}
+	else
+	{
+		ItemMesh->SetCollisionProfileName("Item");
+	}
 }

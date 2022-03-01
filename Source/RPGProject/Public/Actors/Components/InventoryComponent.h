@@ -30,7 +30,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	// Adds an item to the inventory, set ItemKey to -1 to fill the first empty inventory slot
-	bool AddItemToInventory(AActor* ItemActor, int ItemKey = -1);// FItemInfo ItemInfo);
+	bool AddItemToInventory(UItemData* Item, int ItemKey = -1);// FItemInfo ItemInfo);
 
 	UFUNCTION(BlueprintCallable)
 	// Removes the item stored in the provided key
@@ -43,7 +43,7 @@ public:
 	bool MoveItemToIndex(int CurrentItemKey, int NewItemKey);
 
 	UFUNCTION(BlueprintCallable)
-	UItemData* GetInventoryItemData(int ItemKey) { return InventoryItemDataMap[ItemKey]; }
+	UItemData* GetInventoryItemData(int ItemKey) { if (InventoryItemDataMap.Contains(ItemKey)) { return InventoryItemDataMap[ItemKey]; } return nullptr; }
 
 	UFUNCTION(BlueprintCallable)
 	TMap<int, UItemData*> GetInventoryItemDataMap() { return InventoryItemDataMap; }

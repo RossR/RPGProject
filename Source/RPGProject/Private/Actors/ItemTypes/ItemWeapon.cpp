@@ -22,9 +22,9 @@ AItemWeapon::AItemWeapon()
 	WeaponTraceStart[0]->SetupAttachment(RootComponent);
 	WeaponTraceEnd[0]->SetupAttachment(RootComponent);
 
-	ItemDataInstance = CreateDefaultSubobject<UItemWeaponData>(TEXT("Weapon Data Instance"));
+	ItemData = CreateDefaultSubobject<UItemWeaponData>(TEXT("Weapon Data Instance"));
 
-	WeaponData = Cast<UItemWeaponData>(ItemDataInstance);
+	WeaponData = Cast<UItemWeaponData>(ItemData);
 }
 
 // Called when the game starts or when spawned

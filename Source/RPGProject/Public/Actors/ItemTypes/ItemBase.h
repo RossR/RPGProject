@@ -128,17 +128,20 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	virtual UItemData* GetItemData() { return ItemDataInstance; }
+	virtual UItemData* GetItemData() { return ItemData; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetItemData(UItemData* NewItemData) { ItemData = NewItemData; }
 
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
 	UStaticMeshComponent* ItemMesh;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Data")
-	UItemData* ItemData;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Data")
+	//UItemData* ItemData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category = "Item Data")
-	UItemData* ItemDataInstance;
+	UItemData* ItemData;
 
 };

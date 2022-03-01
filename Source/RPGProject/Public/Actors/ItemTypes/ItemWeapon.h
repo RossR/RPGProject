@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Actors/ItemTypes/ItemBase.h"
+#include "Actors/ItemTypes/ItemEquipment.h"
 #include "GameFramework/Actor.h"
 #include "Animation/AnimMontage.h"
 #include "Sound/SoundWave.h"
@@ -112,7 +113,7 @@ class UAnimSequence;
 //};
 
 UCLASS()
-class RPGPROJECT_API AItemWeapon : public AItemBase
+class RPGPROJECT_API AItemWeapon : public AItemEquipment
 {
 	GENERATED_BODY()
 	
@@ -121,8 +122,7 @@ public:
 	AItemWeapon();
 
 	// UFUNCTION(BlueprintCallable)
-	virtual UItemData* GetItemData() override { return ItemDataInstance; }
-	
+	virtual UItemData* GetItemData() override { return ItemData; }
 
 	UFUNCTION(BlueprintCallable)
 	void PlayRandomAttackSound();

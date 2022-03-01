@@ -19,6 +19,7 @@
 #include "Actors/Components/StaminaComponent.h"
 #include "Actors/Components/DamageHandlerComponent.h"
 #include "Actors/Components/InventoryComponent.h"
+#include "Actors/Components/EquipmentComponent.h"
 #include "Actors/ItemTypes/ItemWeapon.h"
 
 #include "Controllers/RPGProjectPlayerController.h"
@@ -122,8 +123,12 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 
-	EquippedWeapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquippedWeapon"));
-	EquippedWeapon->SetupAttachment(GetMesh(), FName("SheathRBack"));
+	EquipmentComponent = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComponent"));
+
+	EquipmentComponent->AttachEquipmentToMesh(GetMesh());
+
+	//EquippedWeapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquippedWeapon"));
+	//EquippedWeapon->SetupAttachment(GetMesh(), FName("SheathRBack"));
 	// Tags.Add("Player");
 
 }

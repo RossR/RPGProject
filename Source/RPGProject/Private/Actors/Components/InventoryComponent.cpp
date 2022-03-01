@@ -35,9 +35,9 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	// ...
 }
 
-bool UInventoryComponent::AddItemToInventory(AActor* ItemActor, int ItemKey)
+bool UInventoryComponent::AddItemToInventory(UItemData* Item, int ItemKey)
 {
-	AItemBase* Item = Cast<AItemBase>(ItemActor);
+	// AItemBase* Item = Cast<AItemBase>(ItemActor);
 
 	// Check that Item has been successfully casted
 	if (Item)
@@ -56,7 +56,11 @@ bool UInventoryComponent::AddItemToInventory(AActor* ItemActor, int ItemKey)
 					// Populate the empty inventory slot with the item
 					bIsInventoryFull = false;
 
-					InventoryItemDataMap.Emplace(i, Item->GetItemData());
+					InventoryItemDataMap.Emplace(i, Item);
+					if (InventoryItemDataMap[i]->bIsEquipped)
+					{
+						InventoryItemDataMap[i]->bIsEquipped = false;
+					}
 					// Item was successfully added to inventory
 					return true;
 				}
@@ -75,8 +79,12 @@ bool UInventoryComponent::AddItemToInventory(AActor* ItemActor, int ItemKey)
 			if (!InventoryItemDataMap.Find(ItemKey))
 			{
 
-				InventoryItemDataMap.Emplace(ItemKey, Item->GetItemData());
-
+				InventoryItemDataMap.Emplace(ItemKey, Item);
+				if (InventoryItemDataMap[ItemKey]->bIsEquipped)
+				{
+					InventoryItemDataMap[ItemKey]->bIsEquipped = false;
+				}
+				return true;
 			}
 			else
 			{
