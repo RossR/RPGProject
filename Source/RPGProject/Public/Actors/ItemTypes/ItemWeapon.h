@@ -13,104 +13,6 @@
 class UStaticMeshComponent;
 class UAnimSequence;
 
-//UENUM(BlueprintType)
-//enum class EWeaponType : uint8
-//{
-//	WT_None				UMETA(DisplayName="None"),
-//	WT_Unarmed			UMETA(DisplayName = "Unarmed"),
-//	WT_Item				UMETA(DisplayName = "Item"),
-//	WT_1HandDagger		UMETA(DisplayName = "One-handed Dagger"),
-//	WT_1HandMace		UMETA(DisplayName = "One-handed Mace"),
-//	WT_1HandPistol		UMETA(DisplayName = "One-handed Pistol"),
-//	WT_1HandSpear		UMETA(DisplayName = "One-handed Spear"),
-//	WT_1HandSword		UMETA(DisplayName = "One-handed Sword"),
-//	WT_2HandAxe			UMETA(DisplayName = "Two-handed Axe"),
-//	WT_2HandBow			UMETA(DisplayName = "Two-handed Bow"),
-//	WT_2HandCrossbow	UMETA(DisplayName = "Two-handed Crossbow"),
-//	WT_2HandShooter		UMETA(DisplayName = "Two-handed Shooter"),
-//	WT_2HandSpear		UMETA(DisplayName = "Two-handed Spear"),
-//	WT_2HandStaff		UMETA(DisplayName = "Two-handed Staff"),
-//	WT_2HandSword		UMETA(DisplayName = "Two-handed Sword"),
-//	WT_1HandShield		UMETA(DisplayName = "One-handed Shield"),
-//
-//	WT_Max UMETA(Hidden)
-//};
-//
-//USTRUCT(BlueprintType)
-//struct FWeaponInfo : public FItemInfo
-//{
-//	GENERATED_BODY()
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	EWeaponType WeaponType;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	TArray<USoundWave*> RandomAttackSoundArray;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	UAnimSequence* CombatIdle;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	UAnimMontage* AttackMontage;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	uint8 LightAttackComboLimit;
-//	
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	uint8 HeavyAttackComboLimit;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	FName SheathSocket;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	FName EquippedSocket;
-//	
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	float WeaponCondition;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	float WeaponDamage;
-//
-//};
-//
-//
-//UCLASS()
-//class RPGPROJECT_API UItemWeaponData : public UItemData
-//{
-//	GENERATED_BODY()
-//
-//protected:
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	EWeaponType WeaponType;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	TArray<USoundWave*> RandomAttackSoundArray;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	UAnimSequence* CombatIdle;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	UAnimMontage* AttackMontage;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	uint8 LightAttackComboLimit;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	uint8 HeavyAttackComboLimit;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	FName SheathSocket;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	FName EquippedSocket;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	float WeaponCondition;
-//
-//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-//	float WeaponDamage;
-//};
 
 UCLASS()
 class RPGPROJECT_API AItemWeapon : public AItemEquipment
@@ -127,11 +29,23 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void PlayRandomAttackSound();
 
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent)
 	void WeaponTrace();
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void TraceBetweenTraces();
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FHitResult> GetWeaponTraceHitResults() { return WeaponTraceHitResult; }
+
+	UFUNCTION(BlueprintCallable)
+	void ClearWeaponTraceHitResults() { WeaponTraceHitResult.Empty(); }
+
+	UFUNCTION(BlueprintCallable)
+	bool GetWeaponTraceHasHit() { return bWeaponTraceHasHit; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetIsFirstTrace(bool bActive) { bIsFirstTrace = bActive; }
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -163,9 +77,6 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void CheckIfFirstTrace();
-
-	UFUNCTION(BlueprintCallable)
-	void SetIsFirstTrace(bool bActive) { bIsFirstTrace = bActive; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetLastTraceVariables(int Index);
@@ -238,4 +149,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Tracing")
 	TArray<AActor*> IgnoredActorArray;
 	
+private:
+
+	
+
 };

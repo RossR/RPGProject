@@ -57,10 +57,7 @@ bool UInventoryComponent::AddItemToInventory(UItemData* Item, int ItemKey)
 					bIsInventoryFull = false;
 
 					InventoryItemDataMap.Emplace(i, Item);
-					if (InventoryItemDataMap[i]->bIsEquipped)
-					{
-						InventoryItemDataMap[i]->bIsEquipped = false;
-					}
+
 					// Item was successfully added to inventory
 					return true;
 				}
@@ -80,10 +77,7 @@ bool UInventoryComponent::AddItemToInventory(UItemData* Item, int ItemKey)
 			{
 
 				InventoryItemDataMap.Emplace(ItemKey, Item);
-				if (InventoryItemDataMap[ItemKey]->bIsEquipped)
-				{
-					InventoryItemDataMap[ItemKey]->bIsEquipped = false;
-				}
+
 				return true;
 			}
 			else

@@ -54,10 +54,12 @@ protected:
 	void ToggleCrouch();
 	void Aim();
 	void StopAiming();
+	void RequestReadyWeapon();
 	void Walking();
 	void StopWalking();
 	void Dodge();
-
+	void RequestLightAttack();
+	void RequestHeavyAttack();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);

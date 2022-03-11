@@ -20,6 +20,7 @@
 #include "Actors/Components/DamageHandlerComponent.h"
 #include "Actors/Components/InventoryComponent.h"
 #include "Actors/Components/EquipmentComponent.h"
+#include "Actors/Components/CombatComponent.h"
 #include "Actors/ItemTypes/ItemWeapon.h"
 
 #include "Controllers/RPGProjectPlayerController.h"
@@ -40,12 +41,10 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 
 	PlayerVerticalMobilityState = EPlayerVerticalMobility::PVM_Standing;
 	PlayerHorizontalMobilityState = EPlayerHorizontalMobility::PHM_Idle;
-	PlayerCombatState = EPlayerCombatState::PCS_AtEase;
 	PlayerActionState = EPlayerActionState::PAS_Idle;
 
 	LastPlayerVerticalMobilityState = PlayerVerticalMobilityState;
 	LastPlayerHorizontalMobilityState = PlayerHorizontalMobilityState;
-	LastPlayerCombatState = PlayerCombatState;
 	LastPlayerActionState = PlayerActionState;
 
 	EquippedWeaponType = EWeaponType::WT_None;
@@ -124,11 +123,10 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 
 	EquipmentComponent = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComponent"));
-
 	EquipmentComponent->AttachEquipmentToMesh(GetMesh());
 
-	//EquippedWeapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquippedWeapon"));
-	//EquippedWeapon->SetupAttachment(GetMesh(), FName("SheathRBack"));
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+
 	// Tags.Add("Player");
 
 }
@@ -181,12 +179,10 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 
 	CheckPlayerVerticalMobility();
 	CheckPlayerHorizontalMobility();
-	CheckPlayerCombatState();
 	CheckPlayerActionState();
 
 	PlayerVerticalMobilityUpdate();
 	PlayerHorizontalMobilityUpdate();
-	PlayerCombatStateUpdate();
 	PlayerActionStateUpdate();
 }
 
@@ -426,31 +422,6 @@ void ARPGProjectPlayerCharacter::ClearLastPlayerHorizontalMobilityStateChanges()
 }
 
 //-------------------------------------
-// EPlayerCombatState functions
-//-------------------------------------
-
-void ARPGProjectPlayerCharacter::SetPlayerCombatState(EPlayerCombatState NewState)
-{
-	LastPlayerCombatState = PlayerCombatState;
-	PlayerCombatState = NewState;
-}
-
-void ARPGProjectPlayerCharacter::CheckPlayerCombatState()
-{
-
-}
-
-void ARPGProjectPlayerCharacter::PlayerCombatStateUpdate()
-{
-
-}
-
-void ARPGProjectPlayerCharacter::ClearLastPlayerCombatStateChanges()
-{
-
-}
-
-//-------------------------------------
 // EPlayerActionState functions
 //-------------------------------------
 
@@ -478,6 +449,30 @@ void ARPGProjectPlayerCharacter::ClearLastPlayerActionStateChanges()
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
+
+void ARPGProjectPlayerCharacter::ReadyWeapon()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->ToggleCombatState();
+	}
+}
+
+void ARPGProjectPlayerCharacter::LightAttack()
+{
+	if (CombatComponent && !bIsExhausted)
+	{
+		CombatComponent->CharacterAttack(EAttackType::AT_LightAttack);
+	}
+}
+
+void ARPGProjectPlayerCharacter::HeavyAttack()
+{
+	if (CombatComponent && !bIsExhausted)
+	{
+		CombatComponent->CharacterAttack(EAttackType::AT_HeavyAttack);
+	}
+}
 
 void ARPGProjectPlayerCharacter::CheckCharacterExhaustion()
 {

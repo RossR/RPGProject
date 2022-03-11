@@ -96,7 +96,7 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	}
 
 	// If slot is empty, equip the item
-	if (!CharacterEquipmentComponent->GetWornEquipment().Contains(WidgetEquipmentSlot))
+	if (!CharacterEquipmentComponent->GetWornEquipmentData().Contains(WidgetEquipmentSlot))
 	{
 		if (CharacterInventoryComponent->GetInventoryItemDataMap().Contains(ItemDragDrop->DraggedItemKey))
 		{

@@ -5,17 +5,18 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Actors/ItemTypes/ItemWeapon.h"
+#include "Actors/Components/CombatComponent.h"
 #include "RPGProjectPlayerCharacter.generated.h"
 
 
 UENUM(BlueprintType)
 enum class EPlayerVerticalMobility : uint8
 {
-	PVM_Standing UMETA(DisplayName = "Standing"),
-	PVM_Crouching UMETA(DisplayName = "Crouching"),
-	PVM_Crawling UMETA(DisplayName = "Crawling"),
-	PVM_Jumping UMETA(DisplayName = "Jumping"),
-	PVM_Falling UMETA(DisplayName = "Falling"),
+	PVM_Standing	UMETA(DisplayName = "Standing"),
+	PVM_Crouching	UMETA(DisplayName = "Crouching"),
+	PVM_Crawling	UMETA(DisplayName = "Crawling"),
+	PVM_Jumping		UMETA(DisplayName = "Jumping"),
+	PVM_Falling		UMETA(DisplayName = "Falling"),
 
 	/*
 	PMS_Idle UMETA(DisplayName = "Idle"),
@@ -25,50 +26,31 @@ enum class EPlayerVerticalMobility : uint8
 	PMS_Crouching UMETA(DisplayName = "Crouching"),
 	*/
 
-	PVM_Max UMETA(Hidden)
+	PVM_Max			UMETA(Hidden)
 };
 	
 UENUM(BlueprintType)
 enum class EPlayerHorizontalMobility : uint8
 {
-	PHM_Idle UMETA(DisplayName = "Idle"),
-	PHM_Walking UMETA(DisplayName = "Walking"),
-	PHM_Jogging UMETA(DisplayName = "Jogging"),
-	PHM_Sprinting UMETA(DisplayName = "Sprinting"),
+	PHM_Idle		UMETA(DisplayName = "Idle"),
+	PHM_Walking		UMETA(DisplayName = "Walking"),
+	PHM_Jogging		UMETA(DisplayName = "Jogging"),
+	PHM_Sprinting	UMETA(DisplayName = "Sprinting"),
 
-	PHM_Max UMETA(Hidden)
-};
-
-UENUM(BlueprintType)
-enum class EPlayerCombatState : uint8
-{
-	PCS_AtEase UMETA(DisplayName = "At Ease"),
-	PCS_CombatReady UMETA(DisplayName = "Combat Ready"),
-
-	PCS_Max UMETA(Hidden)
+	PHM_Max			UMETA(Hidden)
 };
 
 UENUM(BlueprintType)
 enum class EPlayerActionState : uint8
 {
-	PAS_Idle UMETA(DisplayName = "Idle"),
-	PAS_Dodging UMETA(DisplayName = "Dodging"),
+	PAS_Idle		UMETA(DisplayName = "Idle"),
+	PAS_Dodging		UMETA(DisplayName = "Dodging"),
 	PAS_Interacting UMETA(DisplayName = "Interacting"),
-	PAS_Guarding UMETA(DisplayName = "Guarding"),
-	PAS_Aiming UMETA(DisplayName = "Aiming"),
-	PAS_Casting UMETA(DisplayName = "Casting"),
+	PAS_Guarding	UMETA(DisplayName = "Guarding"),
+	PAS_Aiming		UMETA(DisplayName = "Aiming"),
+	PAS_Casting		UMETA(DisplayName = "Casting"),
 
-	PAS_MAX UMETA(Hidden)
-};
-
-UENUM(BlueprintType)
-enum class EAttackType : uint8
-{
-	AT_None UMETA(DisplayName = "None"),
-	AT_LightAttack UMETA(DisplayName = "Light Attack"),
-	AT_HeavyAttack UMETA(DisplayName = "Heavy Attack"),
-
-	AT_MAX UMETA(Hidden)
+	PAS_MAX			UMETA(Hidden)
 };
 
 class ARPGProjectPlayerController;
@@ -83,6 +65,7 @@ class UStaminaComponent;
 class UDamageHandlerComponent;
 class UInventoryComponent;
 class UEquipmentComponent;
+class UCombatComponent;
 
 UCLASS(BlueprintType)
 class RPGPROJECT_API ARPGProjectPlayerCharacter : public ACharacter
@@ -207,24 +190,9 @@ public:
 	// Clear the changes made by the previous horizontal mobility state
 	void ClearLastPlayerHorizontalMobilityStateChanges();
 
-	//-------------------------------------
-	// EPlayerCombatState functions
-	//-------------------------------------
-
-	UFUNCTION(BlueprintCallable)
-	// Set the character's combat state
-	void SetPlayerCombatState(EPlayerCombatState NewState);
-
 	UFUNCTION(BlueprintCallable)
 	// Get the character's combat state
-	EPlayerCombatState GetPlayerCombatState() { return PlayerCombatState; }
-
-	UFUNCTION(BlueprintCallable)
-	// Returns true if the Player Combat State has changed this/last frame (not sure which)
-	bool HasPlayerCombatStateChanged() { return PlayerCombatState != LastPlayerCombatState; }
-
-	// Clear the changes made by the previous combat state
-	void ClearLastPlayerCombatStateChanges();
+	ECombatState GetPlayerCombatState() { return CombatComponent->GetCombatState(); }
 
 	//-------------------------------------
 	// EPlayerActionState functions
@@ -258,6 +226,10 @@ public:
 	EAttackType GetAttackType() { return AttackType; }
 
 
+	void ReadyWeapon();
+	void LightAttack();
+	void HeavyAttack();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -275,14 +247,12 @@ protected:
 
 	void CheckPlayerVerticalMobility();
 	void CheckPlayerHorizontalMobility();
-	void CheckPlayerCombatState();
 	void CheckPlayerActionState();
 
 	// State machine update functions
 
 	void PlayerVerticalMobilityUpdate();
 	void PlayerHorizontalMobilityUpdate();
-	void PlayerCombatStateUpdate();
 	void PlayerActionStateUpdate();
 
 	void CheckCharacterExhaustion();
@@ -324,12 +294,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
 	EPlayerHorizontalMobility LastPlayerHorizontalMobilityState;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerCombatState PlayerCombatState;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerCombatState LastPlayerCombatState;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
 	EPlayerActionState PlayerActionState;
@@ -409,6 +373,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UEquipmentComponent* EquipmentComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UCombatComponent* CombatComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "On Death")
 	float TimeRestartAfterDeath = 5.0f;

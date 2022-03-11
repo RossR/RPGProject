@@ -133,6 +133,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetItemData(UItemData* NewItemData) { ItemData = NewItemData; }
 
+	UFUNCTION(BlueprintCallable)
+	UStaticMeshComponent* GetItemMesh() { return ItemMesh; }
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")

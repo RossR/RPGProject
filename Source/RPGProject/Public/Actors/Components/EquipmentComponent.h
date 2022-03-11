@@ -32,6 +32,8 @@ enum class EEquipmentSlot : uint8
 	EES_MAX			UMETA(Hidden)
 };
 
+class UCombatComponent;
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPGPROJECT_API UEquipmentComponent : public UActorComponent
 {
@@ -44,16 +46,22 @@ public:
 	// Sets default values for this component's properties
 	UEquipmentComponent();
 
-	UFUNCTION(BlueprintCallable)
-	UItemData* GetWornEquipmentInSlot(EEquipmentSlot EquipmentSlot) { if (WornEquipmentData.Contains(EquipmentSlot)) { return WornEquipmentData[EquipmentSlot]; } return nullptr; }
+	UFUNCTION(BlueprintPure)
+	UItemData* GetWornEquipmentDataInSlot(EEquipmentSlot EquipmentSlot) { if (WornEquipmentData.Contains(EquipmentSlot)) { return WornEquipmentData[EquipmentSlot]; } return nullptr; }
+
+	UFUNCTION(BlueprintPure)
+	UChildActorComponent* GetWornEquipmentActorInSlot(EEquipmentSlot EquipmentSlot) { if (WornEquipmentActors.Contains(EquipmentSlot)) { return WornEquipmentActors[EquipmentSlot]; } return nullptr; }
 
 	UFUNCTION(BlueprintCallable)
-	TMap<EEquipmentSlot, UItemData*>  GetWornEquipment() { return WornEquipmentData; }
+	TMap<EEquipmentSlot, UItemData*>  GetWornEquipmentData() { return WornEquipmentData; }
+
+	UFUNCTION(BlueprintCallable)
+	TMap<EEquipmentSlot, UChildActorComponent*>  GetWornEquipmentActors() { return WornEquipmentActors; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetOwnerCharacter(ACharacter* Character) { OwnerCharacter = Character; }
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	ACharacter* GetOwnerCharacter() { return OwnerCharacter; }
 
 protected:
@@ -90,6 +98,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void AttachEquipmentToMesh(USkeletalMeshComponent* CharacterMesh);
+
+	UFUNCTION(BlueprintCallable)
+	EEquipmentSlot GetCurrentlyEquippedWeaponSet();
+
+	// ToDo - Add functionality to calculate total weight of equipment
 
 
 protected:

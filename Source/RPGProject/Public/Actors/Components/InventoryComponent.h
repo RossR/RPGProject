@@ -48,6 +48,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TMap<int, UItemData*> GetInventoryItemDataMap() { return InventoryItemDataMap; }
 
+	// ToDo - Add functionality to calculate total weight of inventory
+
 
 protected:
 

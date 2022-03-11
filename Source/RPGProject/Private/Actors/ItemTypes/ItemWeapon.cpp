@@ -62,7 +62,6 @@ void AItemWeapon::PlayRandomAttackSound()
 	}
 }
 
-
 void AItemWeapon::SetCurrentTraceStart(USceneComponent* _WeaponTraceStart)
 {
 	CurrentTraceStart = _WeaponTraceStart->GetComponentLocation();

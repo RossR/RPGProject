@@ -44,9 +44,12 @@ void ARPGProjectPlayerController::SetupInputComponent()
 	InputComponent->BindAction("ToggleCrouch", IE_Pressed, this, &ARPGProjectPlayerController::ToggleCrouch);
 	InputComponent->BindAction("OffhandSkills", IE_Pressed, this, &ARPGProjectPlayerController::Aim);
 	InputComponent->BindAction("OffhandSkills", IE_Released, this, &ARPGProjectPlayerController::StopAiming);
+	InputComponent->BindAction("ReadyWeapon", IE_Pressed, this, &ARPGProjectPlayerController::RequestReadyWeapon);
 	InputComponent->BindAction("Walk", IE_Pressed, this, &ARPGProjectPlayerController::Walking);
 	InputComponent->BindAction("Walk", IE_Released, this, &ARPGProjectPlayerController::StopWalking);
 	InputComponent->BindAction("Dodge", IE_Pressed, this, &ARPGProjectPlayerController::Dodge);
+	InputComponent->BindAction("LightAttack", IE_Pressed, this, &ARPGProjectPlayerController::RequestLightAttack);
+	InputComponent->BindAction("HeavyAttack", IE_Pressed, this, &ARPGProjectPlayerController::RequestHeavyAttack);
 
 	InputComponent->BindAxis("MoveForward", this, &ARPGProjectPlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &ARPGProjectPlayerController::MoveRight);
@@ -61,7 +64,7 @@ void ARPGProjectPlayerController::SetupInputComponent()
 
 	// Prevent dodge & interacting from consuming the input
 	InputComponent->GetActionBinding(0).bConsumeInput = false; // 9 or 11 (Dodge)
-	InputComponent->GetActionBinding(13).bConsumeInput = false;
+	InputComponent->GetActionBinding(14).bConsumeInput = false;
 
 	// GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponent Set up successfully!"));
 }
@@ -116,12 +119,12 @@ void ARPGProjectPlayerController::CombatModeUpdate()
 	{
 		switch (PlayerCharacter->GetPlayerCombatState())
 		{
-			case EPlayerCombatState::PCS_AtEase:
+		case ECombatState::CS_AtEase:
 			{
 				//RelaxedMovementUpdate();
 				break;
 			}
-			case EPlayerCombatState::PCS_CombatReady:
+			case ECombatState::CS_CombatReady:
 			{
 				//CombatMovementUpdate();
 				StopAiming();
@@ -176,8 +179,6 @@ void ARPGProjectPlayerController::Sprint()
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Sprinting);
-
-		//GetWorld()->GetTimerManager().SetTimer(SprintStaminaDrainTimerHandle, this, &ARPGProjectPlayerController::SprintTimerFinished, DeltaSeconds, true, -1.0f);
 	}
 	else
 	{
@@ -202,7 +203,6 @@ void ARPGProjectPlayerController::StopSprinting()
 		UE_LOG(LogTemp, Error, TEXT("ARPGProjectPlayerController::StopSprinting PlayerCharacter is nullptr."));
 	}
 
-	//GetWorld()->GetTimerManager().ClearTimer(SprintStaminaDrainTimerHandle);
 }
 
 void ARPGProjectPlayerController::HoldCrouch()
@@ -214,15 +214,7 @@ void ARPGProjectPlayerController::HoldCrouch()
 		PlayerCharacter->GetCharacterMovement()->bWantsToCrouch = true;
 		PlayerCharacter->SetIsCrouched(true);
 		PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Crouching);
-		//PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
-		//PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
 	}
-
-	/*
-	PlayerMoveState = EPlayerMoveState::PMS_Crouching;
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-	//GetCapsuleComponent()->InitCapsuleSize(42.f, 48.0f);
-	*/
 }
 
 void ARPGProjectPlayerController::StopCrouching()
@@ -231,19 +223,12 @@ void ARPGProjectPlayerController::StopCrouching()
 	{
 		PlayerCharacter->GetCharacterMovement()->bWantsToCrouch = false;
 		PlayerCharacter->SetIsCrouched(false);
-		//PlayerCharacter->ResetCapsuleHeight();
-		//PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-103.0f });
 		
 		if (PlayerCharacter->GetPlayerVerticalMobilityState() == EPlayerVerticalMobility::PVM_Crouching)
 		{
 			PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Standing);
 		}
 	}
-	/*
-	PlayerMoveState = EPlayerMoveState::PMS_Walking;
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("PlayerState: ") + UEnum::GetDisplayValueAsText(PlayerMoveState).ToString());
-	//GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-	*/
 }
 
 void ARPGProjectPlayerController::ToggleCrouch()
@@ -258,19 +243,6 @@ void ARPGProjectPlayerController::ToggleCrouch()
 		{
 			StopCrouching();
 		}
-
-		//PlayerCharacter->SetIsCrouched(!PlayerCharacter->GetIsCrouched());
-
-		//if (PlayerCharacter->GetIsCrouched())
-		//{
-		//	PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Crouching);
-		//	//PlayerCharacter->SetCapsuleHeight(CapsuleCrouchHeight);
-		//	//PlayerCharacter->GetMesh()->SetRelativeLocation({ 0.0f,0.0f,-(CapsuleCrouchHeight + 6.0f) });
-		//}
-		//else if (!PlayerCharacter->GetIsCrouched())
-		//{
-		//	StopCrouching();
-		//}
 	}
 }
 
@@ -278,7 +250,7 @@ void ARPGProjectPlayerController::Aim()
 {
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->GetPlayerCombatState() == EPlayerCombatState::PCS_AtEase)
+		if (PlayerCharacter->GetPlayerCombatState() == ECombatState::CS_AtEase)
 		{
 			PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
 			PlayerCharacter->bUseControllerRotationYaw = true;
@@ -291,10 +263,17 @@ void ARPGProjectPlayerController::StopAiming()
 {
 	if (PlayerCharacter)
 	{
-		// UArrowComponent* ArrowComp = PlayerCharacter->ChaseArrow;
 		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("Chase")));
 		PlayerCharacter->bUseControllerRotationYaw = false;
 		bIsAiming = false;
+	}
+}
+
+void ARPGProjectPlayerController::RequestReadyWeapon()
+{
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->ReadyWeapon();
 	}
 }
 
@@ -324,6 +303,22 @@ void ARPGProjectPlayerController::StopWalking()
 void ARPGProjectPlayerController::Dodge()
 {
 	
+}
+
+void ARPGProjectPlayerController::RequestLightAttack()
+{
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->LightAttack();
+	}
+}
+
+void ARPGProjectPlayerController::RequestHeavyAttack()
+{
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->HeavyAttack();
+	}
 }
 
 

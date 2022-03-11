@@ -23,7 +23,6 @@ void UEquipmentComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
 }
 
 
@@ -31,32 +30,6 @@ void UEquipmentComponent::BeginPlay()
 void UEquipmentComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ToDo - Be smort, move to equip & unequip functions
-	for (uint8 i = 1; i < (uint8)EEquipmentSlot::EES_MAX; i++)
-	{
-		if (WornEquipmentData.Contains((EEquipmentSlot)i))
-		{
-			if (WornEquipmentActors[(EEquipmentSlot)i]->GetChildActorClass() == nullptr)
-			{
-				WornEquipmentActors[(EEquipmentSlot)i]->SetChildActorClass(WornEquipmentData[(EEquipmentSlot)i]->ClassToSpawn);
-			}
-
-			//if (EquipmentChildActors[(EEquipmentSlot)i]->GetChildActorClass() != nullptr)
-			AItemEquipment* EquippedItem = Cast<AItemEquipment>(WornEquipmentActors[(EEquipmentSlot)i]->GetChildActor());
-			if (EquippedItem)
-			{
-				EquippedItem->SetItemData(WornEquipmentData[(EEquipmentSlot)i]);
-				// Equip Event
-				// Change collision
-				// data stuff
-			}
-		}
-		else if (WornEquipmentActors[(EEquipmentSlot)i]->GetChildActorClass() != nullptr)
-		{
-			WornEquipmentActors[(EEquipmentSlot)i]->SetChildActorClass(nullptr);
-		}
-	}
 	
 }
 
@@ -107,7 +80,21 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip)
 	if (!WornEquipmentData.Contains(EquipSlot))
 	{
 		WornEquipmentData.Emplace(EquipSlot, ItemToEquip);
-		WornEquipmentData[EquipSlot]->bIsEquipped = true;
+
+		if (WornEquipmentActors[EquipSlot]->GetChildActorClass() == nullptr)
+		{
+			WornEquipmentActors[EquipSlot]->SetChildActorClass(WornEquipmentData[EquipSlot]->ClassToSpawn);
+		}
+
+		AItemEquipment* EquippedItem = Cast<AItemEquipment>(WornEquipmentActors[EquipSlot]->GetChildActor());
+		if (EquippedItem)
+		{
+			// Copy ItemData to child actor
+			EquippedItem->SetItemData(WornEquipmentData[EquipSlot]);
+			// Change the child actor's collision profile so it does not hit the interaction trace
+			EquippedItem->GetItemMesh()->SetCollisionProfileName("EquippedItem");
+		}
+
 		return true;
 	}
 	// If equipment slot is already in use
@@ -128,6 +115,11 @@ bool UEquipmentComponent::Unequip(EEquipmentSlot WornEquipmentSlot)
 	if (WornEquipmentData.Contains(WornEquipmentSlot))
 	{
 		WornEquipmentData.Remove(WornEquipmentSlot);
+
+		if (WornEquipmentActors[WornEquipmentSlot]->GetChildActorClass() != nullptr)
+		{
+			WornEquipmentActors[WornEquipmentSlot]->SetChildActorClass(nullptr);
+		}
 		return true;
 	}
 	return false;
@@ -365,4 +357,17 @@ void UEquipmentComponent::AttachEquipmentToMesh(USkeletalMeshComponent* Characte
 	WornEquipmentActors[EEquipmentSlot::EES_RingAccessory1]->SetupAttachment(CharacterMesh, FName("Equipment_RingAccessory1"));
 
 	WornEquipmentActors[EEquipmentSlot::EES_RingAccessory2]->SetupAttachment(CharacterMesh, FName("Equipment_RingAccessory2"));
+}
+
+EEquipmentSlot UEquipmentComponent::GetCurrentlyEquippedWeaponSet()
+{
+	if (bIsUsingFirstWeaponSet)
+	{
+		return EEquipmentSlot::EES_MainHandOne;
+	}
+	else
+	{
+		return EEquipmentSlot::EES_MainHandTwo;
+	}
+	return EEquipmentSlot::EES_None;
 }

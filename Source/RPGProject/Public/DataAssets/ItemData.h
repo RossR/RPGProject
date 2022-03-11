@@ -111,8 +111,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
 	bool bCanBeDropped = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
-	bool bIsEquipped = false;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+	//bool bIsEquipped = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	UTexture2D* ItemIcon;
@@ -155,8 +155,8 @@ struct FEquipmentInfo : public FItemInfo
 {
 	GENERATED_BODY()
 
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
-		EEquipmentType EquipmentType;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
+	EEquipmentType EquipmentType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
 		float EquipmentDurability;
@@ -295,6 +295,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	FName EquippedSocket;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	FName WeaponSheathMontageSection;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	FName WeaponUnSheathMontageSection;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	float WeaponCondition;
