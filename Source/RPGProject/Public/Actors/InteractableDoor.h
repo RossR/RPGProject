@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/StaticMeshActor.h"
 #include "Components/AudioComponent.h"
+#include "Interfaces/HighlightInterface.h"
 #include "InteractableDoor.generated.h"
 
 class UDoorInteractionComponent;
@@ -12,7 +13,7 @@ class UDoorInteractionComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDoorOpen);
 
 UCLASS()
-class RPGPROJECT_API AInteractableDoor : public AStaticMeshActor
+class RPGPROJECT_API AInteractableDoor : public AStaticMeshActor, public IHighlightInterface
 {
 	GENERATED_BODY()
 	
@@ -29,6 +30,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Door Interaction")
 	FOnDoorOpen OnDoorOpen;
+
+	virtual void EnableHighlight(bool bActive, int Colour = -1) override;
 	
 protected:
 	UFUNCTION()

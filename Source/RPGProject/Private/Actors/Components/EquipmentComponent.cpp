@@ -22,7 +22,7 @@ void UEquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	OwningCharacter = Cast<ACharacter>(GetOwner());
 }
 
 
@@ -35,16 +35,16 @@ void UEquipmentComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 bool UEquipmentComponent::Equip(UItemData* ItemToEquip)
 {
+	// Check that the item is a piece of equipment
 	const UItemEquipmentData* ItemEquipmentCast = Cast<UItemEquipmentData>(ItemToEquip);
-
 	if (!ItemEquipmentCast)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::Equip ItemToEquip is not equipment."));
 		return false;
 	}
 
+	// Check that the item can be equipped to an equipment slot
 	EEquipmentSlot EquipSlot = GetEquipmentSlotForItem(ItemToEquip);
-
 	if (EquipSlot == EEquipmentSlot::EES_None)
 	{
 		return false;
@@ -93,6 +93,10 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip)
 			EquippedItem->SetItemData(WornEquipmentData[EquipSlot]);
 			// Change the child actor's collision profile so it does not hit the interaction trace
 			EquippedItem->GetItemMesh()->SetCollisionProfileName("EquippedItem");
+			if (OwningCharacter)
+			{
+				OwningCharacter->MoveIgnoreActorAdd(EquippedItem);
+			}
 		}
 
 		return true;
@@ -118,6 +122,11 @@ bool UEquipmentComponent::Unequip(EEquipmentSlot WornEquipmentSlot)
 
 		if (WornEquipmentActors[WornEquipmentSlot]->GetChildActorClass() != nullptr)
 		{
+			if (OwningCharacter)
+			{
+				AItemEquipment* ItemToUnequip = Cast<AItemEquipment>(WornEquipmentActors[WornEquipmentSlot]->GetChildActor());
+				OwningCharacter->MoveIgnoreActorRemove(ItemToUnequip);
+			}
 			WornEquipmentActors[WornEquipmentSlot]->SetChildActorClass(nullptr);
 		}
 		return true;

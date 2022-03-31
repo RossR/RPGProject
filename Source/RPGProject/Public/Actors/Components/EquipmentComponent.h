@@ -59,10 +59,10 @@ public:
 	TMap<EEquipmentSlot, UChildActorComponent*>  GetWornEquipmentActors() { return WornEquipmentActors; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetOwnerCharacter(ACharacter* Character) { OwnerCharacter = Character; }
+	void SetOwnerCharacter(ACharacter* Character) { OwningCharacter = Character; }
 
 	UFUNCTION(BlueprintPure)
-	ACharacter* GetOwnerCharacter() { return OwnerCharacter; }
+	ACharacter* GetOwnerCharacter() { return OwningCharacter; }
 
 protected:
 
@@ -116,7 +116,7 @@ protected:
 	bool bIsUsingFirstWeaponSet;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
-	ACharacter* OwnerCharacter;
+	ACharacter* OwningCharacter;
 
 	// Child actor variables for worn equipment
 

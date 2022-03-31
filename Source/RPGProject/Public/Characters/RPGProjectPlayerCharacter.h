@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Actors/ItemTypes/ItemWeapon.h"
 #include "Actors/Components/CombatComponent.h"
+#include "Interfaces/HighlightInterface.h"
 #include "RPGProjectPlayerCharacter.generated.h"
 
 
@@ -104,6 +105,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void MoveCameraToArrowLocation(FName ArrowName);
 
+
 	UFUNCTION(BlueprintCallable)
 	const bool IsAlive() const;
 
@@ -147,6 +149,14 @@ public:
 	void SetEquippedWeaponType(EWeaponType NewType) { EquippedWeaponType = NewType; }
 	UFUNCTION(BlueprintCallable)
 	EWeaponType GetEquippedWeaponType() { return EquippedWeaponType; }
+
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToSocket(FName SocketName);
+
+	UFUNCTION(BlueprintCallable)
+	void InteractionTrace();
+
+
 
 	//--------------------------------------------------------------
 	// State Machine Functions
@@ -411,4 +421,28 @@ protected:
 	float ForceFeedbackDuration = 1.0f;
 
 	float DeltaSeconds;
+
+	UPROPERTY(EditAnywhere, Category = "Interaction Trace Settings")
+	TEnumAsByte<ETraceTypeQuery> SeeInteractableTraceCollisionChannel;
+
+	UPROPERTY(EditAnywhere, Category = "Interaction Trace Settings")
+	TArray<TEnumAsByte<EObjectTypeQuery>> InteractionObjectTypeArray;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace Settings")
+	float TraceDistance = 300.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace Settings")
+	float SphereCastRadius = 25.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace")
+	AActor* LookedAtActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace")
+	TArray<FHitResult> HitResultArray;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace")
+	TArray<AActor*> HitActorArray;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace")
+	bool bTraceWasBlocked;
 };

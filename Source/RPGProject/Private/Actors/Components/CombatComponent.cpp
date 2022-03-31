@@ -399,13 +399,13 @@ void UCombatComponent::AttackTracing()
 		{
 			if (EquippedWeapon->GetWeaponTraceHasHit())
 			{
-				if (WeaponTraceHitArray[i].Actor.IsValid())
+				if (WeaponTraceHitArray[i].GetActor())
 				{
-					if (!HitActorArray.Contains(WeaponTraceHitArray[i].Actor))
+					if (!HitActorArray.Contains(WeaponTraceHitArray[i].GetActor()))
 					{
 						// ToDo - SpawnEmitterAtLocation
 
-						UHealthComponent* HitActorHealthComponent = Cast<UHealthComponent>(WeaponTraceHitArray[i].Actor->GetComponentByClass(UHealthComponent::StaticClass()));
+						UHealthComponent* HitActorHealthComponent = Cast<UHealthComponent>(WeaponTraceHitArray[i].GetActor()->GetComponentByClass(UHealthComponent::StaticClass()));
 
 						if (HitActorHealthComponent)
 						{
@@ -413,7 +413,7 @@ void UCombatComponent::AttackTracing()
 							if (WeaponData) { HitActorHealthComponent->TakeDamage(WeaponData->WeaponDamage); }
 						}
 
-						HitActorArray.AddUnique(WeaponTraceHitArray[i].Actor);
+						HitActorArray.AddUnique(WeaponTraceHitArray[i].GetActor());
 
 					}
 				}

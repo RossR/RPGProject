@@ -16,6 +16,8 @@ AItemBase::AItemBase()
 
 	ItemData = CreateDefaultSubobject<UItemData>(TEXT("Item Data Instance"));
 
+	Tags.Add("Interactable");
+
 }
 
 // Called when the game starts or when spawned
@@ -31,5 +33,23 @@ void AItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+}
+
+void AItemBase::EnableHighlight(bool bActive, int Colour)
+{
+	ItemMesh->SetRenderCustomDepth(bActive);
+
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::FromInt(Colour));
+
+	if (Colour == -1)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::FromInt((int)ItemData->ItemRarity));
+		ItemMesh->SetCustomDepthStencilValue((int)ItemData->ItemRarity);
+	}
+	else
+	{
+		ItemMesh->SetCustomDepthStencilValue(Colour);
+	}
 
 }

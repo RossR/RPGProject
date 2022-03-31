@@ -13,6 +13,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "DrawDebugHelpers.h"
 
 #include "Actors/Components/CharacterStatisticComponent.h"
 #include "Actors/Components/HealthComponent.h"
@@ -24,6 +25,14 @@
 #include "Actors/ItemTypes/ItemWeapon.h"
 
 #include "Controllers/RPGProjectPlayerController.h"
+
+static TAutoConsoleVariable<bool> CVarDisplayTrace
+(
+	TEXT("RPGProject.PlayerCharacter.Debug.DisplayTrace"),
+	false,
+	TEXT("Display Trace"),
+	ECVF_Default
+);
 
 
 // Sets default values
@@ -74,7 +83,7 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed;
 	GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
-	GetCharacterMovement()->CrouchedHalfHeight = 66.0f;
+	GetCharacterMovement()->SetCrouchedHalfHeight(66.0f);
 	
 	JumpMaxHoldTime = 0.2f;
 
@@ -184,6 +193,8 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 	PlayerVerticalMobilityUpdate();
 	PlayerHorizontalMobilityUpdate();
 	PlayerActionStateUpdate();
+
+	InteractionTrace();
 }
 
 // Called to bind functionality to 
@@ -419,6 +430,7 @@ void ARPGProjectPlayerCharacter::PlayerHorizontalMobilityUpdate()
 void ARPGProjectPlayerCharacter::ClearLastPlayerHorizontalMobilityStateChanges()
 {
 	//Sprint needs to stop sprinting function
+	
 }
 
 //-------------------------------------
@@ -433,7 +445,7 @@ void ARPGProjectPlayerCharacter::SetPlayerActionState(EPlayerActionState NewStat
 
 void ARPGProjectPlayerCharacter::CheckPlayerActionState()
 {
-
+	
 }
 
 void ARPGProjectPlayerCharacter::PlayerActionStateUpdate()
@@ -600,6 +612,152 @@ void ARPGProjectPlayerCharacter::ActivateRagdollCamera()
 {
 	CameraArm->SetupAttachment(GetMesh(), FName("CameraSocket"));
 	CameraArm->SetRelativeLocation(FVector(0, 0, 0));
+}
+
+void ARPGProjectPlayerCharacter::AttachWeaponToSocket(FName SocketName)
+{
+	if (!EquipmentComponent) { return; }
+
+	if (GetMesh()->DoesSocketExist(SocketName))
+	{
+		AItemWeapon* EquippedMainHandWeapon = Cast<AItemWeapon>(EquipmentComponent->GetWornEquipmentActorInSlot(EquipmentComponent->GetCurrentlyEquippedWeaponSet())->GetChildActor());
+
+		if (EquippedMainHandWeapon)
+		{
+			EquippedMainHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true), SocketName);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::AttackWeaponToSocket SocketName is null."));
+	}
+}
+
+void ARPGProjectPlayerCharacter::InteractionTrace()
+{
+	FVector Location;
+	FRotator Rotation;
+	if (PC)
+	{
+		PC->GetPlayerViewPoint(Location, Rotation);
+		const FVector PlayerViewForward = Rotation.Vector();
+		const float AdditionalDistance = (Location - GetActorLocation()).Size();
+		FVector EndPos = Location + (PlayerViewForward * (TraceDistance + AdditionalDistance));
+
+		const FVector CharacterForward = GetActorForwardVector();
+		const float DotResult = FVector::DotProduct(PlayerViewForward, CharacterForward);
+
+		
+
+		// Prevent picking up objects behind us, this is when the camera is looking directly at the characters front side
+		if (DotResult < -0.23f)
+		{
+			if (LookedAtActor)
+			{
+				if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
+				{
+					HighlightInterface->EnableHighlight(false);
+				}
+				
+				LookedAtActor = nullptr;
+			}
+			return;
+		}
+		if (!HitActorArray.IsEmpty()) { HitActorArray.Empty(); }
+		if (!HitResultArray.IsEmpty()) { HitResultArray.Empty(); }
+		
+		//TArray<FHitResult> HitResultArray;
+		EDrawDebugTrace::Type DebugTrace = CVarDisplayTrace->GetBool() ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None;
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(this);
+
+		// Centre of character capsule
+		FVector StartPos = Location + (PlayerViewForward * AdditionalDistance);
+
+		bTraceWasBlocked = UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), StartPos, EndPos, SphereCastRadius, InteractionObjectTypeArray, false, ActorsToIgnore, DebugTrace, HitResultArray, true);
+		// SphereTraceMulti(GetWorld(), Location, EndPos, SphereCastRadius, InteractionCollisionChannel, false, ActorsToIgnore, DebugTrace, HitResultArray, true);
+		// ProcessTraceResult(HitResult);
+
+		bool bFirstInteractableFound = false;
+		if (bTraceWasBlocked)
+		{
+			
+			for (int i = 0; i < HitResultArray.Num(); i++)
+			{
+				AActor* HitActor = HitResultArray[i].GetActor();
+				if (HitActor)
+				{
+					HitActorArray.Emplace(HitActor);
+					if (!bFirstInteractableFound && HitActor->ActorHasTag("Interactable"))
+					{
+						bool bCanSeeInteractable = false;
+
+						// Line trace to see if player can see object (stops player from taking items through walls)
+						if (HitActor->GetComponentByClass(UStaticMeshComponent::StaticClass()))
+						{
+							FVector CharacterInteractionCheck = GetMesh()->DoesSocketExist("InteractionCheck") ? GetMesh()->GetSocketLocation("InteractionCheck") : GetActorLocation();
+
+							UStaticMeshComponent* InteractableMesh = Cast<UStaticMeshComponent>(HitActor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+							FVector InteractableLocation = InteractableMesh->GetSocketLocation("InteractionCheck");
+
+							FHitResult HitResult;
+							UKismetSystemLibrary::LineTraceSingle(GetWorld(), CharacterInteractionCheck, InteractableLocation, SeeInteractableTraceCollisionChannel, false, ActorsToIgnore, DebugTrace, HitResult, true);
+
+							if (HitResult.bBlockingHit)
+							{
+								if (HitResult.GetActor() == HitActor)
+								{
+									bCanSeeInteractable = true;
+								}
+							}
+						}
+
+						if (bCanSeeInteractable)
+						{
+							if (LookedAtActor != HitActor)
+							{
+								if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
+								{
+									HighlightInterface->EnableHighlight(false);
+								}
+							}
+							LookedAtActor = HitActor;
+							if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
+							{
+								HighlightInterface->EnableHighlight(true);
+							}
+
+							bFirstInteractableFound = true;
+						}
+					}
+				}
+
+			}
+			
+		}
+
+		if (!bFirstInteractableFound)
+		{
+			if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
+			{
+				HighlightInterface->EnableHighlight(false);
+			}
+			LookedAtActor = nullptr;
+		}
+
+#if ENABLE_DRAW_DEBUG
+		if (CVarDisplayTrace->GetBool())
+		{
+			const FString DotResultString = "DotResult: " + FString::SanitizeFloat(DotResult);
+			GEngine->AddOnScreenDebugMessage(-1, GetWorld()->GetDeltaSeconds(), FColor::Red, DotResultString);
+
+			static float FovDeg = 90.0f;
+			DrawDebugCamera(GetWorld(), Location, Rotation, FovDeg);
+			DrawDebugLine(GetWorld(), Location, EndPos, bTraceWasBlocked ? FColor::Red : FColor::White);
+			DrawDebugPoint(GetWorld(), EndPos, SphereCastRadius, bTraceWasBlocked ? FColor::Red : FColor::White);
+		}
+#endif 
+	}
 }
 
 void ARPGProjectPlayerCharacter::SetCapsuleHeight(float NewCapsuleHeight)

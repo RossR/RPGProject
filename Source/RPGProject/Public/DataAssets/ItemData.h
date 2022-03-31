@@ -28,7 +28,7 @@ enum class EItemCategory : uint8
 UENUM(BlueprintType)
 enum class EItemRarity : uint8
 {
-	EIR_Default		UMETA(DisplayName = "Default"),
+	EIR_None		UMETA(DisplayName = "Default"),
 	EIR_Common		UMETA(DisplayName = "Common"),
 	EIR_Uncommon	UMETA(DisplayName = "Uncommon"),
 	EIR_Rare		UMETA(DisplayName = "Rare"),
