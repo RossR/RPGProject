@@ -43,8 +43,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
 	UStaticMeshComponent* ItemMesh;
 	
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Data")
-	//UItemData* ItemData;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Data")
+	UItemData* ItemDataDefault;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category = "Item Data")
 	UItemData* ItemData;

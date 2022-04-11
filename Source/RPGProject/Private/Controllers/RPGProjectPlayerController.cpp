@@ -30,41 +30,53 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 void ARPGProjectPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-	// Binding = &
-	InputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &ARPGProjectPlayerController::StartInteraction);
-	// Binding = &
-	InputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &ARPGProjectPlayerController::StopInteraction);
+	
+	// --- BIND ACTIONS --- //
 
-	InputComponent->BindAction("Jump", IE_Pressed, this, &ARPGProjectPlayerController::Jump);
-	InputComponent->BindAction("Jump", IE_Released, this, &ARPGProjectPlayerController::StopJumping);
-	InputComponent->BindAction("Sprint", IE_Pressed, this, &ARPGProjectPlayerController::Sprint);
-	InputComponent->BindAction("Sprint", IE_Released, this, &ARPGProjectPlayerController::StopSprinting);
-	InputComponent->BindAction("HoldCrouch", IE_Pressed, this, &ARPGProjectPlayerController::HoldCrouch);
-	InputComponent->BindAction("HoldCrouch", IE_Released, this, &ARPGProjectPlayerController::StopCrouching);
-	InputComponent->BindAction("ToggleCrouch", IE_Pressed, this, &ARPGProjectPlayerController::ToggleCrouch);
-	InputComponent->BindAction("OffhandSkills", IE_Pressed, this, &ARPGProjectPlayerController::Aim);
-	InputComponent->BindAction("OffhandSkills", IE_Released, this, &ARPGProjectPlayerController::StopAiming);
+	InputComponent->BindAction("Jump", IE_Pressed, this, &ARPGProjectPlayerController::RequestJump);
+	InputComponent->BindAction("Jump", IE_Released, this, &ARPGProjectPlayerController::RequestStopJumping);
+
+	InputComponent->BindAction("Sprint", IE_Pressed, this, &ARPGProjectPlayerController::RequestSprint);
+	InputComponent->BindAction("Sprint", IE_Released, this, &ARPGProjectPlayerController::RequestStopSprinting);
+
+	InputComponent->BindAction("HoldCrouch", IE_Pressed, this, &ARPGProjectPlayerController::RequestHoldCrouch);
+	InputComponent->BindAction("HoldCrouch", IE_Released, this, &ARPGProjectPlayerController::RequestStopCrouching);
+	InputComponent->BindAction("ToggleCrouch", IE_Pressed, this, &ARPGProjectPlayerController::RequestToggleCrouch);
+
+	InputComponent->BindAction("OffhandSkills", IE_Pressed, this, &ARPGProjectPlayerController::RequestAim);
+	InputComponent->BindAction("OffhandSkills", IE_Released, this, &ARPGProjectPlayerController::RequestStopAiming);
+
 	InputComponent->BindAction("ReadyWeapon", IE_Pressed, this, &ARPGProjectPlayerController::RequestReadyWeapon);
-	InputComponent->BindAction("Walk", IE_Pressed, this, &ARPGProjectPlayerController::Walking);
-	InputComponent->BindAction("Walk", IE_Released, this, &ARPGProjectPlayerController::StopWalking);
-	InputComponent->BindAction("Dodge", IE_Pressed, this, &ARPGProjectPlayerController::Dodge);
+
+	InputComponent->BindAction("Walk", IE_Pressed, this, &ARPGProjectPlayerController::RequestWalkMode);
+	InputComponent->BindAction("Walk", IE_Released, this, &ARPGProjectPlayerController::RequestStopWalkMode);
+
+	InputComponent->BindAction("Interact/Dodge", IE_Pressed, this, &ARPGProjectPlayerController::RequestInteractOrDodge);
+	InputComponent->BindAction("Interact", IE_Pressed, this, &ARPGProjectPlayerController::RequestInteraction);
+	InputComponent->BindAction("Dodge", IE_Pressed, this, &ARPGProjectPlayerController::RequestDodge);
+
 	InputComponent->BindAction("LightAttack", IE_Pressed, this, &ARPGProjectPlayerController::RequestLightAttack);
 	InputComponent->BindAction("HeavyAttack", IE_Pressed, this, &ARPGProjectPlayerController::RequestHeavyAttack);
 
-	InputComponent->BindAxis("MoveForward", this, &ARPGProjectPlayerController::MoveForward);
-	InputComponent->BindAxis("MoveRight", this, &ARPGProjectPlayerController::MoveRight);
-	InputComponent->BindAxis("TurnRate", this, &ARPGProjectPlayerController::TurnRate);
-	InputComponent->BindAxis("Turn", this, &ARPGProjectPlayerController::AddControllerYawInput);
-	InputComponent->BindAxis("LookUpRate", this, &ARPGProjectPlayerController::LookUpRate);
-	InputComponent->BindAxis("LookUp", this, &ARPGProjectPlayerController::AddControllerPitchInput);
+	InputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &ARPGProjectPlayerController::StartInteraction);
+	InputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &ARPGProjectPlayerController::StopInteraction);
+
+	// --- BIND AXIS --- //
+
+	InputComponent->BindAxis("MoveForward", this, &ARPGProjectPlayerController::RequestMoveForward);
+	InputComponent->BindAxis("MoveRight", this, &ARPGProjectPlayerController::RequestMoveRight);
+
+	InputComponent->BindAxis("TurnRate", this, &ARPGProjectPlayerController::RequestTurnRate);
+	InputComponent->BindAxis("Turn", this, &ARPGProjectPlayerController::RequestAddControllerYawInput);
+
+	InputComponent->BindAxis("LookUpRate", this, &ARPGProjectPlayerController::RequestLookUpRate);
+	InputComponent->BindAxis("LookUp", this, &ARPGProjectPlayerController::RequestAddControllerPitchInput);
 	
 	// FInputActionBinding* Binding;
 
-	
-
 	// Prevent dodge & interacting from consuming the input
-	InputComponent->GetActionBinding(0).bConsumeInput = false; // 9 or 11 (Dodge)
-	InputComponent->GetActionBinding(14).bConsumeInput = false;
+	//InputComponent->GetActionBinding(0).bConsumeInput = false; // 9 or 11 (Dodge)
+	//InputComponent->GetActionBinding(14).bConsumeInput = false;
 
 	// GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponent Set up successfully!"));
 }
@@ -77,21 +89,7 @@ void ARPGProjectPlayerController::BeginPlay()
 
 }
 
-void ARPGProjectPlayerController::StartInteraction()
-{
-	//if (PlayerCharacter)
-	//{
-	//	PlayerCharacter->SetPlayerActionState(EPlayerActionState::PAS_Interacting);
-	//}
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StartInteraction called"));
-	OnInteractionStart.Broadcast();
-}
 
-void ARPGProjectPlayerController::StopInteraction()
-{
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopInteraction called"));
-	OnInteractionCancel.Broadcast();
-}
 
 // Called every frame
 void ARPGProjectPlayerController::Tick(float DeltaTime)
@@ -104,13 +102,11 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 	{
 		if (PlayerCharacter->GetCurrentStamina() <= 0)
 		{
-			StopSprinting();
+			RequestStopSprinting();
 		}
 	}
 
 	CombatModeUpdate();
-		
-	InventoryUpdate();
 }
 
 void ARPGProjectPlayerController::CombatModeUpdate()
@@ -127,7 +123,7 @@ void ARPGProjectPlayerController::CombatModeUpdate()
 			case ECombatState::CS_CombatReady:
 			{
 				//CombatMovementUpdate();
-				StopAiming();
+				RequestStopAiming();
 				break;
 			}
 		}
@@ -146,14 +142,11 @@ void ARPGProjectPlayerController::CalculateDesiredActorRotation()
 // Action Mappings
 //--------------------------------------------------------------
 
-void ARPGProjectPlayerController::Jump()
+void ARPGProjectPlayerController::RequestJump()
 {
 	if (PlayerCharacter)
 	{
-		if (!PlayerCharacter->GetIsCrouched())
-		{
-			PlayerCharacter->Jump();
-		}
+		PlayerCharacter->RequestJump();
 	}
 	else
 	{
@@ -161,11 +154,11 @@ void ARPGProjectPlayerController::Jump()
 	}
 }
 
-void ARPGProjectPlayerController::StopJumping()
+void ARPGProjectPlayerController::RequestStopJumping()
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->StopJumping();
+		PlayerCharacter->RequestStopJumping();
 	}
 	else
 	{
@@ -173,12 +166,12 @@ void ARPGProjectPlayerController::StopJumping()
 	}
 }
 
-void ARPGProjectPlayerController::Sprint()
+void ARPGProjectPlayerController::RequestSprint()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::Sprint called"));
+	//UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::Sprint called"));
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Sprinting);
+		PlayerCharacter->RequestSprint();
 	}
 	else
 	{
@@ -186,17 +179,12 @@ void ARPGProjectPlayerController::Sprint()
 	}
 }
 
-void ARPGProjectPlayerController::StopSprinting()
+void ARPGProjectPlayerController::RequestStopSprinting()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopSprinting called"));
+	//UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopSprinting called"));
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Sprinting)
-		{
-			// CheckSpeedToSetMoveState();
-			PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Jogging);
-		}
-		
+		PlayerCharacter->RequestStopSprinting();
 	}
 	else
 	{
@@ -205,67 +193,43 @@ void ARPGProjectPlayerController::StopSprinting()
 
 }
 
-void ARPGProjectPlayerController::HoldCrouch()
+void ARPGProjectPlayerController::RequestHoldCrouch()
 {
-	if (!PlayerCharacter->GetCharacterMovement()->IsMovingOnGround()) { return; }
-
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->GetCharacterMovement()->bWantsToCrouch = true;
-		PlayerCharacter->SetIsCrouched(true);
-		PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Crouching);
+		PlayerCharacter->RequestHoldCrouch();
 	}
 }
 
-void ARPGProjectPlayerController::StopCrouching()
+void ARPGProjectPlayerController::RequestStopCrouching()
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->GetCharacterMovement()->bWantsToCrouch = false;
-		PlayerCharacter->SetIsCrouched(false);
-		
-		if (PlayerCharacter->GetPlayerVerticalMobilityState() == EPlayerVerticalMobility::PVM_Crouching)
-		{
-			PlayerCharacter->SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Standing);
-		}
+		PlayerCharacter->RequestStopCrouching();
 	}
 }
 
-void ARPGProjectPlayerController::ToggleCrouch()
+void ARPGProjectPlayerController::RequestToggleCrouch()
 {
 	if (PlayerCharacter)
 	{
-		if (!PlayerCharacter->GetCharacterMovement()->IsCrouching())
-		{
-			HoldCrouch();
-		}
-		else
-		{
-			StopCrouching();
-		}
+		PlayerCharacter->RequestToggleCrouch();
 	}
 }
 
-void ARPGProjectPlayerController::Aim()
+void ARPGProjectPlayerController::RequestAim()
 {
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->GetPlayerCombatState() == ECombatState::CS_AtEase)
-		{
-			PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
-			PlayerCharacter->bUseControllerRotationYaw = true;
-			bIsAiming = true;
-		}
+		PlayerCharacter->RequestAim();
 	}
 }
 
-void ARPGProjectPlayerController::StopAiming()
+void ARPGProjectPlayerController::RequestStopAiming()
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->MoveCameraToArrowLocation(FName(TEXT("Chase")));
-		PlayerCharacter->bUseControllerRotationYaw = false;
-		bIsAiming = false;
+		PlayerCharacter->RequestStopAiming();
 	}
 }
 
@@ -273,13 +237,13 @@ void ARPGProjectPlayerController::RequestReadyWeapon()
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->ReadyWeapon();
+		PlayerCharacter->RequestReadyWeapon();
 	}
 }
 
-void ARPGProjectPlayerController::Walking()
+void ARPGProjectPlayerController::RequestWalkMode()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::Walking called"));
+	//UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::Walking called"));
 
 	if (PlayerCharacter)
 	{
@@ -287,9 +251,9 @@ void ARPGProjectPlayerController::Walking()
 	}
 }
 
-void ARPGProjectPlayerController::StopWalking()
+void ARPGProjectPlayerController::RequestStopWalkMode()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopWalking called"));
+	//UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopWalking called"));
 
 	if (PlayerCharacter)
 	{
@@ -300,16 +264,38 @@ void ARPGProjectPlayerController::StopWalking()
 	}
 }
 
-void ARPGProjectPlayerController::Dodge()
+void ARPGProjectPlayerController::RequestInteractOrDodge()
 {
-	
+	if (bIsInMenu) { return; }
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->RequestInteractOrDodge();
+	}
+}
+
+void ARPGProjectPlayerController::RequestInteraction()
+{
+	if (bIsInMenu) { return; }
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->RequestInteraction();
+	}
+}
+
+void ARPGProjectPlayerController::RequestDodge()
+{
+	if (bIsInMenu) { return; }
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->RequestDodge();
+	}
 }
 
 void ARPGProjectPlayerController::RequestLightAttack()
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->LightAttack();
+		PlayerCharacter->RequestLightAttack();
 	}
 }
 
@@ -317,16 +303,31 @@ void ARPGProjectPlayerController::RequestHeavyAttack()
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->HeavyAttack();
+		PlayerCharacter->RequestHeavyAttack();
 	}
 }
 
+void ARPGProjectPlayerController::StartInteraction()
+{
+	//if (PlayerCharacter)
+	//{
+	//	PlayerCharacter->SetPlayerActionState(EPlayerActionState::PAS_Interacting);
+	//}
+	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StartInteraction called"));
+	OnInteractionStart.Broadcast();
+}
+
+void ARPGProjectPlayerController::StopInteraction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopInteraction called"));
+	OnInteractionCancel.Broadcast();
+}
 
 //--------------------------------------------------------------
 // Axis Mappings
 //--------------------------------------------------------------
 
-void ARPGProjectPlayerController::MoveForward(float Value)
+void ARPGProjectPlayerController::RequestMoveForward(float Value)
 {
 	ForwardValue = Value;
 
@@ -353,7 +354,7 @@ void ARPGProjectPlayerController::MoveForward(float Value)
 	}
 }
 
-void ARPGProjectPlayerController::MoveRight(float Value)
+void ARPGProjectPlayerController::RequestMoveRight(float Value)
 {
 	RightValue = Value;
 
@@ -378,28 +379,28 @@ void ARPGProjectPlayerController::MoveRight(float Value)
 	}
 }
 
-void ARPGProjectPlayerController::TurnRate(float Rate)
+void ARPGProjectPlayerController::RequestTurnRate(float Rate)
 {
 	if (bIsInMenu) { return; }
 
 	AddYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
-void ARPGProjectPlayerController::AddControllerYawInput(float Value)
+void ARPGProjectPlayerController::RequestAddControllerYawInput(float Value)
 {
 	if (bIsInMenu) { return; }
 
 	AddYawInput(Value);
 }
 
-void ARPGProjectPlayerController::LookUpRate(float Rate)
+void ARPGProjectPlayerController::RequestLookUpRate(float Rate)
 {
 	if (bIsInMenu) { return; }
 
 	AddPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-void ARPGProjectPlayerController::AddControllerPitchInput(float Value)
+void ARPGProjectPlayerController::RequestAddControllerPitchInput(float Value)
 {
 	if (bIsInMenu) { return; }
 

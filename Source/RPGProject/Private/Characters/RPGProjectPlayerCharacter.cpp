@@ -92,6 +92,7 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	bIsExhausted = false;
 	bIsAttacking = false;
 	bCanAttack = true;
+	bIsAiming = false;
 	bIsInUninterruptableAction = false;
 
 	// Create the camera arm
@@ -462,7 +463,86 @@ void ARPGProjectPlayerCharacter::ClearLastPlayerActionStateChanges()
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-void ARPGProjectPlayerCharacter::ReadyWeapon()
+void ARPGProjectPlayerCharacter::RequestJump()
+{
+	if (bIsInUninterruptableAction) { return; }
+
+
+	if (!GetCharacterMovement()->IsCrouching())
+	{
+		Jump();
+	}
+}
+
+void ARPGProjectPlayerCharacter::RequestStopJumping()
+{
+	StopJumping();
+}
+
+void ARPGProjectPlayerCharacter::RequestSprint()
+{
+	SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Sprinting);
+}
+
+void ARPGProjectPlayerCharacter::RequestStopSprinting()
+{
+	if (GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Sprinting)
+	{
+		// CheckSpeedToSetMoveState();
+		SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Jogging);
+	}
+}
+
+void ARPGProjectPlayerCharacter::RequestHoldCrouch()
+{
+	if (!GetCharacterMovement()->IsMovingOnGround()) { return; }
+
+	GetCharacterMovement()->bWantsToCrouch = true;
+	SetIsCrouched(true);
+	SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Crouching);
+}
+
+void ARPGProjectPlayerCharacter::RequestStopCrouching()
+{
+	GetCharacterMovement()->bWantsToCrouch = false;
+	SetIsCrouched(false);
+
+	if (GetPlayerVerticalMobilityState() == EPlayerVerticalMobility::PVM_Crouching)
+	{
+		SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Standing);
+	}
+}
+
+void ARPGProjectPlayerCharacter::RequestToggleCrouch()
+{
+	if (!GetCharacterMovement()->IsCrouching())
+	{
+		RequestHoldCrouch();
+	}
+	else
+	{
+		RequestStopCrouching();
+	}
+}
+
+void ARPGProjectPlayerCharacter::RequestAim()
+{
+	if (GetPlayerCombatState() == ECombatState::CS_AtEase)
+	{
+		MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
+		bUseControllerRotationYaw = true;
+		bIsAiming = true;
+	}
+}
+
+void ARPGProjectPlayerCharacter::RequestStopAiming()
+{
+	MoveCameraToArrowLocation(FName(TEXT("Chase")));
+	bUseControllerRotationYaw = false;
+	bIsAiming = false;
+}
+
+void ARPGProjectPlayerCharacter::RequestReadyWeapon()
 {
 	if (CombatComponent)
 	{
@@ -470,7 +550,59 @@ void ARPGProjectPlayerCharacter::ReadyWeapon()
 	}
 }
 
-void ARPGProjectPlayerCharacter::LightAttack()
+void ARPGProjectPlayerCharacter::RequestWalkMode()
+{
+}
+
+void ARPGProjectPlayerCharacter::RequestStopWalkMode()
+{
+}
+
+void ARPGProjectPlayerCharacter::RequestInteractOrDodge()
+{
+	if (GetVelocity().Length() > 151.f || GetPlayerCombatState() == ECombatState::CS_CombatReady)
+	{
+		RequestDodge();
+	}
+	else
+	{
+		RequestInteraction();
+	}
+}
+
+void ARPGProjectPlayerCharacter::RequestInteraction()
+{
+	if (LookedAtActor)
+	{
+		// Check if actor is item, then pick it up
+		if (AItemBase* ItemRef = Cast<AItemBase>(LookedAtActor))
+		{
+			if (!InventoryComponent) { return; }
+
+			InventoryComponent->AddItemToInventory(ItemRef->GetItemData());
+
+			ItemRef->Destroy();
+		}
+
+		// Check if actor is an interactable, then interact with it
+	}
+}
+
+void ARPGProjectPlayerCharacter::RequestDodge()
+{
+	if (bIsInUninterruptableAction || GetCharacterMovement()->IsFalling()) { return; }
+
+	if (PlayDodgeMontage())
+	{
+		SetPlayerActionState(EPlayerActionState::PAS_Dodging);
+		bIsInUninterruptableAction = true;
+		bCanAttack = false;
+	}
+}
+
+
+
+void ARPGProjectPlayerCharacter::RequestLightAttack()
 {
 	if (CombatComponent && !bIsExhausted)
 	{
@@ -478,12 +610,74 @@ void ARPGProjectPlayerCharacter::LightAttack()
 	}
 }
 
-void ARPGProjectPlayerCharacter::HeavyAttack()
+void ARPGProjectPlayerCharacter::RequestHeavyAttack()
 {
 	if (CombatComponent && !bIsExhausted)
 	{
 		CombatComponent->CharacterAttack(EAttackType::AT_HeavyAttack);
 	}
+}
+
+
+
+bool ARPGProjectPlayerCharacter::PlayDodgeMontage()
+{
+	const float PlayRate = 1.0f;
+	bool bPlayedSuccessfully = PlayAnimMontage(DodgeMontage, PlayRate) > 0.f;
+	if (bPlayedSuccessfully)
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			if (!DodgeMontageBlendingOutDelegate.IsBound())
+			{
+				DodgeMontageBlendingOutDelegate.BindUObject(this, &ARPGProjectPlayerCharacter::OnDodgeMontageBlendingOut);
+			}
+
+			AnimInstance->Montage_SetBlendingOutDelegate(DodgeMontageBlendingOutDelegate, DodgeMontage);
+
+			if (!DodgeMontageEndedDelegate.IsBound())
+			{
+				DodgeMontageEndedDelegate.BindUObject(this, &ARPGProjectPlayerCharacter::OnDodgeMontageEnded);
+			}
+
+			AnimInstance->Montage_SetEndDelegate(DodgeMontageEndedDelegate, DodgeMontage);
+
+			AnimInstance->OnPlayMontageNotifyBegin.AddDynamic(this, &ARPGProjectPlayerCharacter::DodgeMontageOnNotifyBeginReceived);
+			AnimInstance->OnPlayMontageNotifyEnd.AddDynamic(this, &ARPGProjectPlayerCharacter::DodgeMontageOnNotifyEndReceived);
+		}
+	}
+	return bPlayedSuccessfully;
+}
+
+void ARPGProjectPlayerCharacter::UnbindDodgeMontage()
+{
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->OnPlayMontageNotifyBegin.RemoveDynamic(this, &ARPGProjectPlayerCharacter::DodgeMontageOnNotifyBeginReceived);
+		AnimInstance->OnPlayMontageNotifyEnd.RemoveDynamic(this, &ARPGProjectPlayerCharacter::DodgeMontageOnNotifyEndReceived);
+	}
+}
+
+void ARPGProjectPlayerCharacter::OnDodgeMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
+{
+	bCanAttack = true;
+	bIsInUninterruptableAction = false;
+}
+
+void ARPGProjectPlayerCharacter::OnDodgeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	UnbindDodgeMontage();
+	SetPlayerActionState(EPlayerActionState::PAS_Idle);
+}
+
+void ARPGProjectPlayerCharacter::DodgeMontageOnNotifyBeginReceived(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointNotifyPayload)
+{
+
+}
+
+void ARPGProjectPlayerCharacter::DodgeMontageOnNotifyEndReceived(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointNotifyPayload)
+{
+
 }
 
 void ARPGProjectPlayerCharacter::CheckCharacterExhaustion()
@@ -769,3 +963,5 @@ void ARPGProjectPlayerCharacter::ResetCapsuleHeight()
 { 
 	GetCapsuleComponent()->SetCapsuleHalfHeight(96.0f); 
 }
+
+

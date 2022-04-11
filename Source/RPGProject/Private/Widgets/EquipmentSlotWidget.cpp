@@ -103,14 +103,15 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 			bool bSuccessfullyEquipped = CharacterEquipmentComponent->Equip(CharacterInventoryComponent->GetInventoryItemData(ItemDragDrop->DraggedItemKey));
 
 			if (bSuccessfullyEquipped)
-			{
+			{	
+				// if equipping is successful, delete item from inventory
 				CharacterInventoryComponent->RemoveItemFromInventory(ItemDragDrop->DraggedItemKey);
 				return true;
 			}
 		}
 	}
 
-	// if equipping is successful, delete item from inventory
+
 
 	return false;
 }

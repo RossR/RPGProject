@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/DragDropOperation.h"
 #include "DataAssets/ItemData.h"
+#include "Actors/Components/EquipmentComponent.h"
 #include "ItemDragDropOperation.generated.h"
 
 /**
@@ -18,9 +19,14 @@ class RPGPROJECT_API UItemDragDropOperation : public UDragDropOperation
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drag and Drop", meta = (ExposeOnSpawn = "true"))
-	int DraggedItemKey;
+	int DraggedItemKey = -1.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drag and Drop", meta = (ExposeOnSpawn = "true"))
-	UItemData* DraggedItemData;
+	EEquipmentSlot DraggedEquipmentSlot = EEquipmentSlot::EES_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drag and Drop", meta = (ExposeOnSpawn = "true"))
+	UItemData* DraggedItemData = nullptr;
+
+	
 
 };

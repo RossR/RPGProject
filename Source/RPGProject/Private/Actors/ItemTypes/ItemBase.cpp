@@ -14,17 +14,17 @@ AItemBase::AItemBase()
 	SetRootComponent(ItemMesh);
 	ItemMesh->SetCollisionProfileName("Item");
 
-	ItemData = CreateDefaultSubobject<UItemData>(TEXT("Item Data Instance"));
+	ItemData = ItemDataDefault;
+
+	ItemData = CreateDefaultSubobject<UItemData>(TEXT("Item Data"));
 
 	Tags.Add("Interactable");
-
 }
 
 // Called when the game starts or when spawned
 void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
 	
 }
 

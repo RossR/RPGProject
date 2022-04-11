@@ -12,7 +12,7 @@ AItemEquipment::AItemEquipment()
 	PrimaryActorTick.bCanEverTick = true;
 
 	ItemData = CreateDefaultSubobject<UItemEquipmentData>(TEXT("Equipment Data Instance"));
-	
+
 	EquipmentData = Cast<UItemEquipmentData>(ItemData);
 
 }

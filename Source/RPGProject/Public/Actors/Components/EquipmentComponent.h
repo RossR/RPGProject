@@ -59,6 +59,9 @@ public:
 	TMap<EEquipmentSlot, UChildActorComponent*>  GetWornEquipmentActors() { return WornEquipmentActors; }
 
 	UFUNCTION(BlueprintCallable)
+	bool RemoveWornEquipmentDataInSlot(EEquipmentSlot EquipmentSlot);
+
+	UFUNCTION(BlueprintCallable)
 	void SetOwnerCharacter(ACharacter* Character) { OwningCharacter = Character; }
 
 	UFUNCTION(BlueprintPure)
@@ -79,7 +82,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	bool Equip(UItemData* ItemToEquip);
+	bool Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::EES_None);
 
 	UFUNCTION(BlueprintCallable)
 	bool Unequip(EEquipmentSlot WornEquipmentSlot);
@@ -97,10 +100,20 @@ public:
 	void CreateEquipmentChildActors();
 
 	UFUNCTION(BlueprintCallable)
+	void UpdateEquipmentChildActors();
+
+	UFUNCTION(BlueprintCallable)
 	void AttachEquipmentToMesh(USkeletalMeshComponent* CharacterMesh);
 
 	UFUNCTION(BlueprintCallable)
+	void AttachEquipmentToSocket(EEquipmentSlot EquipmentSlot);
+
+	UFUNCTION(BlueprintCallable)
 	EEquipmentSlot GetCurrentlyEquippedWeaponSet();
+
+	UFUNCTION(BlueprintPure)
+	// Returns true if using the first weapon set.
+	bool GetIsUsingFirstWeaponSet() { return bIsUsingFirstWeaponSet; }
 
 	// ToDo - Add functionality to calculate total weight of equipment
 

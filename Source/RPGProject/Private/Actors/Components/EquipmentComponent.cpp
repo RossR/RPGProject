@@ -3,6 +3,7 @@
 
 #include "Actors/Components/EquipmentComponent.h"
 #include "GameFramework/Character.h"
+#include "Actors/Components/CombatComponent.h"
 
 // Sets default values for this component's properties
 UEquipmentComponent::UEquipmentComponent()
@@ -14,8 +15,20 @@ UEquipmentComponent::UEquipmentComponent()
 	bIsUsingFirstWeaponSet = true;
 
 	CreateEquipmentChildActors();
+	UpdateEquipmentChildActors();
 }
 
+bool UEquipmentComponent::RemoveWornEquipmentDataInSlot(EEquipmentSlot EquipmentSlot)
+{
+	if (WornEquipmentData.Contains(EquipmentSlot))
+	{
+		WornEquipmentData.Remove(EquipmentSlot);
+		UpdateEquipmentChildActors();
+		return true;
+	}
+
+	return false;
+}
 
 // Called when the game starts
 void UEquipmentComponent::BeginPlay()
@@ -23,8 +36,9 @@ void UEquipmentComponent::BeginPlay()
 	Super::BeginPlay();
 
 	OwningCharacter = Cast<ACharacter>(GetOwner());
-}
 
+	UpdateEquipmentChildActors();
+}
 
 // Called every frame
 void UEquipmentComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -33,7 +47,7 @@ void UEquipmentComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	
 }
 
-bool UEquipmentComponent::Equip(UItemData* ItemToEquip)
+bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo)
 {
 	// Check that the item is a piece of equipment
 	const UItemEquipmentData* ItemEquipmentCast = Cast<UItemEquipmentData>(ItemToEquip);
@@ -44,9 +58,19 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip)
 	}
 
 	// Check that the item can be equipped to an equipment slot
-	EEquipmentSlot EquipSlot = GetEquipmentSlotForItem(ItemToEquip);
+	EEquipmentSlot EquipSlot;
+
+	SlotToEquipTo != EEquipmentSlot::EES_None ? EquipSlot = SlotToEquipTo : EquipSlot = GetEquipmentSlotForItem(ItemToEquip);
+
 	if (EquipSlot == EEquipmentSlot::EES_None)
 	{
+		return false;
+	}
+
+	// ToDo - Check that SlotToEquipTo is valid for ItemToEquip
+	if (SlotToEquipTo != EEquipmentSlot::EES_None && GetEquipmentSlotForItem(ItemToEquip) != SlotToEquipTo)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::Equip SlotToEquipTo is not a valid slot for ItemToEquip."));
 		return false;
 	}
 
@@ -75,6 +99,7 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip)
 			}
 		}
 	}
+	
 
 	// If equipment slot is empty
 	if (!WornEquipmentData.Contains(EquipSlot))
@@ -84,18 +109,26 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip)
 		if (WornEquipmentActors[EquipSlot]->GetChildActorClass() == nullptr)
 		{
 			WornEquipmentActors[EquipSlot]->SetChildActorClass(WornEquipmentData[EquipSlot]->ClassToSpawn);
-		}
 
-		AItemEquipment* EquippedItem = Cast<AItemEquipment>(WornEquipmentActors[EquipSlot]->GetChildActor());
-		if (EquippedItem)
-		{
-			// Copy ItemData to child actor
-			EquippedItem->SetItemData(WornEquipmentData[EquipSlot]);
-			// Change the child actor's collision profile so it does not hit the interaction trace
-			EquippedItem->GetItemMesh()->SetCollisionProfileName("EquippedItem");
-			if (OwningCharacter)
+			AItemEquipment* EquippedItem = Cast<AItemEquipment>(WornEquipmentActors[EquipSlot]->GetChildActor());
+			if (EquippedItem)
 			{
-				OwningCharacter->MoveIgnoreActorAdd(EquippedItem);
+				// Copy ItemData to child actor
+				EquippedItem->SetItemData(WornEquipmentData[EquipSlot]);
+
+				// If weapon, attach to appropriate slot
+				if (AItemWeapon* EquippedWeapon = Cast<AItemWeapon>(EquippedItem))
+				{
+					AttachEquipmentToSocket(EquipSlot);
+				}
+
+				// Change the child actor's collision profile so it does not hit the interaction trace
+				EquippedItem->GetItemMesh()->SetCollisionProfileName("EquippedItem");
+				if (OwningCharacter)
+				{
+					OwningCharacter->MoveIgnoreActorAdd(EquippedItem);
+					EquippedItem->GetItemMesh()->SetCanEverAffectNavigation(false);
+				}
 			}
 		}
 
@@ -335,6 +368,55 @@ void UEquipmentComponent::CreateEquipmentChildActors()
 	WornEquipmentActors.Emplace(EEquipmentSlot::EES_RingAccessory2, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_RingAccessory2")));
 }
 
+void UEquipmentComponent::UpdateEquipmentChildActors()
+{
+	for (uint8 i = 1; i < (uint8)EEquipmentSlot::EES_MAX; i++)
+	{
+		EEquipmentSlot EquipSlot = (EEquipmentSlot)i;
+		if (WornEquipmentData.Contains(EquipSlot))
+		{
+			if (WornEquipmentActors[EquipSlot]->GetChildActorClass() == nullptr)
+			{
+				WornEquipmentActors[EquipSlot]->SetChildActorClass(WornEquipmentData[EquipSlot]->ClassToSpawn);
+
+				AItemEquipment* EquippedItem = Cast<AItemEquipment>(WornEquipmentActors[EquipSlot]->GetChildActor());
+				if (EquippedItem)
+				{
+					// Copy ItemData to child actor
+					EquippedItem->SetItemData(WornEquipmentData[EquipSlot]);
+
+					// If weapon, attach to appropriate slot
+					if (AItemWeapon* EquippedWeapon = Cast<AItemWeapon>(EquippedItem))
+					{
+						AttachEquipmentToSocket(EquipSlot);
+					}
+
+
+					// Change the child actor's collision profile so it does not hit the interaction trace
+					EquippedItem->GetItemMesh()->SetCollisionProfileName("EquippedItem");
+					if (OwningCharacter)
+					{
+						OwningCharacter->MoveIgnoreActorAdd(EquippedItem);
+						EquippedItem->GetItemMesh()->SetCanEverAffectNavigation(false);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (WornEquipmentActors[EquipSlot]->GetChildActorClass() != nullptr)
+			{
+				if (OwningCharacter)
+				{
+					AItemEquipment* ItemToUnequip = Cast<AItemEquipment>(WornEquipmentActors[EquipSlot]->GetChildActor());
+					OwningCharacter->MoveIgnoreActorRemove(ItemToUnequip);
+				}
+				WornEquipmentActors[EquipSlot]->SetChildActorClass(nullptr);
+			}
+		}
+	}
+}
+
 void UEquipmentComponent::AttachEquipmentToMesh(USkeletalMeshComponent* CharacterMesh)
 {
 	WornEquipmentActors[EEquipmentSlot::EES_MainHandOne]->SetupAttachment(CharacterMesh, FName("Equipment_MainHandOne"));
@@ -366,6 +448,52 @@ void UEquipmentComponent::AttachEquipmentToMesh(USkeletalMeshComponent* Characte
 	WornEquipmentActors[EEquipmentSlot::EES_RingAccessory1]->SetupAttachment(CharacterMesh, FName("Equipment_RingAccessory1"));
 
 	WornEquipmentActors[EEquipmentSlot::EES_RingAccessory2]->SetupAttachment(CharacterMesh, FName("Equipment_RingAccessory2"));
+}
+
+void UEquipmentComponent::AttachEquipmentToSocket(EEquipmentSlot EquipmentSlot)
+{
+	if (!OwningCharacter) { return; }
+
+	if (!WornEquipmentData.Contains(EquipmentSlot)) 
+	{ 
+		UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::AttachEquipmentToSocket No ItemData stored in EquipmentSlot.")); 
+		return; 
+	}
+
+	FName SocketName;
+
+	if (UCombatComponent* CombatComponentRef = Cast<UCombatComponent>(OwningCharacter->FindComponentByClass(UCombatComponent::StaticClass())))
+	{
+		UItemWeaponData* WeaponData = Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EquipmentSlot));
+
+		switch (CombatComponentRef->GetCombatState())
+		{
+		case ECombatState::CS_AtEase:
+			SocketName = WeaponData->SheathSocket;
+			break;
+
+		case ECombatState::CS_CombatReady:
+			SocketName = WeaponData->EquippedSocket;
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	if (OwningCharacter->GetMesh()->DoesSocketExist(SocketName))
+	{
+		AItemWeapon* EquippedMainHandWeapon = Cast<AItemWeapon>(GetWornEquipmentActorInSlot(GetCurrentlyEquippedWeaponSet())->GetChildActor());
+
+		if (EquippedMainHandWeapon)
+		{
+			EquippedMainHandWeapon->AttachToComponent(OwningCharacter->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true), SocketName);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::AttackWeaponToSocket SocketName is not valid."));
+	}
 }
 
 EEquipmentSlot UEquipmentComponent::GetCurrentlyEquippedWeaponSet()

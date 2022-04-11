@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Engine/DataTable.h"
 #include "Animation/AnimMontage.h"
 #include "Sound/SoundWave.h"
 #include "ItemData.generated.h"
@@ -39,7 +40,7 @@ enum class EItemRarity : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FItemInfo
+struct FItemInfo : public FTableRowBase
 {
 	GENERATED_BODY()
 
@@ -227,7 +228,7 @@ enum class EWeaponType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FWeaponInfo : public FItemInfo
+struct FWeaponInfo : public FEquipmentInfo
 {
 	GENERATED_BODY()
 

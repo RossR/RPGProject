@@ -31,9 +31,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetIsInMenu() { return bIsInMenu; }
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void InventoryUpdate();
-
 public:
 
 	FOnInteractionStart OnInteractionStart;
@@ -45,31 +42,44 @@ protected:
 
 	void CombatModeUpdate();
 
-	void Jump();
-	void StopJumping();
-	void Sprint();
-	void StopSprinting();
-	void HoldCrouch();
-	void StopCrouching();
-	void ToggleCrouch();
-	void Aim();
-	void StopAiming();
+	// --- INPUT FUNCTIONS --- //
+
+	void RequestJump();
+	void RequestStopJumping();
+
+	void RequestSprint();
+	void RequestStopSprinting();
+
+	void RequestHoldCrouch();
+	void RequestStopCrouching();
+	void RequestToggleCrouch();
+
+	void RequestAim();
+	void RequestStopAiming();
+
 	void RequestReadyWeapon();
-	void Walking();
-	void StopWalking();
-	void Dodge();
+
+	void RequestWalkMode();
+	void RequestStopWalkMode();
+
+	void RequestInteractOrDodge();
+	void RequestInteraction();
+	void RequestDodge();
+
 	void RequestLightAttack();
 	void RequestHeavyAttack();
 
-	void MoveForward(float Value);
-	void MoveRight(float Value);
-	void TurnRate(float Rate);
-	void AddControllerYawInput(float Value);
-	void LookUpRate(float Rate);
-	void AddControllerPitchInput(float Value);
-
 	void StartInteraction();
 	void StopInteraction();
+
+	void RequestMoveForward(float Value);
+	void RequestMoveRight(float Value);
+	void RequestTurnRate(float Rate);
+	void RequestAddControllerYawInput(float Value);
+	void RequestLookUpRate(float Rate);
+	void RequestAddControllerPitchInput(float Value);
+
+	// --- --- //
 
 	void CalculateDesiredActorRotation();
 
@@ -114,7 +124,4 @@ protected:
 	FTimerHandle StaminaRegenTimerHandle;
 
 	float DeltaSeconds;
-
-	bool bIsAiming = false;
-	bool bIsPressingSprint = false;
 };

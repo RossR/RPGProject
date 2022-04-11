@@ -156,6 +156,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InteractionTrace();
 
+	UFUNCTION(BlueprintCallable)
+	bool IsInUninterruptableAction() { return bIsInUninterruptableAction; }
+
 
 
 	//--------------------------------------------------------------
@@ -235,10 +238,32 @@ public:
 	// Get the current attack type
 	EAttackType GetAttackType() { return AttackType; }
 
+	void RequestJump();
+	void RequestStopJumping();
 
-	void ReadyWeapon();
-	void LightAttack();
-	void HeavyAttack();
+	void RequestSprint();
+	void RequestStopSprinting();
+
+	void RequestHoldCrouch();
+	void RequestStopCrouching();
+	void RequestToggleCrouch();
+
+	void RequestAim();
+	void RequestStopAiming();
+
+	void RequestReadyWeapon();
+
+	void RequestWalkMode();
+	void RequestStopWalkMode();
+
+	void RequestInteractOrDodge();
+	void RequestInteraction();
+	void RequestDodge();
+
+	void RequestLightAttack();
+	void RequestHeavyAttack();
+
+	
 
 protected:
 	// Called when the game starts or when spawned
@@ -266,6 +291,23 @@ protected:
 	void PlayerActionStateUpdate();
 
 	void CheckCharacterExhaustion();
+
+	
+
+	bool PlayDodgeMontage();
+	void UnbindDodgeMontage();
+
+	UFUNCTION()
+	void OnDodgeMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+
+	UFUNCTION()
+	void OnDodgeMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	UFUNCTION()
+	void DodgeMontageOnNotifyBeginReceived(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointNotifyPayload);
+
+	UFUNCTION()
+	void DodgeMontageOnNotifyEndReceived(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointNotifyPayload);
 
 public:
 
@@ -402,6 +444,7 @@ protected:
 	bool bIsRagdollDeath;
 	bool bIsExhausted;
 	bool bIsFalling;
+	bool bIsAiming;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bCanAttack;
@@ -445,4 +488,10 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace")
 	bool bTraceWasBlocked;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* DodgeMontage = nullptr;
+
+	FOnMontageBlendingOutStarted DodgeMontageBlendingOutDelegate;
+	FOnMontageEnded DodgeMontageEndedDelegate;
 };
