@@ -47,16 +47,19 @@ public:
 	UEquipmentComponent();
 
 	UFUNCTION(BlueprintPure)
-	UItemData* GetWornEquipmentDataInSlot(EEquipmentSlot EquipmentSlot) { if (WornEquipmentData.Contains(EquipmentSlot)) { return WornEquipmentData[EquipmentSlot]; } return nullptr; }
+	UItemData* GetWornEquipmentDataInSlot(EEquipmentSlot EquipmentSlot) const { if (WornEquipmentData.Contains(EquipmentSlot)) { return WornEquipmentData[EquipmentSlot]; } return nullptr; }
 
 	UFUNCTION(BlueprintPure)
-	UChildActorComponent* GetWornEquipmentActorInSlot(EEquipmentSlot EquipmentSlot) { if (WornEquipmentActors.Contains(EquipmentSlot)) { return WornEquipmentActors[EquipmentSlot]; } return nullptr; }
+	UChildActorComponent* GetWornEquipmentActorInSlot(EEquipmentSlot EquipmentSlot) const { if (WornEquipmentActors.Contains(EquipmentSlot)) { return WornEquipmentActors[EquipmentSlot]; } return nullptr; }
 
-	UFUNCTION(BlueprintCallable)
-	TMap<EEquipmentSlot, UItemData*>  GetWornEquipmentData() { return WornEquipmentData; }
+	UFUNCTION(BlueprintPure)
+	TMap<EEquipmentSlot, UItemData*>  GetWornEquipmentData() const { return WornEquipmentData; }
 
-	UFUNCTION(BlueprintCallable)
-	TMap<EEquipmentSlot, UChildActorComponent*>  GetWornEquipmentActors() { return WornEquipmentActors; }
+	UFUNCTION(BlueprintPure)
+	TMap<EEquipmentSlot, UChildActorComponent*>  GetWornEquipmentActors() const { return WornEquipmentActors; }
+
+	UFUNCTION(BlueprintPure)
+	TMap<EEquipmentSlot, TSubclassOf<AItemEquipment>> GetStartingEquipment() const { return StartingEquipment; }
 
 	UFUNCTION(BlueprintCallable)
 	bool RemoveWornEquipmentDataInSlot(EEquipmentSlot EquipmentSlot);
@@ -103,6 +106,9 @@ public:
 	void UpdateEquipmentChildActors();
 
 	UFUNCTION(BlueprintCallable)
+	void EquipStartingEquipment();
+
+	UFUNCTION(BlueprintCallable)
 	void AttachEquipmentToMesh(USkeletalMeshComponent* CharacterMesh);
 
 	UFUNCTION(BlueprintCallable)
@@ -116,16 +122,16 @@ public:
 	bool GetIsUsingFirstWeaponSet() { return bIsUsingFirstWeaponSet; }
 
 	// ToDo - Add functionality to calculate total weight of equipment
-
+	
 
 protected:
 
 	// --- VARIABLES --- //
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Data")
 	TMap<EEquipmentSlot, UItemData*> WornEquipmentData;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
 	bool bIsUsingFirstWeaponSet;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
@@ -135,4 +141,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
 	TMap<EEquipmentSlot, UChildActorComponent*> WornEquipmentActors;
+
+	// TMap for starting equipment
+	UPROPERTY(EditAnywhere, Category = "Starting Equipment");
+	TMap<EEquipmentSlot, TSubclassOf<AItemEquipment>> StartingEquipment;
+	
 };

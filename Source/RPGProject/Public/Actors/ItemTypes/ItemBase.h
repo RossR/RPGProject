@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "DataAssets/ItemData.h"
-#include "Interfaces/HighlightInterface.h"
+#include "Interfaces/InteractionInterface.h"
 #include "ItemBase.generated.h"
 
 class UStaticMeshComponent;
 
 UCLASS()
-class RPGPROJECT_API AItemBase : public AActor, public IHighlightInterface
+class RPGPROJECT_API AItemBase : public AActor, public IInteractionInterface
 {
 	GENERATED_BODY()
 	
@@ -38,13 +38,15 @@ public:
 
 	virtual void EnableHighlight(bool bActive, int Colour = -1) override;
 
+	virtual void InteractionStart(AActor* InteractingActor) override;
+
 protected:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Mesh")
 	UStaticMeshComponent* ItemMesh;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Data")
-	UItemData* ItemDataDefault;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Data Override")
+	UItemData* ItemDataOverride;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category = "Item Data")
 	UItemData* ItemData;

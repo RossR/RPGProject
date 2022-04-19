@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Actors/ItemTypes/ItemWeapon.h"
 #include "Actors/Components/CombatComponent.h"
-#include "Interfaces/HighlightInterface.h"
+#include "Interfaces/InteractionInterface.h"
 #include "RPGProjectPlayerCharacter.generated.h"
 
 

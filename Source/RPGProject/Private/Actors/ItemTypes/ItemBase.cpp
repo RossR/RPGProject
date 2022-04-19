@@ -2,6 +2,7 @@
 
 
 #include "Actors/ItemTypes/ItemBase.h"
+#include "Actors/Components/InventoryComponent.h"
 
 // Sets default values
 AItemBase::AItemBase()
@@ -13,8 +14,7 @@ AItemBase::AItemBase()
 
 	SetRootComponent(ItemMesh);
 	ItemMesh->SetCollisionProfileName("Item");
-
-	ItemData = ItemDataDefault;
+	ItemMesh->SetSimulatePhysics(true);
 
 	ItemData = CreateDefaultSubobject<UItemData>(TEXT("Item Data"));
 
@@ -25,6 +25,10 @@ AItemBase::AItemBase()
 void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (ItemDataOverride) { ItemData = ItemDataOverride; }
+
+	ItemMesh->SetMassOverrideInKg(NAME_None, ItemData->ItemWeight, true);
 	
 }
 
@@ -52,4 +56,15 @@ void AItemBase::EnableHighlight(bool bActive, int Colour)
 		ItemMesh->SetCustomDepthStencilValue(Colour);
 	}
 
+}
+
+void AItemBase::InteractionStart(AActor* InteractingActor)
+{
+	if (UInventoryComponent* InventoryComponentRef = Cast<UInventoryComponent>(InteractingActor->GetComponentByClass(UInventoryComponent::StaticClass())))
+	{
+		if (InventoryComponentRef->AddItemToInventory(ItemData))
+		{
+			Destroy();
+		}
+	}
 }

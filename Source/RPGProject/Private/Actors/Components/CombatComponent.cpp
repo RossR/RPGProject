@@ -391,7 +391,15 @@ void UCombatComponent::AttackTracing()
 
 	if (EnableHitCurve == 1.f)
 	{
-		EquippedWeapon->WeaponTrace();
+		if (EquippedWeapon->GetTraceType() == ETraceType::Unique_Trace)
+		{
+			EquippedWeapon->UniqueWeaponTrace();
+		}
+		else
+		{
+			EquippedWeapon->WeaponTrace(EquippedWeapon->GetTraceType());
+		}
+		
 
 		TArray<FHitResult> WeaponTraceHitArray = EquippedWeapon->GetWeaponTraceHitResults();
 

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Curves/CurveFloat.h"
-#include "InteractionComponent.h"
+#include "AbstractionInteractionComponent.h"
 #include "DoorInteractionComponent.generated.h"
 
 class IConsoleVariable;
@@ -21,7 +21,7 @@ enum class EDoorState
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RPGPROJECT_API UDoorInteractionComponent : public UInteractionComponent
+class RPGPROJECT_API UDoorInteractionComponent : public UAbstractionInteractionComponent
 {
 	GENERATED_BODY()
 

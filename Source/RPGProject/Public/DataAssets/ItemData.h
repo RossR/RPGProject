@@ -10,6 +10,7 @@
 #include "ItemData.generated.h"
 
 class UAnimSequence;
+class AItemBase;
 
 //--------------------------------------------------------------
 // ItemData - Data Asset
@@ -112,18 +113,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
 	bool bCanBeDropped = false;
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
-	//bool bIsEquipped = false;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	UTexture2D* ItemIcon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	TSubclassOf<AActor> ClassToSpawn;
-
-	// ToDo - Smort thing to do
-	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	TSoftClassPtr<AActor> SoftClassToSpawn;*/
+	TSoftClassPtr<AItemBase> ClassToSpawn;
 };
 
 //--------------------------------------------------------------
@@ -162,7 +156,7 @@ struct FEquipmentInfo : public FItemInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
 		float EquipmentDurability;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Defence")
 		float PhysicalDefence;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
@@ -184,19 +178,43 @@ class RPGPROJECT_API UItemEquipmentData : public UItemData
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
-		EEquipmentType EquipmentType;
+	EEquipmentType EquipmentType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
-		float PhysicalDefence;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Defence")
+	float PhysicalDefence;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
-		float MagicalDefence;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Defence")
+	float MagicalDefence;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
-		float ElementalDefence;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Defence")
+	float ElementalDefence;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Info")
-		float MentalDefence;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Defence")
+	float MentalDefence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Stat Requirement")
+	int RequiredStrength;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Stat Requirement")
+	int RequiredDexterity;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Stat Requirement")
+	int RequiredVitality;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Stat Requirement")
+	int RequiredGrit;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Stat Requirement")
+	int RequiredIntelligence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Stat Requirement")
+	int RequiredWisdom;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Stat Requirement")
+	int RequiredCharisma;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Stat Requirement")
+	int RequiredLuck;
 
 };
 
@@ -279,28 +297,28 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	TArray<USoundWave*> RandomAttackSoundArray;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info - Montages")
 	UAnimSequence* CombatIdle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info - Montages")
 	UAnimMontage* AttackMontage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info - Attack Combos")
 	uint8 LightAttackComboLimit;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info - Attack Combos")
 	uint8 HeavyAttackComboLimit;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info - Sockets")
 	FName SheathSocket;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info - Sockets")
 	FName EquippedSocket;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info - Montages")
 	FName WeaponSheathMontageSection;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info - Montages")
 	FName WeaponUnSheathMontageSection;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")

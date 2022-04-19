@@ -9,7 +9,7 @@
 // #include "ObjectiveWorldSubsystem.h"
 #include "DrawDebugHelpers.h"
 #include "Actors/Components/ObjectiveComponent.h"
-#include "Actors/Components/InteractionComponent.h"
+#include "Actors/Components/AbstractionInteractionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
 #include "Characters/RPGProjectPlayerCharacter.h"

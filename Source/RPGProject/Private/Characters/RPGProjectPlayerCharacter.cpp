@@ -574,15 +574,20 @@ void ARPGProjectPlayerCharacter::RequestInteraction()
 {
 	if (LookedAtActor)
 	{
+		if (IInteractionInterface* InteractionInterface = Cast<IInteractionInterface>(LookedAtActor))
+		{
+			InteractionInterface->InteractionStart(this);
+		}
+
 		// Check if actor is item, then pick it up
-		if (AItemBase* ItemRef = Cast<AItemBase>(LookedAtActor))
+		/*if (AItemBase* ItemRef = Cast<AItemBase>(LookedAtActor))
 		{
 			if (!InventoryComponent) { return; }
 
 			InventoryComponent->AddItemToInventory(ItemRef->GetItemData());
 
 			ItemRef->Destroy();
-		}
+		}*/
 
 		// Check if actor is an interactable, then interact with it
 	}

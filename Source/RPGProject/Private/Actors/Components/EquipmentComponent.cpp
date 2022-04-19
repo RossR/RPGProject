@@ -2,8 +2,10 @@
 
 
 #include "Actors/Components/EquipmentComponent.h"
-#include "GameFramework/Character.h"
 #include "Actors/Components/CombatComponent.h"
+#include "Actors/Components/CharacterStatisticComponent.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UEquipmentComponent::UEquipmentComponent()
@@ -37,6 +39,7 @@ void UEquipmentComponent::BeginPlay()
 
 	OwningCharacter = Cast<ACharacter>(GetOwner());
 
+	EquipStartingEquipment();
 	UpdateEquipmentChildActors();
 }
 
@@ -100,7 +103,23 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 		}
 	}
 	
-
+	// Check if character has stats required to equip the item
+	if (UCharacterStatisticComponent* CharacterStatisticComponent = Cast<UCharacterStatisticComponent>(OwningCharacter->GetComponentByClass(UCharacterStatisticComponent::StaticClass())))
+	{
+		if (CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Strength)		< ItemEquipmentCast->RequiredStrength		||
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Dexterity)	< ItemEquipmentCast->RequiredDexterity		||
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Vitality)		< ItemEquipmentCast->RequiredVitality		||
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Grit)			< ItemEquipmentCast->RequiredGrit			||
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Intelligence) < ItemEquipmentCast->RequiredIntelligence	||
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Wisdom)		< ItemEquipmentCast->RequiredWisdom			||
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Charisma)		< ItemEquipmentCast->RequiredCharisma		||
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Luck)			< ItemEquipmentCast->RequiredLuck)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::Equip Character does not meet the stat requirements to equip the item."));
+			return false;
+		}
+	}
+	
 	// If equipment slot is empty
 	if (!WornEquipmentData.Contains(EquipSlot))
 	{
@@ -108,7 +127,7 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 
 		if (WornEquipmentActors[EquipSlot]->GetChildActorClass() == nullptr)
 		{
-			WornEquipmentActors[EquipSlot]->SetChildActorClass(WornEquipmentData[EquipSlot]->ClassToSpawn);
+			WornEquipmentActors[EquipSlot]->SetChildActorClass(WornEquipmentData[EquipSlot]->ClassToSpawn.Get());
 
 			AItemEquipment* EquippedItem = Cast<AItemEquipment>(WornEquipmentActors[EquipSlot]->GetChildActor());
 			if (EquippedItem)
@@ -128,6 +147,7 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 				{
 					OwningCharacter->MoveIgnoreActorAdd(EquippedItem);
 					EquippedItem->GetItemMesh()->SetCanEverAffectNavigation(false);
+					EquippedItem->GetItemMesh()->SetSimulatePhysics(false);
 				}
 			}
 		}
@@ -370,25 +390,27 @@ void UEquipmentComponent::CreateEquipmentChildActors()
 
 void UEquipmentComponent::UpdateEquipmentChildActors()
 {
+	EEquipmentSlot EquipmentSlot;
+
 	for (uint8 i = 1; i < (uint8)EEquipmentSlot::EES_MAX; i++)
 	{
-		EEquipmentSlot EquipSlot = (EEquipmentSlot)i;
-		if (WornEquipmentData.Contains(EquipSlot))
+		EquipmentSlot = (EEquipmentSlot)i;
+		if (WornEquipmentData.Contains(EquipmentSlot))
 		{
-			if (WornEquipmentActors[EquipSlot]->GetChildActorClass() == nullptr)
+			if (WornEquipmentActors[EquipmentSlot]->GetChildActorClass() == nullptr)
 			{
-				WornEquipmentActors[EquipSlot]->SetChildActorClass(WornEquipmentData[EquipSlot]->ClassToSpawn);
+				WornEquipmentActors[EquipmentSlot]->SetChildActorClass(WornEquipmentData[EquipmentSlot]->ClassToSpawn.Get());
 
-				AItemEquipment* EquippedItem = Cast<AItemEquipment>(WornEquipmentActors[EquipSlot]->GetChildActor());
+				AItemEquipment* EquippedItem = Cast<AItemEquipment>(WornEquipmentActors[EquipmentSlot]->GetChildActor());
 				if (EquippedItem)
 				{
 					// Copy ItemData to child actor
-					EquippedItem->SetItemData(WornEquipmentData[EquipSlot]);
+					EquippedItem->SetItemData(WornEquipmentData[EquipmentSlot]);
 
 					// If weapon, attach to appropriate slot
 					if (AItemWeapon* EquippedWeapon = Cast<AItemWeapon>(EquippedItem))
 					{
-						AttachEquipmentToSocket(EquipSlot);
+						AttachEquipmentToSocket(EquipmentSlot);
 					}
 
 
@@ -398,20 +420,41 @@ void UEquipmentComponent::UpdateEquipmentChildActors()
 					{
 						OwningCharacter->MoveIgnoreActorAdd(EquippedItem);
 						EquippedItem->GetItemMesh()->SetCanEverAffectNavigation(false);
+						EquippedItem->GetItemMesh()->SetSimulatePhysics(false);
 					}
 				}
 			}
 		}
 		else
 		{
-			if (WornEquipmentActors[EquipSlot]->GetChildActorClass() != nullptr)
+			if (WornEquipmentActors[EquipmentSlot]->GetChildActorClass() != nullptr)
 			{
 				if (OwningCharacter)
 				{
-					AItemEquipment* ItemToUnequip = Cast<AItemEquipment>(WornEquipmentActors[EquipSlot]->GetChildActor());
+					AItemEquipment* ItemToUnequip = Cast<AItemEquipment>(WornEquipmentActors[EquipmentSlot]->GetChildActor());
 					OwningCharacter->MoveIgnoreActorRemove(ItemToUnequip);
 				}
-				WornEquipmentActors[EquipSlot]->SetChildActorClass(nullptr);
+				WornEquipmentActors[EquipmentSlot]->SetChildActorClass(nullptr);
+			}
+		}
+	}
+}
+
+void UEquipmentComponent::EquipStartingEquipment()
+{
+	if (StartingEquipment.IsEmpty()) { return; }
+
+	EEquipmentSlot EquipmentSlot;
+	
+	for (uint8 i = 1; i < (uint8)EEquipmentSlot::EES_MAX; i++)
+	{
+		EquipmentSlot = (EEquipmentSlot)i;
+
+		if (StartingEquipment.Contains(EquipmentSlot))
+		{
+			if (UItemData* ItemData = StartingEquipment[EquipmentSlot].GetDefaultObject()->GetItemData())
+			{
+				Equip(ItemData, EquipmentSlot);
 			}
 		}
 	}
