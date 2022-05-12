@@ -102,6 +102,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void DoorOpenInteractionStarted(AActor* InteractableActor);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void InteractionStarted(AActor* InteractableActor);
+
 	UFUNCTION(BlueprintCallable)
 	void MoveCameraToArrowLocation(FName ArrowName);
 
@@ -149,9 +152,6 @@ public:
 	void SetEquippedWeaponType(EWeaponType NewType) { EquippedWeaponType = NewType; }
 	UFUNCTION(BlueprintCallable)
 	EWeaponType GetEquippedWeaponType() { return EquippedWeaponType; }
-
-	UFUNCTION(BlueprintCallable)
-	void AttachWeaponToSocket(FName SocketName);
 
 	UFUNCTION(BlueprintCallable)
 	void InteractionTrace();

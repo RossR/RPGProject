@@ -3,6 +3,7 @@
 
 #include "Actors/ItemTypes/ItemBase.h"
 #include "Actors/Components/InventoryComponent.h"
+#include "Characters/RPGProjectPlayerCharacter.h"
 
 // Sets default values
 AItemBase::AItemBase()
@@ -28,8 +29,10 @@ void AItemBase::BeginPlay()
 
 	if (ItemDataOverride) { ItemData = ItemDataOverride; }
 
-	ItemMesh->SetMassOverrideInKg(NAME_None, ItemData->ItemWeight, true);
-	
+	if (ItemData->bUseItemWeightForPhysics)
+	{
+		ItemMesh->SetMassOverrideInKg(NAME_None, ItemData->ItemWeight, true);
+	}
 }
 
 // Called every frame
@@ -58,6 +61,18 @@ void AItemBase::EnableHighlight(bool bActive, int Colour)
 
 }
 
+void AItemBase::InteractionRequested(AActor* InteractingActor)
+{
+	ARPGProjectPlayerCharacter* PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(InteractingActor);
+	if (PlayerCharacter)
+	{
+		AActor* InteractableActor = this;
+		PlayerCharacter->InteractionStarted(InteractableActor);
+	}
+
+	
+}
+
 void AItemBase::InteractionStart(AActor* InteractingActor)
 {
 	if (UInventoryComponent* InventoryComponentRef = Cast<UInventoryComponent>(InteractingActor->GetComponentByClass(UInventoryComponent::StaticClass())))
@@ -67,4 +82,29 @@ void AItemBase::InteractionStart(AActor* InteractingActor)
 			Destroy();
 		}
 	}
+}
+
+void AItemBase::ActivateInteractable()
+{
+
+}
+
+void AItemBase::DeactivateInteractable()
+{
+
+}
+
+void AItemBase::InteractableActivated()
+{
+
+}
+
+void AItemBase::InteractableDeactivated()
+{
+
+}
+
+bool AItemBase::GetIsInInteractableRange(AActor* InteractingActor)
+{
+	return true;
 }

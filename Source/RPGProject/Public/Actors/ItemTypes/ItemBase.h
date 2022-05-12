@@ -36,9 +36,23 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UStaticMeshComponent* GetItemMesh() { return ItemMesh; }
 
-	virtual void EnableHighlight(bool bActive, int Colour = -1) override;
+	void EnableHighlight(bool bActive, int Colour = -1) override;
 
-	virtual void InteractionStart(AActor* InteractingActor) override;
+	void InteractionRequested(AActor* InteractingActor) override;
+
+	void InteractionStart(AActor* InteractingActor) override;
+
+	void ActivateInteractable() override;
+
+	void DeactivateInteractable() override;
+
+	void InteractableActivated() override;
+
+	void InteractableDeactivated() override;
+
+	bool GetIsInInteractableRange(AActor* InteractingActor) override;
+
+	EInteractableState GetInteractableState() override { return EInteractableState::MAX; };
 
 protected:
 

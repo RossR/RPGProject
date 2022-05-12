@@ -574,9 +574,11 @@ void ARPGProjectPlayerCharacter::RequestInteraction()
 {
 	if (LookedAtActor)
 	{
+		//if (LookedAtActor->Implements<IInteractionInterface>())
 		if (IInteractionInterface* InteractionInterface = Cast<IInteractionInterface>(LookedAtActor))
 		{
-			InteractionInterface->InteractionStart(this);
+			InteractionInterface->InteractionRequested(this);
+			//IInteractionInterface::InteractionRequested(LookedAtActor, this);
 		}
 
 		// Check if actor is item, then pick it up
@@ -813,25 +815,6 @@ void ARPGProjectPlayerCharacter::ActivateRagdollCamera()
 	CameraArm->SetRelativeLocation(FVector(0, 0, 0));
 }
 
-void ARPGProjectPlayerCharacter::AttachWeaponToSocket(FName SocketName)
-{
-	if (!EquipmentComponent) { return; }
-
-	if (GetMesh()->DoesSocketExist(SocketName))
-	{
-		AItemWeapon* EquippedMainHandWeapon = Cast<AItemWeapon>(EquipmentComponent->GetWornEquipmentActorInSlot(EquipmentComponent->GetCurrentlyEquippedWeaponSet())->GetChildActor());
-
-		if (EquippedMainHandWeapon)
-		{
-			EquippedMainHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true), SocketName);
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::AttackWeaponToSocket SocketName is null."));
-	}
-}
-
 void ARPGProjectPlayerCharacter::InteractionTrace()
 {
 	FVector Location;
@@ -846,7 +829,7 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 		const FVector CharacterForward = GetActorForwardVector();
 		const float DotResult = FVector::DotProduct(PlayerViewForward, CharacterForward);
 
-		
+
 
 		// Prevent picking up objects behind us, this is when the camera is looking directly at the characters front side
 		if (DotResult < -0.23f)
@@ -857,14 +840,14 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 				{
 					HighlightInterface->EnableHighlight(false);
 				}
-				
+
 				LookedAtActor = nullptr;
 			}
 			return;
 		}
 		if (!HitActorArray.IsEmpty()) { HitActorArray.Empty(); }
 		if (!HitResultArray.IsEmpty()) { HitResultArray.Empty(); }
-		
+
 		//TArray<FHitResult> HitResultArray;
 		EDrawDebugTrace::Type DebugTrace = CVarDisplayTrace->GetBool() ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None;
 		TArray<AActor*> ActorsToIgnore;
@@ -880,7 +863,7 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 		bool bFirstInteractableFound = false;
 		if (bTraceWasBlocked)
 		{
-			
+
 			for (int i = 0; i < HitResultArray.Num(); i++)
 			{
 				AActor* HitActor = HitResultArray[i].GetActor();
@@ -920,8 +903,16 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 									HighlightInterface->EnableHighlight(false);
 								}
 							}
+
 							LookedAtActor = HitActor;
-							if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
+
+							if (IInteractionInterface* InteractionInterface = Cast<IInteractionInterface>(LookedAtActor))
+							{
+								bool bWillHightlight = InteractionInterface->GetIsInInteractableRange(this);
+
+								InteractionInterface->EnableHighlight(bWillHightlight);
+							}
+							else if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
 							{
 								HighlightInterface->EnableHighlight(true);
 							}
@@ -932,7 +923,7 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 				}
 
 			}
-			
+
 		}
 
 		if (!bFirstInteractableFound)

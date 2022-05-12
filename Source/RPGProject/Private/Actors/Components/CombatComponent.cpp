@@ -29,6 +29,7 @@ UCombatComponent::UCombatComponent()
 	bIsInAttackSequence = false;
 	bIsInAttackWindow = false;
 	bIsInAttackWindUp = false;
+
 }
 
 

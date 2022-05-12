@@ -73,9 +73,17 @@ void AItemWeapon::PlayRandomAttackSound()
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("AItemWeapon::PlayRandomAttackSound Random sound is nullptr"));
+				UE_LOG(LogTemp, Warning, TEXT("AItemWeapon::PlayRandomAttackSound Random sound is nullptr."));
 			}
 		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AItemWeapon::PlayRandomAttackSound RandomAttackSoundArray is empty."));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AItemWeapon::PlayRandomAttackSound WeaponData is nullptr."));
 	}
 }
 

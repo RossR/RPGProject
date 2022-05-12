@@ -111,6 +111,9 @@ public:
 	float ItemCurrentDurability;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
+	float bUseItemWeightForPhysics = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
 	bool bCanBeDropped = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")

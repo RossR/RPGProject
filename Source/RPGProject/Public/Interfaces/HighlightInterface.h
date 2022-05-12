@@ -7,10 +7,11 @@
 #include "HighlightInterface.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI, Blueprintable)
+UINTERFACE(MinimalAPI, meta = (CannotImplementInterfaceInBlueprint))
 class UHighlightInterface : public UInterface
 {
 	GENERATED_BODY()
+	//GENERATED_UINTERFACE_BODY()
 };
 
 /**
@@ -19,12 +20,14 @@ class UHighlightInterface : public UInterface
 class RPGPROJECT_API IHighlightInterface
 {
 	GENERATED_BODY()
+	//GENERATED_IINTERFACE_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	virtual void EnableHighlight(bool bActive, int Colour = -1) = 0;
+	//virtual void EnableHighlight_Implementation(bool bActive, int Colour = -1) = 0;
 
 
 

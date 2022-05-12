@@ -70,6 +70,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	ACharacter* GetOwnerCharacter() { return OwningCharacter; }
 
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToSocket(AItemEquipment* WeaponToAttach, FName SocketName);
+
 protected:
 
 	// --- FUNCTIONS --- //

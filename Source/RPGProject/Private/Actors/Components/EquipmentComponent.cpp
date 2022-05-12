@@ -32,6 +32,37 @@ bool UEquipmentComponent::RemoveWornEquipmentDataInSlot(EEquipmentSlot Equipment
 	return false;
 }
 
+void UEquipmentComponent::AttachWeaponToSocket(AItemEquipment* WeaponToAttach, FName SocketName)
+{
+
+	if (OwningCharacter && OwningCharacter->GetMesh()->DoesSocketExist(SocketName))
+	{
+		const EEquipmentSlot CurrentMainHandSlot = GetCurrentlyEquippedWeaponSet();
+		/*EEquipmentSlot CurrentOffHandSlot;
+
+		if (CurrentMainHandSlot == EEquipmentSlot::EES_MainHandOne)
+		{
+			CurrentOffHandSlot = EEquipmentSlot::EES_OffHandOne;
+		}
+		else
+		{
+			CurrentOffHandSlot = EEquipmentSlot::EES_OffHandTwo;
+		}*/
+
+		AItemEquipment* EquippedMainHandItem = Cast<AItemEquipment>(GetWornEquipmentActorInSlot(CurrentMainHandSlot)->GetChildActor());
+		//AItemEquipment* EquippedOffHandItem = Cast<AItemEquipment>(EquipmentComponent->GetWornEquipmentActorInSlot(CurrentOffHandSlot)->GetChildActor());
+
+		if (EquippedMainHandItem)
+		{
+			EquippedMainHandItem->AttachToComponent(OwningCharacter->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true), SocketName);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::AttackWeaponToSocket SocketName is null."));
+	}
+}
+
 // Called when the game starts
 void UEquipmentComponent::BeginPlay()
 {
@@ -70,11 +101,51 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 		return false;
 	}
 
-	// ToDo - Check that SlotToEquipTo is valid for ItemToEquip
-	if (SlotToEquipTo != EEquipmentSlot::EES_None && GetEquipmentSlotForItem(ItemToEquip) != SlotToEquipTo)
+	const EEquipmentSlot ValidEquipmentSlot = GetEquipmentSlotForItem(ItemToEquip);
+	// Check that SlotToEquipTo is valid for ItemToEquip
+	if (SlotToEquipTo != EEquipmentSlot::EES_None && ValidEquipmentSlot != SlotToEquipTo)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::Equip SlotToEquipTo is not a valid slot for ItemToEquip."));
-		return false;
+		bool IsValidSlot = false;
+
+		switch (SlotToEquipTo)
+		{
+		case EEquipmentSlot::EES_MainHandOne:
+			if (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo)
+			{
+				IsValidSlot = true;
+			}
+			break;
+
+		case EEquipmentSlot::EES_OffHandOne:
+			if (ItemEquipmentCast->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo))
+			{
+				IsValidSlot = true;
+			}
+			break;
+
+		case EEquipmentSlot::EES_MainHandTwo:
+			if (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo)
+			{
+				IsValidSlot = true;
+			}
+			break;
+
+		case EEquipmentSlot::EES_OffHandTwo:
+			if (ItemEquipmentCast->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne))
+			{
+				IsValidSlot = true;
+			}
+			break;
+
+		default:
+			break;
+		}
+
+		if (!IsValidSlot)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::Equip SlotToEquipTo is not a valid slot for ItemToEquip."));
+			return false;
+		}
 	}
 
 	if (EquipSlot == EEquipmentSlot::EES_OffHandOne)
@@ -135,11 +206,13 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 				// Copy ItemData to child actor
 				EquippedItem->SetItemData(WornEquipmentData[EquipSlot]);
 
+				AttachEquipmentToSocket(EquipSlot);
+
 				// If weapon, attach to appropriate slot
-				if (AItemWeapon* EquippedWeapon = Cast<AItemWeapon>(EquippedItem))
+				/*if (AItemWeapon* EquippedWeapon = Cast<AItemWeapon>(EquippedItem))
 				{
 					AttachEquipmentToSocket(EquipSlot);
-				}
+				}*/
 
 				// Change the child actor's collision profile so it does not hit the interaction trace
 				EquippedItem->GetItemMesh()->SetCollisionProfileName("EquippedItem");
@@ -507,30 +580,101 @@ void UEquipmentComponent::AttachEquipmentToSocket(EEquipmentSlot EquipmentSlot)
 
 	if (UCombatComponent* CombatComponentRef = Cast<UCombatComponent>(OwningCharacter->FindComponentByClass(UCombatComponent::StaticClass())))
 	{
-		UItemWeaponData* WeaponData = Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EquipmentSlot));
-
-		switch (CombatComponentRef->GetCombatState())
+		if (UItemWeaponData* WeaponData = Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EquipmentSlot)))
 		{
-		case ECombatState::CS_AtEase:
-			SocketName = WeaponData->SheathSocket;
-			break;
+			switch (CombatComponentRef->GetCombatState())
+			{
+			case ECombatState::CS_AtEase:
+				SocketName = WeaponData->SheathSocket;
+				break;
 
-		case ECombatState::CS_CombatReady:
-			SocketName = WeaponData->EquippedSocket;
-			break;
+			case ECombatState::CS_CombatReady:
+				SocketName = WeaponData->EquippedSocket;
+				break;
 
-		default:
-			break;
+			default:
+				break;
+			}
+		}
+		// ToDo - Add universal sheath sockets for weapons for both weapon sets
+		else if (UItemEquipmentData* EquipmentData = Cast<UItemEquipmentData>(GetWornEquipmentDataInSlot(EquipmentSlot)))
+		{
+			switch (EquipmentSlot)
+			{
+			/*case EEquipmentSlot::EES_MainHandOne:
+				SocketName = "Equipment_MainHandOne";
+				break;
+
+			case EEquipmentSlot::EES_OffHandOne:
+				SocketName = "Equipment_OffHandOne";
+				break;
+
+			case EEquipmentSlot::EES_MainHandTwo:
+				SocketName = "Equipment_MainHandTwo";
+				break;
+
+			case EEquipmentSlot::EES_OffHandTwo:
+				SocketName = "Equipment_OffHandTwo";
+				break;*/
+
+			case EEquipmentSlot::EES_Head:
+				SocketName = "Equipment_Head";
+				break;
+
+			case EEquipmentSlot::EES_Torso:
+				SocketName = "Equipment_Torso";
+				break;
+
+			case EEquipmentSlot::EES_Hands:
+				SocketName = "Equipment_Hands";
+				break;
+
+			case EEquipmentSlot::EES_Legs:
+				SocketName = "Equipment_Legs";
+				break;
+
+			case EEquipmentSlot::EES_Feet:
+				SocketName = "Equipment_Feet";
+				break;
+
+			case EEquipmentSlot::EES_TorsoAccessory:
+				SocketName = "Equipment_TorsoAccessory";
+				break;
+
+			case EEquipmentSlot::EES_HeadAccessory:
+				SocketName = "Equipment_HeadAccessory";
+				break;
+
+			case EEquipmentSlot::EES_NeckAccessory:
+				SocketName = "Equipment_NeckAccessory";
+				break;
+
+			case EEquipmentSlot::EES_ArmAccessory:
+				SocketName = "Equipment_ArmAccessory";
+				break;
+
+			case EEquipmentSlot::EES_RingAccessory1:
+				SocketName = "Equipment_RingAccessory1";
+				break;
+
+			case EEquipmentSlot::EES_RingAccessory2:
+				SocketName = "Equipment_RingAccessory2";
+				break;
+
+			default:
+				break;
+			}
 		}
 	}
 
 	if (OwningCharacter->GetMesh()->DoesSocketExist(SocketName))
 	{
-		AItemWeapon* EquippedMainHandWeapon = Cast<AItemWeapon>(GetWornEquipmentActorInSlot(GetCurrentlyEquippedWeaponSet())->GetChildActor());
+		AItemEquipment* EquippedItem = Cast<AItemEquipment>(GetWornEquipmentActorInSlot(EquipmentSlot)->GetChildActor());
 
-		if (EquippedMainHandWeapon)
+		if (EquippedItem)
 		{
-			EquippedMainHandWeapon->AttachToComponent(OwningCharacter->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true), SocketName);
+			// ToDo - Change scaling EAttachmentRule when I start to use proper equipment models so they scale with the body they are equipped to
+			EquippedItem->AttachToComponent(OwningCharacter->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true), SocketName);
 		}
 	}
 	else
