@@ -20,9 +20,9 @@ public:
 
 	void EnableHighlight(bool bActive, int Colour = -1) override;
 
-	void InteractionRequested(AActor* InteractingActor) override;
+	void InteractionRequested(AActor* InteractingActor = nullptr) override;
 
-	void InteractionStart(AActor* InteractingActor) override;
+	void InteractionStart(AActor* InteractingActor = nullptr) override;
 
 	void ActivateInteractable() override;
 

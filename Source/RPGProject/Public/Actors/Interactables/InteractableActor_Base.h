@@ -8,15 +8,15 @@
 #include "Components/AudioComponent.h"
 #include "InteractableActor_Base.generated.h"
 
-//UENUM(BlueprintType)
-//enum class EInteractableState : uint8
-//{
-//	Inactive		UMETA(DisplayName = "Inactive"),
-//	Activating		UMETA(DisplayName = "Activating"),
-//	Deactivating	UMETA(DisplayName = "Deactivating"),
-//	Active			UMETA(DisplayName = "Active"),
-//	MAX				UMETA(Hidden)
-//};
+UENUM(BlueprintType)
+enum class EInteractionType : uint8
+{
+	Toggle			UMETA(DisplayName = "Toggle"),
+	Button			UMETA(DisplayName = "Button"),
+	Timer			UMETA(DisplayName = "Timer"),
+	SingleUse		UMETA(DisplayName = "SingleUse"),
+	MAX				UMETA(Hidden)
+};
 
 class UCapsuleComponent;
 
@@ -46,9 +46,9 @@ public:
 
 	void EnableHighlight(bool bActive, int Colour = -1) override;
 
-	void InteractionRequested(AActor* InteractingActor) override;
+	void InteractionRequested(AActor* InteractingActor = nullptr) override;
 
-	void InteractionStart(AActor* InteractingActor) override;
+	void InteractionStart(AActor* InteractingActor = nullptr) override;
 
 	void ActivateInteractable() override;
 
@@ -62,8 +62,20 @@ public:
 
 	EInteractableState GetInteractableState() override { return InteractableState; };
 
+	bool CanBeInteractedWith() { return bCanInteract; }
+
 
 protected:
+
+	// --- FUNCTIONS --- //
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BPActivateInteractable();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BPDeactivateInteractable();
+
+	void InteractTimer();
 
 	// --- VARIABLES --- //
 
@@ -76,17 +88,23 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "InteractableActor - Interaction Range")
 	TArray<AActor*> ActorsInInteractionRange;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
 	bool bStartActive = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
 	bool bCanInteract = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
+	bool bCanHighlight = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
 	bool bIsLocked = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
 	bool bActivateSelf = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
+	float TimerDuration = 3.f;
 
 	// ToDo - Create ActivatableActor class
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
@@ -95,8 +113,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "InteractableActor - Interactable State")
 	EInteractableState InteractableState;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Interaction Type")
+	EInteractionType InteractionType;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "InteractableActor - Audio")
 	UAudioComponent* AudioComponent;
+
+	FTimerHandle InteractTimerHandle;
 
 	// Store animation for interaction? Or store it on interacting actor?
 

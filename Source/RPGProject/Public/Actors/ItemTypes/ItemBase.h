@@ -54,6 +54,8 @@ public:
 
 	EInteractableState GetInteractableState() override { return EInteractableState::MAX; };
 
+	bool CanBeInteractedWith() { return true; }
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Mesh")

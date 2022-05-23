@@ -36,11 +36,11 @@ class RPGPROJECT_API IInteractionInterface : public IHighlightInterface
 public:
 
 	UFUNCTION(BlueprintCallable)
-	virtual void InteractionRequested(AActor* InteractingActor) = 0;
+	virtual void InteractionRequested(AActor* InteractingActor = nullptr) = 0;
 	//virtual void InteractionRequested_Implementation(AActor* InteractingActor) = 0;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void InteractionStart(AActor* InteractingActor) = 0;
+	virtual void InteractionStart(AActor* InteractingActor = nullptr) = 0;
 	//virtual void InteractionStart_Implementation(AActor* InteractingActor) = 0;
 
 	UFUNCTION(BlueprintCallable)
@@ -64,4 +64,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual EInteractableState GetInteractableState() = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool CanBeInteractedWith() = 0;
 };

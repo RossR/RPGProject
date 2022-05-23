@@ -910,7 +910,14 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 							{
 								bool bWillHightlight = InteractionInterface->GetIsInInteractableRange(this);
 
-								InteractionInterface->EnableHighlight(bWillHightlight);
+								if (InteractionInterface->CanBeInteractedWith())
+								{
+									InteractionInterface->EnableHighlight(bWillHightlight);
+								}
+								else
+								{
+									InteractionInterface->EnableHighlight(false);
+								}
 							}
 							else if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
 							{

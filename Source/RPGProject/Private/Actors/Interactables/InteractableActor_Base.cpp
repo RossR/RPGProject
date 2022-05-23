@@ -65,6 +65,7 @@ void AInteractableActor_Base::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, 
 
 void AInteractableActor_Base::EnableHighlight(bool bActive, int Colour)
 {
+	if (!bCanHighlight) { return; }
 	InteractableMesh->SetCustomDepthStencilValue(Colour);
 	InteractableMesh->SetRenderCustomDepth(bActive);
 }
@@ -101,6 +102,23 @@ void AInteractableActor_Base::InteractionRequested(AActor* InteractingActor)
 
 void AInteractableActor_Base::InteractionStart(AActor* InteractingActor)
 {
+	if (bActivateSelf)
+	{
+		switch (GetInteractableState())
+		{
+		case EInteractableState::Inactive:
+			ActivateInteractable();
+			break;
+
+		case EInteractableState::Active:
+			DeactivateInteractable();
+			break;
+
+		default:
+			break;
+		}
+	}
+
 	if (!ActivatableActorsArray.IsEmpty())
 	{
 		for (int i = 0; i < ActivatableActorsArray.Num(); i++)
@@ -127,24 +145,94 @@ void AInteractableActor_Base::InteractionStart(AActor* InteractingActor)
 
 void AInteractableActor_Base::ActivateInteractable()
 {
-
+	BPActivateInteractable();
 }
 
 void AInteractableActor_Base::DeactivateInteractable()
 {
-
+	BPDeactivateInteractable();
 }
 
 void AInteractableActor_Base::InteractableActivated()
 {
-	InteractableState = EInteractableState::Active;
-	bCanInteract = true;
+	switch (InteractionType)
+	{
+	case EInteractionType::Toggle:
+		InteractableState = EInteractableState::Active;
+		bCanInteract = true;
+		break;
+
+	case EInteractionType::Button:
+		if (bStartActive)
+		{
+			InteractableState = EInteractableState::Active;
+			bCanInteract = true;
+		}
+		else
+		{
+			DeactivateInteractable();
+		}
+		break;
+
+	case EInteractionType::Timer:
+		InteractableState = EInteractableState::Active;
+		if (!bStartActive)
+		{
+			GetWorld()->GetTimerManager().SetTimer(InteractTimerHandle, this, &AInteractableActor_Base::InteractTimer, TimerDuration, false, -1.f);
+		}
+		else { bCanInteract = true; }
+		break;
+
+	case EInteractionType::SingleUse:
+		InteractableState = EInteractableState::Active;
+		break;
+
+	default:
+		break;
+	}
+
+	
 }
 
 void AInteractableActor_Base::InteractableDeactivated()
 {
-	InteractableState = EInteractableState::Inactive;
-	bCanInteract = true;
+	switch (InteractionType)
+	{
+	case EInteractionType::Toggle:
+		InteractableState = EInteractableState::Inactive;
+		bCanInteract = true;
+		break;
+
+	case EInteractionType::Button:
+		if (bStartActive)
+		{
+			ActivateInteractable();
+		}
+		else
+		{
+			InteractableState = EInteractableState::Inactive;
+			bCanInteract = true;
+		}
+		break;
+
+	case EInteractionType::Timer:
+		InteractableState = EInteractableState::Inactive;
+		if (bStartActive)
+		{
+			GetWorld()->GetTimerManager().SetTimer(InteractTimerHandle, this, &AInteractableActor_Base::InteractTimer, TimerDuration, false, -1.f);
+		}
+		else { bCanInteract = true; }
+		break;
+
+	case EInteractionType::SingleUse:
+		InteractableState = EInteractableState::Inactive;
+		break;
+
+	default:
+		break;
+	}
+
+	
 }
 
 bool AInteractableActor_Base::GetIsInInteractableRange(AActor* InteractingActor)
@@ -156,3 +244,7 @@ bool AInteractableActor_Base::GetIsInInteractableRange(AActor* InteractingActor)
 	return false;
 }
 
+void AInteractableActor_Base::InteractTimer()
+{
+	InteractionStart();
+}
