@@ -202,8 +202,6 @@ private:
 	// Stores montage section for unsheathing the currently equipped weapon
 	FName EquippedWeaponUnSheathSection;
 
-	
-
 	bool bIsInCombat;
 	bool bIsAttackQueued;
 	bool bIsInAttackSequence;
