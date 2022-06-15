@@ -252,12 +252,12 @@ void ARPGProjectPlayerCharacter::CharacterStatisticsUpdate()
 	//{
 	//	int OldStamina = 0;
 
-	//	FString AdditionalHealthPointsString = "AdditionalHealthPoints: " + FString::FromInt(CharacterStatComponent->AdditionalHealthPoints);
-	//	// GEngine->AddOnScreenDebugMessage(1, DeltaSeconds, FColor::Yellow, AdditionalHealthPointsString);
+	//	FString AdditionalCharacterStatistics.HealthPointsString = "AdditionalCharacterStatistics.HealthPoints: " + FString::FromInt(CharacterStatComponent->AdditionalCharacterStatistics.HealthPoints);
+	//	// GEngine->AddOnScreenDebugMessage(1, DeltaSeconds, FColor::Yellow, AdditionalCharacterStatistics.HealthPointsString);
 
 	//	if (CharacterStatComponent->HaveStatisticsChanged())
 	//	{
-	//		OldStamina = CharacterStatComponent->AdditionalStaminaPoints;
+	//		OldStamina = CharacterStatComponent->AdditionalCharacterStatistics.StaminaPoints;
 
 	//		
 	//	}
@@ -287,11 +287,11 @@ void ARPGProjectPlayerCharacter::CharacterStatisticsUpdate()
 
 	//		if (CharacterStatComponent->HaveStatisticsChanged())
 	//		{
-	//			StaminaComponent->TakeStaminaDamage(OldStamina - CharacterStatComponent->AdditionalStaminaPoints);
+	//			StaminaComponent->TakeStaminaDamage(OldStamina - CharacterStatComponent->AdditionalCharacterStatistics.StaminaPoints);
 	//		}
 	//	}
 
-	//	// CharacterStatComponent->OldHealthPoints = CharacterStatComponent->AdditionalHealthPoints;
+	//	// CharacterStatComponent->OldHealthPoints = CharacterStatComponent->AdditionalCharacterStatistics.HealthPoints;
 	//	CharacterStatComponent->SetHaveStatisticsChanged(false);
 	//}
 }
@@ -515,6 +515,7 @@ void ARPGProjectPlayerCharacter::RequestStopCrouching()
 
 void ARPGProjectPlayerCharacter::RequestToggleCrouch()
 {
+	//ToDo - Fix this as it will not trigger the else statement
 	if (!GetCharacterMovement()->IsCrouching())
 	{
 		RequestHoldCrouch();
@@ -577,19 +578,15 @@ void ARPGProjectPlayerCharacter::RequestInteraction()
 		//if (LookedAtActor->Implements<IInteractionInterface>())
 		if (IInteractionInterface* InteractionInterface = Cast<IInteractionInterface>(LookedAtActor))
 		{
+			if (AItemBase* ItemCast = Cast<AItemBase>(LookedAtActor))
+			{
+				ItemCast->OnItemPickup.BindUObject(PC, &ARPGProjectPlayerController::BPCreateNotification);
+			}
 			InteractionInterface->InteractionRequested(this);
+
+			
 			//IInteractionInterface::InteractionRequested(LookedAtActor, this);
 		}
-
-		// Check if actor is item, then pick it up
-		/*if (AItemBase* ItemRef = Cast<AItemBase>(LookedAtActor))
-		{
-			if (!InventoryComponent) { return; }
-
-			InventoryComponent->AddItemToInventory(ItemRef->GetItemData());
-
-			ItemRef->Destroy();
-		}*/
 
 		// Check if actor is an interactable, then interact with it
 	}

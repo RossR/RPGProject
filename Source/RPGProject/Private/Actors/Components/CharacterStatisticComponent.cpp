@@ -55,7 +55,7 @@ void UCharacterStatisticComponent::TickComponent(float DeltaTime, ELevelTick Tic
 	{
 		UpdateTotalAttributePointsSpent();
 
-		int StatChangeHealthDifference = AdditionalHealthPoints - OldHealthPoints;
+		int StatChangeHealthDifference = AdditionalCharacterStatistics.HealthPoints - OldHealthPoints;
 
 		UHealthComponent* HealthComponent = Cast<UHealthComponent>(GetOwner()->GetComponentByClass(UHealthComponent::StaticClass()));
 
@@ -76,15 +76,15 @@ void UCharacterStatisticComponent::TickComponent(float DeltaTime, ELevelTick Tic
 		{
 			StaminaComponent->SetMaxStamina(CharacterStatistics.StaminaPoints);
 
-			StaminaComponent->TakeStaminaDamage(OldStaminaPoints - AdditionalStaminaPoints);
+			StaminaComponent->TakeStaminaDamage(OldStaminaPoints - AdditionalCharacterStatistics.StaminaPoints);
 		}
 
 
 		bHaveStatisticsChanged = false;
 	}
 
-	OldHealthPoints = AdditionalHealthPoints;
-	OldStaminaPoints = AdditionalStaminaPoints;
+	OldHealthPoints = AdditionalCharacterStatistics.HealthPoints;
+	OldStaminaPoints = AdditionalCharacterStatistics.StaminaPoints;
 
 	ClampNewAttributes();
 }
@@ -414,11 +414,13 @@ void UCharacterStatisticComponent::UpdateTotalAttributePointsSpent()
 void UCharacterStatisticComponent::UpdateCharacterStatistics()
 {
 
-	AdditionalHealthPoints = (10 * StrengthAttribute) + (10 * DexterityAttribute) + (20 * VitalityAttribute) + (10 * GritAttribute);
-	AdditionalStaminaPoints = (5 * StrengthAttribute) + (10 * DexterityAttribute) + (5 * VitalityAttribute) + (5 * GritAttribute);
+	AdditionalCharacterStatistics.HealthPoints = (10 * StrengthAttribute) + (10 * DexterityAttribute) + (20 * VitalityAttribute) + (10 * GritAttribute);
+	AdditionalCharacterStatistics.StaminaPoints = (5 * StrengthAttribute) + (10 * DexterityAttribute) + (5 * VitalityAttribute) + (5 * GritAttribute);
+	AdditionalCharacterStatistics.CarryWeight = (0.5f * StrengthAttribute) + (0.1f * DexterityAttribute) + (0.1f * VitalityAttribute) + (0.1f * GritAttribute);
 
-	CharacterStatistics.HealthPoints = BaseCharacterStatistics.HealthPoints + AdditionalHealthPoints;
-	CharacterStatistics.StaminaPoints = BaseCharacterStatistics.StaminaPoints + AdditionalStaminaPoints;
+	CharacterStatistics.HealthPoints = BaseCharacterStatistics.HealthPoints + AdditionalCharacterStatistics.HealthPoints;
+	CharacterStatistics.StaminaPoints = BaseCharacterStatistics.StaminaPoints + AdditionalCharacterStatistics.StaminaPoints;
+	CharacterStatistics.CarryWeight = BaseCharacterStatistics.CarryWeight + AdditionalCharacterStatistics.CarryWeight;
 }
 
 void UCharacterStatisticComponent::UpdateDisplayedCharacterStatistics()
@@ -426,8 +428,8 @@ void UCharacterStatisticComponent::UpdateDisplayedCharacterStatistics()
 	NewTotalAttributePointsSpent = NewStrengthAttribute + NewDexterityAttribute + NewVitalityAttribute + NewGritAttribute + NewIntelligenceAttribute + NewWisdomAttribute + NewCharismaAttribute + NewLuckAttribute;
 
 	DisplayedCharacterStatistics.HealthPoints = BaseCharacterStatistics.HealthPoints + (10 * NewStrengthAttribute) + (10 * NewDexterityAttribute) + (20 * NewVitalityAttribute) + (10 * NewGritAttribute);
-	
 	DisplayedCharacterStatistics.StaminaPoints = BaseCharacterStatistics.StaminaPoints + (5 * NewStrengthAttribute) + (10 * NewDexterityAttribute) + (5 * NewVitalityAttribute) + (5 * NewGritAttribute);
+	DisplayedCharacterStatistics.CarryWeight = BaseCharacterStatistics.CarryWeight + (0.5f * NewStrengthAttribute) + (0.1f * NewDexterityAttribute) + (0.1f * NewVitalityAttribute) + (0.1f * NewGritAttribute);
 }
 
 void UCharacterStatisticComponent::ClampNewAttributes()
