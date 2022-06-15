@@ -10,6 +10,8 @@
 
 class UStaticMeshComponent;
 
+DECLARE_DELEGATE_OneParam(FOnItemPickupDelegate, UItemData*);
+
 UCLASS()
 class RPGPROJECT_API AItemBase : public AActor, public IInteractionInterface
 {
@@ -55,6 +57,12 @@ public:
 	EInteractableState GetInteractableState() override { return EInteractableState::MAX; };
 
 	bool CanBeInteractedWith() { return true; }
+
+	void ItemPickupEvent() { OnItemPickup.ExecuteIfBound(ItemData); }
+
+public:
+
+	FOnItemPickupDelegate OnItemPickup;
 
 protected:
 

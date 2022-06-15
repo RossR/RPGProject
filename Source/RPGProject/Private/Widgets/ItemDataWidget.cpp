@@ -43,75 +43,21 @@ bool UItemDataWidget::SwapItemsBetweenEquipmentAndInventory(EEquipmentSlot Equip
 	UItemEquipmentData* EquipmentDataEquipmentCast = Cast<UItemEquipmentData>(EquipmentComponentRef->GetWornEquipmentDataInSlot(EquipmentSlot));
 	UItemEquipmentData* InventoryDataEquipmentCast = Cast<UItemEquipmentData>(InventoryComponentRef->GetInventoryItemData(ItemKey));
 
-	bool bCanSwap = false;
 	// Confirm item can be equipped
-	if (EquipmentDataEquipmentCast && InventoryDataEquipmentCast)
-	{
-		
-		if (InventoryDataEquipmentCast->EquipmentType == EEquipmentType::EET_1HWeapon)
-		{
-			// Can swap if Equipment is main-hand or off-hand
-			if (EquipmentDataEquipmentCast->EquipmentType == EEquipmentType::EET_1HWeapon || EquipmentDataEquipmentCast->EquipmentType == EEquipmentType::EET_OffHand)
-			{
-				bCanSwap = true;
-			}
-		}
-		else if (InventoryDataEquipmentCast->EquipmentType == EquipmentDataEquipmentCast->EquipmentType)
-		{
-			bCanSwap = true;
-		}
-	}
-	else
+	if (!(EquipmentDataEquipmentCast && InventoryDataEquipmentCast))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UItemDataWidget::SwapItemBetweenEquipmentAndInventory Item is not equipment."));
 		return false;
 	}
 
-	if (!bCanSwap) 
+	const bool bEquippedSuccessfully = EquipmentComponentRef->Equip(InventoryDataEquipmentCast, EquipmentSlot, ItemKey);
+
+	if (!bEquippedSuccessfully)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UItemDataWidget::SwapItemBetweenEquipmentAndInventory Items cannot be swapped."));
-		return false;
+		InventoryComponentRef->AddItemToInventory(InventoryDataEquipmentCast, ItemKey);
 	}
 
-	// Remove equipment, then equip new item
-	
-	EquipmentComponentRef->RemoveWornEquipmentDataInSlot(EquipmentSlot);
-
-	if (!EquipmentComponentRef->GetWornEquipmentData().Contains(EquipmentSlot))
-	{
-		const bool EquipSuccessful = EquipmentComponentRef->Equip(InventoryDataEquipmentCast, EquipmentSlot);
-
-		if (!EquipSuccessful)
-		{
-			if (!EquipmentComponentRef->GetWornEquipmentData().Contains(EquipmentSlot))
-			{
-				EquipmentComponentRef->Equip(EquipmentDataEquipmentCast, EquipmentSlot);
-			}
-			
-			return false;
-		}
-	}
-
-	// Remove item from inventory, then add equipment to inventory (same slot if possible)
-
-	InventoryComponentRef->RemoveItemFromInventory(ItemKey);
-
-	if (!InventoryComponentRef->GetInventoryItemDataMap().Contains(ItemKey))
-	{
-		const bool AddSuccessful = InventoryComponentRef->AddItemToInventory(EquipmentDataEquipmentCast, ItemKey);
-
-		if (!AddSuccessful)
-		{
-			if (!InventoryComponentRef->GetInventoryItemDataMap().Contains(ItemKey))
-			{
-				InventoryComponentRef->AddItemToInventory(InventoryDataEquipmentCast, ItemKey);
-			}
-
-			return false;
-		}
-	}
-	
-	return true;
+	return bEquippedSuccessfully;
 }
 
 void UItemDataWidget::CompareItemStatistics(UItemData FirstItem, UItemData SecondItem)

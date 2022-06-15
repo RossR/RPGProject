@@ -79,6 +79,9 @@ void AItemBase::InteractionStart(AActor* InteractingActor)
 	{
 		if (InventoryComponentRef->AddItemToInventory(ItemData))
 		{
+			// Create notification on HUD
+			ItemPickupEvent();
+
 			Destroy();
 		}
 	}
