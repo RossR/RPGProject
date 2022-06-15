@@ -121,7 +121,7 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	if (DoorState == EDoorState::DS_Opening)
 	{
 		CurrentRotationTime += DeltaTime;
-		const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
+		const float TimeRatio = FMath::Clamp(CurrentRotationTime / TranslationTime, 0.0f, 1.0f);
 		const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
 		const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
 		GetOwner()->SetActorRotation(CurrentRotation);
@@ -144,7 +144,7 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	else if (DoorState == EDoorState::DS_Closing)
 	{
 		CurrentRotationTime -= DeltaTime;
-		const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
+		const float TimeRatio = FMath::Clamp(CurrentRotationTime / TranslationTime, 0.0f, 1.0f);
 		const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
 		const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
 		GetOwner()->SetActorRotation(CurrentRotation);
