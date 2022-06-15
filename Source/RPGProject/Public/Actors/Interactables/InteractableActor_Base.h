@@ -91,7 +91,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
 	bool bStartActive = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")
 	bool bCanInteract = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Settings")

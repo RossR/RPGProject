@@ -18,8 +18,8 @@ void AInteractableActor_Button::Tick(float DeltaTime)
 {
 	if (InteractableState == EInteractableState::Activating)
 	{
-		CurrentRotationTime += DeltaTime;
-		const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
+		CurrentTranslationTime += DeltaTime;
+		const float TimeRatio = FMath::Clamp(CurrentTranslationTime / TranslationTime, 0.0f, 1.0f);
 		const float LocationAlpha = ButtonPressCurve.GetRichCurveConst()->Eval(TimeRatio);
 		const FVector CurrentLocation = FMath::Lerp(StartingVector, PressedVector, LocationAlpha);
 		ButtonMesh->SetRelativeLocation(CurrentLocation);
@@ -30,8 +30,8 @@ void AInteractableActor_Button::Tick(float DeltaTime)
 	}
 	else if (InteractableState == EInteractableState::Deactivating)
 	{
-		CurrentRotationTime -= DeltaTime;
-		const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
+		CurrentTranslationTime -= DeltaTime;
+		const float TimeRatio = FMath::Clamp(CurrentTranslationTime / TranslationTime, 0.0f, 1.0f);
 		const float LocationAlpha = ButtonPressCurve.GetRichCurveConst()->Eval(TimeRatio);
 		const FVector CurrentLocation = FMath::Lerp(StartingVector, PressedVector, LocationAlpha);
 		ButtonMesh->SetRelativeLocation(CurrentLocation);

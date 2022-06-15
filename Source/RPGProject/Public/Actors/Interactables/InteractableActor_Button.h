@@ -57,9 +57,9 @@ protected:
 	FVector PressedVector = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, Category = "InteractableActor - Button")
-	float TimeToRotate = 1.0f;
+	float TranslationTime = 1.0f;
 
-	float CurrentRotationTime = 0.0f;
+	float CurrentTranslationTime = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "InteractableActor - Button")
 	FRuntimeFloatCurve ButtonPressCurve;

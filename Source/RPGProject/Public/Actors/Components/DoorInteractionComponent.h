@@ -82,7 +82,7 @@ protected:
 	FRotator FinalRotation = FRotator::ZeroRotator;
 	
 	UPROPERTY(EditAnywhere)
-	float TimeToRotate = 1.0f;
+	float TranslationTime = 1.0f;
 
 	float CurrentRotationTime = 0.0f;
 

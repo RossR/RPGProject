@@ -13,6 +13,7 @@ AInteractableActor_Base::AInteractableActor_Base()
 	PrimaryActorTick.bCanEverTick = true;
 
 	InteractableMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("InteractableMesh"));
+	InteractableMesh->SetCollisionProfileName(FName("Interactable"));
 	SetRootComponent(InteractableMesh);
 
 	InteractionRangeVolume = CreateDefaultSubobject<UCapsuleComponent>(TEXT("InteractionRange"));
