@@ -2,6 +2,7 @@
 
 
 #include "Actors/Components/InventoryComponent.h"
+#include "Actors/Components/EquipmentComponent.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -31,12 +32,13 @@ void UInventoryComponent::BeginPlay()
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
 
-	// ...
 }
 
 bool UInventoryComponent::AddItemToInventory(UItemData* Item, int ItemKey)
 {
+	UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::AddItemToInventory called."));
 	// AItemBase* Item = Cast<AItemBase>(ItemActor);
 
 	// Check that Item has been successfully casted
@@ -59,7 +61,13 @@ bool UInventoryComponent::AddItemToInventory(UItemData* Item, int ItemKey)
 					InventoryItemDataMap.Emplace(i, Item);
 
 					// Item was successfully added to inventory
-					return true;
+					bool bAdded = InventoryItemDataMap.Contains(i);
+
+					FString BoolString;
+					bAdded ? BoolString = TEXT("True") : BoolString = TEXT("False");
+					UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::AddItemToInventory return %s"), *BoolString);
+					
+					return bAdded;
 				}
 			}
 
@@ -78,11 +86,18 @@ bool UInventoryComponent::AddItemToInventory(UItemData* Item, int ItemKey)
 
 				InventoryItemDataMap.Emplace(ItemKey, Item);
 
-				return true;
+				// Item was successfully added to inventory
+				bool bAdded = InventoryItemDataMap.Contains(ItemKey);
+
+				FString BoolString;
+				bAdded ? BoolString = TEXT("True") : BoolString = TEXT("False") ;
+				UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::AddItemToInventory return %s"), *BoolString);
+
+				return bAdded;
 			}
 			else
 			{
-				UE_LOG(LogTemp,Warning, TEXT("UInventoryComponent::AddItemToInventory Could not add item as provided index is already in use."))
+				UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::AddItemToInventory Could not add item as provided index is already in use."));
 			}
 		}
 	}
@@ -100,7 +115,8 @@ bool UInventoryComponent::AddItemToInventory(UItemData* Item, int ItemKey)
 
 bool UInventoryComponent::RemoveItemFromInventory(int ItemKey)
 {
-	
+	UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::RemoveItemFromInventory called."));
+
 	if (InventoryItemDataMap.Contains(ItemKey))
 	{
 		InventoryItemDataMap.Remove(ItemKey);
@@ -127,10 +143,6 @@ bool UInventoryComponent::SwapItems(int FirstItemKey, int SecondItemKey)
 	// If both inventory slots are in use
 	if (InventoryItemDataMap.Contains(FirstItemKey) && InventoryItemDataMap.Contains(SecondItemKey))
 	{
-		// 1. Store info structs of first index
-		// 2. Store any other info structs of first index
-		// 3. Overwrite first index info structs
-		// 4. Overwrite second index info structs
 		
 		UItemData* FirstItemData = InventoryItemDataMap[FirstItemKey];
 		
@@ -178,4 +190,248 @@ bool UInventoryComponent::MoveItemToIndex(int CurrentItemKey, int NewItemKey)
 	}
 	
 	return false;
+}
+
+float UInventoryComponent::GetInventoryWeight()
+{
+	float InventoryWeight = 0.0f;
+
+	for (int i = 0; i < InventorySize; i++)
+	{
+		if (InventoryItemDataMap.Contains(i))
+		{
+			InventoryWeight += InventoryItemDataMap[i]->ItemWeight;
+		}
+	}
+
+	return InventoryWeight;
+}
+
+float UInventoryComponent::GetTotalWeight()
+{
+	if (UEquipmentComponent* EquipmentComponentRef = Cast<UEquipmentComponent>(GetOwner()->GetComponentByClass(UEquipmentComponent::StaticClass())))
+	{
+		return (GetInventoryWeight() + ((Currency.Platinum + Currency.Gold + Currency.Silver + Currency.Copper) * .0025f) + EquipmentComponentRef->GetEquipmentWeight());
+	}
+	else
+	{
+		return (GetInventoryWeight() + ((Currency.Platinum + Currency.Gold + Currency.Silver + Currency.Copper) * .0025f));
+	}
+	
+
+	return 0.0f;
+}
+
+void UInventoryComponent::AddCurrency(FCurrency CurrencyToAdd, bool bConvertCurrencies)
+{
+	if (CurrencyToAdd.Platinum > 0) { Currency.Platinum += CurrencyToAdd.Platinum; }
+	if (CurrencyToAdd.Gold > 0) { Currency.Gold += CurrencyToAdd.Gold; }
+	if (CurrencyToAdd.Silver > 0) { Currency.Silver += CurrencyToAdd.Silver; }
+	if (CurrencyToAdd.Copper > 0) { Currency.Copper += CurrencyToAdd.Copper; }
+
+	if (bConvertCurrencies) { ConvertCurrencies(); }
+}
+
+bool UInventoryComponent::RemoveCurrency(FCurrency CurrencyToRemove)
+{
+	// Check that there is enough existing currency to remove
+	const int TotalCoinValue = (Currency.Platinum * (CopperToSilverRatio * SilverToGoldRatio * GoldToPlatinumRatio)) + (Currency.Gold * (CopperToSilverRatio * SilverToGoldRatio)) + (Currency.Silver * CopperToSilverRatio) + Currency.Copper;
+	const int TotalCost = (CurrencyToRemove.Platinum * (CopperToSilverRatio * SilverToGoldRatio * GoldToPlatinumRatio)) + (CurrencyToRemove.Gold * (CopperToSilverRatio * SilverToGoldRatio)) + (CurrencyToRemove.Silver * CopperToSilverRatio) + CurrencyToRemove.Copper;
+
+	if (TotalCoinValue > TotalCost)
+	{
+		float CoinDifference = 0.f;
+
+		// Remove copper currency, if any
+		if (CurrencyToRemove.Copper > 0)
+		{
+			CoinDifference = Currency.Copper - CurrencyToRemove.Copper;
+
+			if (CoinDifference < 0.f)
+			{
+				int CoinsToConvert = ceilf((FMath::Abs(CoinDifference / CopperToSilverRatio)));
+
+				// Convert silver to copper, if any
+				if (Currency.Silver > CoinsToConvert)
+				{
+					Currency.Silver -= CoinsToConvert;
+					Currency.Copper += CoinsToConvert * CopperToSilverRatio;
+				}
+				// Else convert gold to copper, if any
+				else if (Currency.Gold > (CoinsToConvert = ceilf((FMath::Abs(CoinDifference / (CopperToSilverRatio * SilverToGoldRatio))))))
+				{
+					Currency.Gold -= CoinsToConvert;
+					Currency.Copper += CoinsToConvert * (CopperToSilverRatio * SilverToGoldRatio);
+				}
+				// Else convert platinum to copper, if any
+				else if (Currency.Platinum > (CoinsToConvert = ceilf((FMath::Abs(CoinDifference / (CopperToSilverRatio * SilverToGoldRatio * GoldToPlatinumRatio))))))
+				{
+					Currency.Platinum -= CoinsToConvert;
+					Currency.Copper += CoinsToConvert * (CopperToSilverRatio * SilverToGoldRatio * GoldToPlatinumRatio);
+				}
+				else
+				{
+					// In theory, this should never be called
+					UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::RemoveCurrency Cannot convert coins to required amount of copper."));
+					return false;
+				}
+			}
+
+			CoinDifference = Currency.Copper - CurrencyToRemove.Copper;
+
+			if (CoinDifference >= 0.f)
+			{
+				Currency.Copper -= CurrencyToRemove.Copper;
+				CoinDifference = 0.f;
+				ConvertCurrencies();
+			}
+			else
+			{
+				ConvertCurrencies();
+
+				// In theory, this should never be called
+				UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::RemoveCurrency Not enough copper."));
+				return false;
+			}
+
+			
+		}
+
+		// Remove silver currency, if any
+		if (CurrencyToRemove.Silver > 0)
+		{
+			CoinDifference = Currency.Silver - CurrencyToRemove.Silver;
+
+			if (CoinDifference < 0.f)
+			{
+				int CoinsToConvert = ceilf((FMath::Abs(CoinDifference / SilverToGoldRatio)));
+
+				// Convert gold to silver, if any
+				if (Currency.Gold > CoinsToConvert)
+				{
+					Currency.Gold -= CoinsToConvert;
+					Currency.Silver += CoinsToConvert * SilverToGoldRatio;
+				}
+				// Else convert platinum to silver, if any
+				else if (Currency.Platinum > (CoinsToConvert = ceilf((FMath::Abs(CoinDifference / (SilverToGoldRatio * GoldToPlatinumRatio))))))
+				{
+					Currency.Platinum -= CoinsToConvert;
+					Currency.Silver += CoinsToConvert * (SilverToGoldRatio * GoldToPlatinumRatio);
+				}
+				else
+				{
+					// In theory, this should never be called
+					UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::RemoveCurrency Cannot convert coins to required amount of silver."));
+					return false;
+				}
+			}
+
+			CoinDifference = Currency.Silver - CurrencyToRemove.Silver;
+
+			if (CoinDifference >= 0.f)
+			{
+				Currency.Silver -= CurrencyToRemove.Silver;
+				CoinDifference = 0.f;
+				ConvertCurrencies();
+			}
+			else
+			{
+				ConvertCurrencies();
+
+				// In theory, this should never be called
+				UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::RemoveCurrency Not enough silver."));
+				return false;
+			}
+		}
+
+		// Remove gold currency, if any
+		if (CurrencyToRemove.Gold > 0)
+		{
+			CoinDifference = Currency.Gold - CurrencyToRemove.Gold;
+
+			if (CoinDifference < 0.f)
+			{
+				int CoinsToConvert = ceilf((FMath::Abs(CoinDifference / GoldToPlatinumRatio)));
+
+				// Convert platinum to gold, if any
+				if (Currency.Gold > CoinsToConvert)
+				{
+					Currency.Platinum -= CoinsToConvert;
+					Currency.Gold += CoinsToConvert * GoldToPlatinumRatio;
+				}
+				else
+				{
+					// In theory, this should never be called
+					UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::RemoveCurrency Cannot convert coins to required amount of silver."));
+					return false;
+				}
+			}
+
+			CoinDifference = Currency.Gold - CurrencyToRemove.Gold;
+
+			if (CoinDifference >= 0.f)
+			{
+				Currency.Gold -= CurrencyToRemove.Gold;
+				CoinDifference = 0.f;
+				ConvertCurrencies();
+			}
+			else
+			{
+				ConvertCurrencies();
+
+				// In theory, this should never be called
+				UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::RemoveCurrency Not enough silver."));
+				return false;
+			}
+		}
+
+		// Remove platinum currency, if any
+		if (CurrencyToRemove.Gold > 0)
+		{
+			CoinDifference = Currency.Platinum - CurrencyToRemove.Platinum;
+
+			if (CoinDifference >= 0.f)
+			{
+				Currency.Platinum -= CurrencyToRemove.Platinum;
+				CoinDifference = 0.f;
+				ConvertCurrencies();
+			}
+			else
+			{
+				ConvertCurrencies();
+
+				// In theory, this should never be called
+				UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::RemoveCurrency Not enough silver."));
+				return false;
+			}
+		}
+
+		return true;
+	}
+	
+
+	UE_LOG(LogTemp, Warning, TEXT("UInventoryComponent::RemoveCurrency TotalCoinValue is less that the TotalCost."));
+
+	return false;
+}
+
+void UInventoryComponent::ConvertCurrencies()
+{
+	if (Currency.Copper >= CopperToSilverRatio)
+	{
+		Currency.Silver += 1;
+		Currency.Copper -= CopperToSilverRatio;
+	}
+
+	if (Currency.Silver >= SilverToGoldRatio)
+	{
+		Currency.Gold += 1;
+		Currency.Silver -= SilverToGoldRatio;
+	}
+
+	if (Currency.Gold >= GoldToPlatinumRatio)
+	{
+		Currency.Platinum += 1;
+		Currency.Gold -= GoldToPlatinumRatio;
+	}
 }

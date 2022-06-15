@@ -36,9 +36,13 @@ protected:
 
 	// --- VARIABLES --- //
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PC")
 	ARPGProjectPlayerController* PC;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Component")
 	UInventoryComponent* InventoryComponentRef;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Component")
 	UEquipmentComponent* EquipmentComponentRef;
 
 };

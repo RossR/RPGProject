@@ -33,6 +33,7 @@ enum class EEquipmentSlot : uint8
 };
 
 class UCombatComponent;
+class UInventoryComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPGPROJECT_API UEquipmentComponent : public UActorComponent
@@ -88,10 +89,10 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	bool Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::EES_None);
+	bool Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::EES_None, int ItemToEquipInventoryKey = -1, bool bRemoveFromInventoryOnSuccessfulEquip = true);
 
 	UFUNCTION(BlueprintCallable)
-	bool Unequip(EEquipmentSlot WornEquipmentSlot);
+	bool Unequip(EEquipmentSlot WornEquipmentSlot, int InventoryItemKey = -1, bool bDropOnGround = false);
 
 	UFUNCTION(BlueprintCallable)
 	EEquipmentSlot GetEquipmentSlotForItem(UItemData* Item);
@@ -125,7 +126,8 @@ public:
 	bool GetIsUsingFirstWeaponSet() { return bIsUsingFirstWeaponSet; }
 
 	// ToDo - Add functionality to calculate total weight of equipment
-	
+	UFUNCTION(BlueprintPure)
+	float GetEquipmentWeight();
 
 protected:
 
@@ -148,5 +150,7 @@ protected:
 	// TMap for starting equipment
 	UPROPERTY(EditAnywhere, Category = "Starting Equipment");
 	TMap<EEquipmentSlot, TSubclassOf<AItemEquipment>> StartingEquipment;
+
+	UInventoryComponent* InventoryComponentRef;
 	
 };

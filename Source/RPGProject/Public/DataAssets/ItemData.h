@@ -12,12 +12,31 @@
 class UAnimSequence;
 class AItemBase;
 
+USTRUCT(BlueprintType)
+struct FCurrency
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Currency")
+	int Platinum = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Currency")
+	int Gold = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Currency")
+	int Silver = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Currency")
+	int Copper = 0;
+
+};
+
 //--------------------------------------------------------------
 // ItemData - Data Asset
 //--------------------------------------------------------------
 
 UENUM(BlueprintType)
-enum class EItemCategory : uint8
+enum class EItemType : uint8
 {
 	EIC_Default		UMETA(DisplayName = "Default"),
 	EIC_Consumable	UMETA(DisplayName = "Consumable"),
@@ -46,7 +65,7 @@ struct FItemInfo : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	EItemCategory ItemCategory;
+	EItemType ItemType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	FName ItemName;
@@ -87,7 +106,7 @@ class RPGPROJECT_API UItemData : public UDataAsset
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
-	EItemCategory ItemCategory;
+	EItemType ItemType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	FName ItemName;
@@ -101,6 +120,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	int ItemQualityRating;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
+	FCurrency ItemValue;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
 	float ItemWeight;
 
@@ -111,10 +133,10 @@ public:
 	float ItemCurrentDurability;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
-	float bUseItemWeightForPhysics = false;
+	bool bUseItemWeightForPhysics = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Info")
-	bool bCanBeDropped = false;
+	bool bCanBeDropped = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Info")
 	UTexture2D* ItemIcon;

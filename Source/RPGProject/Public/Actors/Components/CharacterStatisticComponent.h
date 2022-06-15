@@ -28,9 +28,11 @@ struct FCharacterStatistics
 	GENERATED_BODY()
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Statistics")
-	int HealthPoints;
+	int HealthPoints = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Statistics")
-	int StaminaPoints;
+	int StaminaPoints = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Statistics")
+	float CarryWeight = 0.f;
 
 };
 
@@ -109,62 +111,6 @@ public:
 	// Set the value of the selected attribute
 	void SetAttribute(EAttributeType Attribute, int NewValue);
 
-	UFUNCTION(BlueprintCallable)
-	// Get the value of the Strength attribute
-	int GetStrengthAttribute() { return StrengthAttribute; }
-	UFUNCTION(BlueprintCallable)
-	// Set the value of the Strength attribute
-	void SetStrengthAttribute(int NewValue) { StrengthAttribute = NewValue; }
-
-	//UFUNCTION(BlueprintCallable)
-	//// Get the value of the Dexterity attribute
-	//int GetDexterityAttribute() { return DexterityAttribute; }
-	//UFUNCTION(BlueprintCallable)
-	//// Set the value of the Dexterity attribute
-	//void SetDexterityAttribute(int NewValue) { DexterityAttribute = NewValue; }
-
-	//UFUNCTION(BlueprintCallable)
-	//// Get the value of the Vitality attribute
-	//int GetVitalityAttribute() { return VitalityAttribute; }
-	//UFUNCTION(BlueprintCallable)
-	//// Set the value of the Vitality attribute
-	//void SetVitalityAttribute(int NewValue) { VitalityAttribute = NewValue; }
-
-	//UFUNCTION(BlueprintCallable)
-	//// Get the value of the Grit attribute
-	//int GetGritAttribute() { return GritAttribute; }
-	//UFUNCTION(BlueprintCallable)
-	//// Set the value of the Grit attribute
-	//void SetGritAttribute(int NewValue) { GritAttribute = NewValue; }
-
-	//UFUNCTION(BlueprintCallable)
-	//// Get the value of the Intelligence attribute
-	//int GetIntelligenceAttribute() { return IntelligenceAttribute; }
-	//UFUNCTION(BlueprintCallable)
-	//// Set the value of the Intelligence attribute
-	//void SetIntelligenceAttribute(int NewValue) { IntelligenceAttribute = NewValue; }
-
-	//UFUNCTION(BlueprintCallable)
-	//// Get the value of the Wisdom attribute
-	//int GetWisdomAttribute() { return WisdomAttribute; }
-	//UFUNCTION(BlueprintCallable)
-	//// Set the value of the Wisdom attribute
-	//void SetWisdomAttribute(int NewValue) { WisdomAttribute = NewValue; }
-
-	//UFUNCTION(BlueprintCallable)
-	//// Get the value of the Charisma attribute
-	//int GetCharismaAttribute() { return CharismaAttribute; }
-	//UFUNCTION(BlueprintCallable)
-	//// Set the value of the Charisma attribute
-	//void SetCharismaAttribute(int NewValue) { CharismaAttribute = NewValue; }
-
-	//UFUNCTION(BlueprintCallable)
-	//// Get the value of the Luck attribute
-	//int GetLuckStat() { return LuckAttribute; }
-	//UFUNCTION(BlueprintCallable)
-	//// Set the value of the Luck attribute
-	//void SetLuckStat(int NewValue) { LuckAttribute = NewValue; }
-
 protected:
 
 	void UpdateTotalAttributePointsSpent();
@@ -239,13 +185,19 @@ protected:
 
 	// Base values for the character's statistics, will be determined by "class" in the future
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Character Statistics")
-		FCharacterStatistics BaseCharacterStatistics
+	FCharacterStatistics BaseCharacterStatistics
 	{
 		// Health Points
 		300,
 		// Stamina Points
 		400,
+		// Carry Weight
+		25.f,
 	};
+
+	// Added values for the character's statistics, scales with attributes
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Character Statistics")
+	FCharacterStatistics AdditionalCharacterStatistics {};
 
 	// Current values for the character's statistics
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Statistics")
@@ -255,28 +207,19 @@ protected:
 		300,
 		// Stamina Points
 		400,
+		// Carry Weight
+		25.f,
 	};
 
 	// New values for the character's statistics, determined by attribute increases the player is planning on applying
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "New Character Statistics")
-	FCharacterStatistics DisplayedCharacterStatistics
-	{
-		// Health Points
-		0,
-		// Stamina Points
-		0,
-	};
+	FCharacterStatistics DisplayedCharacterStatistics{};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Statistics")
 	int OldHealthPoints;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Statistics")
 	int OldStaminaPoints;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Statistics")
-	int AdditionalHealthPoints;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Statistics")
-	int AdditionalStaminaPoints;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Statistics")
 	bool bHaveStatisticsChanged = false;

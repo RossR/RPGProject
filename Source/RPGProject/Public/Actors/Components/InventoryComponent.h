@@ -48,8 +48,24 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TMap<int, UItemData*> GetInventoryItemDataMap() { return InventoryItemDataMap; }
 
-	// ToDo - Add functionality to calculate total weight of inventory
+	UFUNCTION(BlueprintPure)
+	int GetEmptyInventorySpace() { return (InventorySize - InventoryItemDataMap.Num()); }
 
+	// ToDo - Add functionality to calculate total weight of inventory
+	UFUNCTION(BlueprintPure)
+	float GetInventoryWeight();
+
+	UFUNCTION(BlueprintPure)
+	float GetTotalWeight();
+
+	UFUNCTION(BlueprintCallable)
+	void AddCurrency(FCurrency CurrencyToAdd, bool bConvertCurrencies = true);
+
+	UFUNCTION(BlueprintCallable)
+	bool RemoveCurrency(FCurrency CurrencyToRemove);
+
+	UFUNCTION(BlueprintCallable)
+	void ConvertCurrencies();
 
 protected:
 
@@ -65,8 +81,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TMap<int, UItemData*> InventoryItemDataMap;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	FCurrency Currency;
+
+	int CopperToSilverRatio = 10;
+	int SilverToGoldRatio = 10;
+	int GoldToPlatinumRatio = 100;
 	// Struct of structs / parent structs and child structs
 	// pointers to data assets
-
 };
