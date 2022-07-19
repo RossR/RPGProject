@@ -22,12 +22,12 @@ void ARPGProjectGameModeBase::StartPlay()
 {
 	Super::StartPlay();
 
-	UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();
+	/*UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();
 	
 	if (ObjectiveWorldSubsystem)
 	{
 		ObjectiveWorldSubsystem->OnMapStart();
-	}
+	}*/
 
 	/*APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	PlayerHUDWidget = CreateWidget<UUserWidget>(PlayerController, PlayerHUDWidgetClass);

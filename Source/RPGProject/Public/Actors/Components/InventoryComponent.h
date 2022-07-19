@@ -67,6 +67,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ConvertCurrencies();
 
+	UFUNCTION(BlueprintPure)
+	TMap<int, TSubclassOf<AItemBase>> GetStartingInventoryItems() { return StartingInventoryItems; }
+
+	UFUNCTION(BlueprintCallable)
+	void AddStartingItems();
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
@@ -84,9 +90,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	FCurrency Currency;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Starting Inventory");
+	TMap<int, TSubclassOf<AItemBase>> StartingInventoryItems;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Currency Exchange Ratios")
 	int CopperToSilverRatio = 10;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Currency Exchange Ratios")
 	int SilverToGoldRatio = 10;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Currency Exchange Ratios")
 	int GoldToPlatinumRatio = 100;
 	// Struct of structs / parent structs and child structs
 	// pointers to data assets
+
 };

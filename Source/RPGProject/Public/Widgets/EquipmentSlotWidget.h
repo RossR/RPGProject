@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/WidgetTree.h"
 #include "Styling/SlateBrush.h"
 #include "Components/Border.h"
-#include "Components/SizeBox.h"
+#include "Components/Image.h"
 #include "Components/NamedSlot.h"
+#include "Components/Overlay.h"
+#include "Components/SizeBox.h"
+#include "Components/ScaleBox.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/Controller.h"
 #include "Actors/Components/EquipmentComponent.h"
@@ -29,9 +33,16 @@ public:
 
 	virtual void NativeConstruct() override;
 
+	// Called every frame
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 
+	UFUNCTION(BlueprintCallable)
+	void SetEquipmentComponentRef(UEquipmentComponent* InEquipmentComponentRef) { EquipmentComponentRef = InEquipmentComponentRef; }
+
 	
+
 
 protected:
 
@@ -42,24 +53,30 @@ protected:
 	ACharacter* PlayerCharacter;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Component References")
-	UInventoryComponent* CharacterInventoryComponent;
+	UEquipmentComponent* EquipmentComponentRef;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Component References")
-	UEquipmentComponent* CharacterEquipmentComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Equipment Slot Widgets")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
 	UBorder* RootBorder;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Equipment Slot Widgets")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
 	UBorder* BackgroundBorder;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Equipment Slot Widgets")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
+	UOverlay* BackgroundOverlay;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
+	UScaleBox* BackgroundImageScaleBox;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
+	UImage* BackgroundImage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
 	UBorder* ContentBorder;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Equipment Slot Widgets")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
 	USizeBox* ContentSizeBox;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Equipment Slot Widgets")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
 	UNamedSlot* EquipmentSlot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings")
@@ -73,6 +90,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings")
 	EEquipmentSlot WidgetEquipmentSlot;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings")
+	UTexture2D* BackgroundImageTexture;
 
 	float PaddingValue = 2.0f;
 	float ClampSlotWidth;

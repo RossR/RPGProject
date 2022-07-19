@@ -27,11 +27,23 @@ public:
 
 	// ToDo - Swap Equipment & inventory
 	UFUNCTION(BlueprintCallable)
-	bool SwapItemsBetweenEquipmentAndInventory(EEquipmentSlot EquipmentSlot, int ItemKey);
+	bool SwapItemsBetweenEquipmentAndInventory(UInventoryComponent* TargetInventoryComponentRef, UEquipmentComponent* TargetEquipmentComponentRef, EEquipmentSlot EquipmentSlot, int ItemKey);
+
+	UFUNCTION(BlueprintCallable)
+	bool SwapItemsBetweenInventoryComponents(UInventoryComponent* FirstInventoryComponentRef, int FirstItemKey, UInventoryComponent* SecondInventoryComponentRef, int SecondItemKey);
+
+	UFUNCTION(BlueprintCallable)
+	bool SwapItemsBetweenEquipmentComponents(UEquipmentComponent* FirstEquipmentComponentRef, EEquipmentSlot FirstEquipmentSlot, UEquipmentComponent* SecondEquipmentComponentRef, EEquipmentSlot SecondEquipmentSlot);
 
 	// ToDo - Stat comparison
 	void CompareItemStatistics(UItemData FirstItem, UItemData SecondItem);
 	
+	UFUNCTION(BlueprintCallable)
+	void SetInventoryComponentRef(UInventoryComponent* InInventoryComponentRef) { InventoryComponentRef = InInventoryComponentRef; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetEquipmentComponentRef(UEquipmentComponent* InEquipmentComponentRef) { EquipmentComponentRef = InEquipmentComponentRef; }
+
 protected:
 
 	// --- VARIABLES --- //
@@ -42,7 +54,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Component")
 	UInventoryComponent* InventoryComponentRef;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Equipment Component")
 	UEquipmentComponent* EquipmentComponentRef;
 
 };

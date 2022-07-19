@@ -531,6 +531,7 @@ void ARPGProjectPlayerCharacter::RequestAim()
 	if (GetPlayerCombatState() == ECombatState::CS_AtEase)
 	{
 		MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
+		CameraArm->TargetArmLength = 150.f;
 		bUseControllerRotationYaw = true;
 		bIsAiming = true;
 	}
@@ -539,6 +540,7 @@ void ARPGProjectPlayerCharacter::RequestAim()
 void ARPGProjectPlayerCharacter::RequestStopAiming()
 {
 	MoveCameraToArrowLocation(FName(TEXT("Chase")));
+	CameraArm->TargetArmLength = 400.f;
 	bUseControllerRotationYaw = false;
 	bIsAiming = false;
 }
@@ -872,11 +874,11 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 						bool bCanSeeInteractable = false;
 
 						// Line trace to see if player can see object (stops player from taking items through walls)
-						if (HitActor->GetComponentByClass(UStaticMeshComponent::StaticClass()))
+						if (HitActor->GetComponentByClass(UMeshComponent::StaticClass()))
 						{
 							FVector CharacterInteractionCheck = GetMesh()->DoesSocketExist("InteractionCheck") ? GetMesh()->GetSocketLocation("InteractionCheck") : GetActorLocation();
 
-							UStaticMeshComponent* InteractableMesh = Cast<UStaticMeshComponent>(HitActor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+							UMeshComponent* InteractableMesh = Cast<UMeshComponent>(HitActor->GetComponentByClass(UMeshComponent::StaticClass()));
 							FVector InteractableLocation = InteractableMesh->GetSocketLocation("InteractionCheck");
 
 							FHitResult HitResult;

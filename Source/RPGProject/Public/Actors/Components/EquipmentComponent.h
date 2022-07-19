@@ -48,16 +48,16 @@ public:
 	UEquipmentComponent();
 
 	UFUNCTION(BlueprintPure)
-	UItemData* GetWornEquipmentDataInSlot(EEquipmentSlot EquipmentSlot) const { if (WornEquipmentData.Contains(EquipmentSlot)) { return WornEquipmentData[EquipmentSlot]; } return nullptr; }
+	UItemData* GetWornEquipmentDataInSlot(EEquipmentSlot EquipmentSlot) const { if (WornEquipmentDataMap.Contains(EquipmentSlot)) { return WornEquipmentDataMap[EquipmentSlot]; } return nullptr; }
 
 	UFUNCTION(BlueprintPure)
-	UChildActorComponent* GetWornEquipmentActorInSlot(EEquipmentSlot EquipmentSlot) const { if (WornEquipmentActors.Contains(EquipmentSlot)) { return WornEquipmentActors[EquipmentSlot]; } return nullptr; }
+	UChildActorComponent* GetWornEquipmentActorInSlot(EEquipmentSlot EquipmentSlot) const { if (WornEquipmentActorMap.Contains(EquipmentSlot)) { return WornEquipmentActorMap[EquipmentSlot]; } return nullptr; }
 
 	UFUNCTION(BlueprintPure)
-	TMap<EEquipmentSlot, UItemData*>  GetWornEquipmentData() const { return WornEquipmentData; }
+	TMap<EEquipmentSlot, UItemData*>  GetWornEquipmentDataMap() const { return WornEquipmentDataMap; }
 
 	UFUNCTION(BlueprintPure)
-	TMap<EEquipmentSlot, UChildActorComponent*>  GetWornEquipmentActors() const { return WornEquipmentActors; }
+	TMap<EEquipmentSlot, UChildActorComponent*>  GetWornEquipmentActorMap() const { return WornEquipmentActorMap; }
 
 	UFUNCTION(BlueprintPure)
 	TMap<EEquipmentSlot, TSubclassOf<AItemEquipment>> GetStartingEquipment() const { return StartingEquipment; }
@@ -89,10 +89,13 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	bool Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::EES_None, int ItemToEquipInventoryKey = -1, bool bRemoveFromInventoryOnSuccessfulEquip = true);
+	bool Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::EES_None, UInventoryComponent* InInventoryComponentRef = nullptr, int ItemToEquipInventoryKey = -1, bool bRemoveFromInventoryOnSuccessfulEquip = true);
 
 	UFUNCTION(BlueprintCallable)
-	bool Unequip(EEquipmentSlot WornEquipmentSlot, int InventoryItemKey = -1, bool bDropOnGround = false);
+	bool Unequip(EEquipmentSlot WornEquipmentSlot, UInventoryComponent* InInventoryComponentRef = nullptr, int InventoryItemKey = -1, bool bDropOnGround = false);
+
+	UFUNCTION(BlueprintCallable)
+	bool RemoveEquipmentInSlot(EEquipmentSlot EquipmentSlot);
 
 	UFUNCTION(BlueprintCallable)
 	EEquipmentSlot GetEquipmentSlotForItem(UItemData* Item);
@@ -107,7 +110,7 @@ public:
 	void CreateEquipmentChildActors();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateEquipmentChildActors();
+	void UpdateEquipmentChildActors(bool bForceUpdate = false);
 
 	UFUNCTION(BlueprintCallable)
 	void EquipStartingEquipment();
@@ -134,10 +137,10 @@ protected:
 	// --- VARIABLES --- //
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Data")
-	TMap<EEquipmentSlot, UItemData*> WornEquipmentData;
+	TMap<EEquipmentSlot, UItemData*> WornEquipmentDataMap;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
-	bool bIsUsingFirstWeaponSet;
+	bool bIsUsingFirstWeaponSet = true;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	ACharacter* OwningCharacter;
@@ -145,12 +148,12 @@ protected:
 	// Child actor variables for worn equipment
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
-	TMap<EEquipmentSlot, UChildActorComponent*> WornEquipmentActors;
+	TMap<EEquipmentSlot, UChildActorComponent*> WornEquipmentActorMap;
 
 	// TMap for starting equipment
 	UPROPERTY(EditAnywhere, Category = "Starting Equipment");
 	TMap<EEquipmentSlot, TSubclassOf<AItemEquipment>> StartingEquipment;
 
-	UInventoryComponent* InventoryComponentRef;
+	UInventoryComponent* OwnerInventoryComponentRef;
 	
 };

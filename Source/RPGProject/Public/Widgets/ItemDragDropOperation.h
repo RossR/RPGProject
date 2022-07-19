@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/DragDropOperation.h"
 #include "DataAssets/ItemData.h"
+#include "Actors/Components/InventoryComponent.h"
 #include "Actors/Components/EquipmentComponent.h"
 #include "ItemDragDropOperation.generated.h"
 
@@ -27,6 +28,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drag and Drop", meta = (ExposeOnSpawn = "true"))
 	UItemData* DraggedItemData = nullptr;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drag and Drop", meta = (ExposeOnSpawn = "true"))
+	UInventoryComponent* DraggedInventoryComponentRef = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drag and Drop", meta = (ExposeOnSpawn = "true"))
+	UEquipmentComponent* DraggedEquipmentComponentRef = nullptr;
 
 };

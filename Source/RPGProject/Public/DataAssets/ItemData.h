@@ -38,12 +38,14 @@ struct FCurrency
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
-	EIC_Default		UMETA(DisplayName = "Default"),
-	EIC_Consumable	UMETA(DisplayName = "Consumable"),
-	EIC_Weapon		UMETA(DisplayName = "Weapon"),
-	EIC_Equipment	UMETA(DisplayName = "Equipment"),
+	EIC_Default			UMETA(DisplayName = "Default"),
+	EIC_Consumable		UMETA(DisplayName = "Consumable"),
+	EIC_Equipment		UMETA(DisplayName = "Equipment"),
+	EIC_Miscellaneous	UMETA(DisplayName = "Miscellaneous"),
+	EIC_Valuable		UMETA(DisplayName = "Valuable"),
+	EIC_Weapon			UMETA(DisplayName = "Weapon"),
 
-	EIC_Max			UMETA(Hidden)
+	EIC_Max				UMETA(Hidden)
 };
 
 UENUM(BlueprintType)

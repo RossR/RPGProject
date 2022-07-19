@@ -3,6 +3,10 @@
 
 #include "Widgets/EquipmentSlotWidget.h"
 #include "Widgets/ItemDragDropOperation.h"
+#include "Components/BorderSlot.h"
+#include "Components/OverlaySlot.h"
+#include "Components/ScaleBoxSlot.h"
+#include "Components/SizeBoxSlot.h"
 
 bool UEquipmentSlotWidget::Initialize()
 {
@@ -19,14 +23,23 @@ bool UEquipmentSlotWidget::Initialize()
 	BackgroundBorder = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Background_Border"));
 	RootBorder->AddChild(BackgroundBorder);
 
-	ContentBorder = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Content_Border"));
-	BackgroundBorder->AddChild(ContentBorder);
-
 	ContentSizeBox = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("Content_SizeBox"));
-	ContentBorder->AddChild(ContentSizeBox);
+	BackgroundBorder->AddChild(ContentSizeBox);
+
+	BackgroundOverlay = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Background_Overlay"));
+	ContentSizeBox->AddChild(BackgroundOverlay);
+
+	BackgroundImageScaleBox = WidgetTree->ConstructWidget<UScaleBox>(UScaleBox::StaticClass(), TEXT("BackgroundImage_ScaleBox"));
+	BackgroundOverlay->AddChild(BackgroundImageScaleBox);
+
+	ContentBorder = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Content_Border"));
+	BackgroundOverlay->AddChild(ContentBorder);
+
+	BackgroundImage = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("Background_Image"));
+	BackgroundImageScaleBox->AddChild(BackgroundImage);
 
 	EquipmentSlot = WidgetTree->ConstructWidget<UNamedSlot>(UNamedSlot::StaticClass(), TEXT("Equipment_Slot"));
-	ContentSizeBox->AddChild(EquipmentSlot);
+	ContentBorder->AddChild(EquipmentSlot);
 
 	RootBorder->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 	RootBorder->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
@@ -39,6 +52,25 @@ bool UEquipmentSlotWidget::Initialize()
 	BackgroundBorder->SetPadding(PaddingValue);
 	BackgroundBorder->SetBrush(RootBorderAppearance);
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
+
+	if (UBorderSlot* BackgroundOverlayAsBorderSlot = UWidgetLayoutLibrary::SlotAsBorderSlot(BackgroundOverlay))
+	{
+		BackgroundOverlayAsBorderSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+		BackgroundOverlayAsBorderSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	}
+	BackgroundOverlay->SetVisibility(ESlateVisibility::Visible);
+	
+	if (UOverlaySlot* BackgroundImageScaleBoxAsOverlaySlot = UWidgetLayoutLibrary::SlotAsOverlaySlot(BackgroundImageScaleBox))
+	{
+		BackgroundImageScaleBoxAsOverlaySlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+		BackgroundImageScaleBoxAsOverlaySlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	}
+	BackgroundImageScaleBox->SetStretch(EStretch::ScaleToFit);
+	BackgroundImageScaleBox->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	BackgroundImageTexture ? BackgroundImage->SetBrushFromTexture(BackgroundImageTexture, true): false;
+	BackgroundImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BackgroundImage->SetOpacity(.25f);
 
 	ContentBorder->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 	ContentBorder->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
@@ -57,25 +89,61 @@ bool UEquipmentSlotWidget::Initialize()
 
 	ContentSizeBox->SetMinDesiredHeight(ClampSlotHeight);
 	ContentSizeBox->SetMaxDesiredHeight(ClampSlotHeight);
+	if (UBorderSlot* ContentSizeBoxAsBorderSlot = UWidgetLayoutLibrary::SlotAsBorderSlot(ContentSizeBox))
+	{
+		ContentSizeBoxAsBorderSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+		ContentSizeBoxAsBorderSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	}
+
+	if (UOverlaySlot* ContentBorderAsOverlaySlot = UWidgetLayoutLibrary::SlotAsOverlaySlot(ContentBorder))
+	{
+		ContentBorderAsOverlaySlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+		ContentBorderAsOverlaySlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	}
+
+	if (UBorderSlot* EquipmentSlotAsBorderSlot = UWidgetLayoutLibrary::SlotAsBorderSlot(EquipmentSlot))
+	{
+		EquipmentSlotAsBorderSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+		EquipmentSlotAsBorderSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	}
 
 	return b;
 }
 
 void UEquipmentSlotWidget::NativeConstruct()
 {
+	Super::NativeConstruct();
 	// RootBorder->SetBrush(RootBorderAppearance);
 
 	PC = GetOwningPlayer();
 	PlayerCharacter = PC->GetCharacter();
 
-	CharacterInventoryComponent = Cast<UInventoryComponent>(PlayerCharacter->GetComponentByClass(UInventoryComponent::StaticClass()));
-	CharacterEquipmentComponent = Cast<UEquipmentComponent>(PlayerCharacter->GetComponentByClass(UEquipmentComponent::StaticClass()));
+	//InventoryComponentRef = Cast<UInventoryComponent>(PlayerCharacter->GetComponentByClass(UInventoryComponent::StaticClass()));
+	//EquipmentComponentRef = Cast<UEquipmentComponent>(PlayerCharacter->GetComponentByClass(UEquipmentComponent::StaticClass()));
 
+}
+
+void UEquipmentSlotWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	if (EquipmentSlot->HasAnyChildren())
+	{
+		BackgroundImage->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		BackgroundImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
 }
 
 bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("EquipmentSlotWidget::NativeOnDrop called."));
+
+	if (!EquipmentComponentRef) 
+	{
+
+		return false; 
+	}
 
 	const UItemDragDropOperation* ItemDragDrop = Cast<UItemDragDropOperation>(InOperation);
 
@@ -89,29 +157,41 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 
 	if (PayloadEquipmentData)
 	{
-		if (WidgetEquipmentSlot != CharacterEquipmentComponent->GetEquipmentSlotForItem(PayloadEquipmentData))
+		if (WidgetEquipmentSlot != EquipmentComponentRef->GetEquipmentSlotForItem(PayloadEquipmentData))
 		{
 			return false;
 		}
 	}
 
 	// If slot is empty, equip the item
-	if (!CharacterEquipmentComponent->GetWornEquipmentData().Contains(WidgetEquipmentSlot))
+	if (!EquipmentComponentRef->GetWornEquipmentDataMap().Contains(WidgetEquipmentSlot))
 	{
-		if (CharacterInventoryComponent->GetInventoryItemDataMap().Contains(ItemDragDrop->DraggedItemKey))
+		// Dragged item is from an inventory
+		if (ItemDragDrop->DraggedItemKey != -1)
 		{
-			bool bSuccessfullyEquipped = CharacterEquipmentComponent->Equip(CharacterInventoryComponent->GetInventoryItemData(ItemDragDrop->DraggedItemKey));
-
-			if (bSuccessfullyEquipped)
-			{	
-				// if equipping is successful, delete item from inventory
-				CharacterInventoryComponent->RemoveItemFromInventory(ItemDragDrop->DraggedItemKey);
-				return true;
+			if (ItemDragDrop->DraggedInventoryComponentRef->GetInventoryItemDataMap().Contains(ItemDragDrop->DraggedItemKey))
+			{
+				return EquipmentComponentRef->Equip(ItemDragDrop->DraggedInventoryComponentRef->GetInventoryItemData(ItemDragDrop->DraggedItemKey), EEquipmentSlot::EES_None, ItemDragDrop->DraggedInventoryComponentRef, ItemDragDrop->DraggedItemKey, true);
 			}
 		}
+		// Dragged item is from an equipment component
+		else if (WidgetEquipmentSlot == ItemDragDrop->DraggedEquipmentSlot)
+		{
+			if (ItemDragDrop->DraggedEquipmentComponentRef->GetWornEquipmentDataMap().Contains(ItemDragDrop->DraggedEquipmentSlot))
+			{
+				bool bSuccessfullyEquipped = EquipmentComponentRef->Equip(ItemDragDrop->DraggedItemData, ItemDragDrop->DraggedEquipmentSlot, nullptr, -1, false);
+
+				if (bSuccessfullyEquipped)
+				{
+					return ItemDragDrop->DraggedEquipmentComponentRef->RemoveEquipmentInSlot(ItemDragDrop->DraggedEquipmentSlot);
+				}
+			}
+		}	
 	}
 
 
 
 	return false;
 }
+
+
