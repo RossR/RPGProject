@@ -17,11 +17,12 @@ AInteractableActor_Base::AInteractableActor_Base()
 	SetRootComponent(InteractableMesh);
 
 	InteractionRangeVolume = CreateDefaultSubobject<UCapsuleComponent>(TEXT("InteractionRange"));
-	InteractionRangeVolume->AttachToComponent(InteractableMesh, FAttachmentTransformRules::KeepRelativeTransform, NAME_None);
+	InteractionRangeVolume->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform, NAME_None);
 	InteractionRangeVolume->OnComponentBeginOverlap.AddDynamic(this, &AInteractableActor_Base::OnOverlapBegin);
 	InteractionRangeVolume->OnComponentEndOverlap.AddDynamic(this, &AInteractableActor_Base::OnOverlapEnd);
 
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("InteractableAudio"));
+	AudioComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform, NAME_None);
 
 	Tags.Add("Interactable");
 }

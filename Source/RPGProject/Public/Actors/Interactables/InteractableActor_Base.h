@@ -80,7 +80,13 @@ protected:
 	// --- VARIABLES --- //
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "InteractableActor - Mesh")
-	UStaticMeshComponent* InteractableMesh;
+	/*TSubclassOf<UMeshComponent>*/UMeshComponent* InteractableMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "InteractableActor - Mesh")
+	UStaticMeshComponent* InteractableStaticMeshRef;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "InteractableActor - Mesh")
+	USkeletalMeshComponent* InteractableSkeletalMeshRef;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableActor - Interaction Range")
 	UCapsuleComponent* InteractionRangeVolume;
