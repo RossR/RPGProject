@@ -81,7 +81,7 @@ void UEquipmentComponent::BeginPlay()
 void UEquipmentComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
+
 }
 
 bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo, UInventoryComponent* InInventoryComponentRef, int ItemToEquipInventoryKey, bool bRemoveFromInventoryOnSuccessfulEquip)
@@ -181,7 +181,9 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 
 	if (EquipSlot == EEquipmentSlot::EES_OffHandOne)
 	{
-		UItemEquipmentData* MainHandCheck = Cast<UItemEquipmentData>(WornEquipmentDataMap[EEquipmentSlot::EES_MainHandOne]);
+		UItemEquipmentData* MainHandCheck = nullptr;
+		WornEquipmentDataMap.Contains(EEquipmentSlot::EES_MainHandOne) ? MainHandCheck = Cast<UItemEquipmentData>(WornEquipmentDataMap[EEquipmentSlot::EES_MainHandOne]) : false;
+
 		if (MainHandCheck)
 		{
 			if (MainHandCheck->EquipmentType == EEquipmentType::EET_2HWeapon)
@@ -194,7 +196,9 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 
 	if (EquipSlot == EEquipmentSlot::EES_OffHandTwo)
 	{
-		UItemEquipmentData* MainHandCheck = Cast<UItemEquipmentData>(WornEquipmentDataMap[EEquipmentSlot::EES_MainHandTwo]);
+		UItemEquipmentData* MainHandCheck = nullptr;
+		WornEquipmentDataMap.Contains(EEquipmentSlot::EES_MainHandOne) ? MainHandCheck = Cast<UItemEquipmentData>(WornEquipmentDataMap[EEquipmentSlot::EES_MainHandTwo]) : false;
+
 		if (MainHandCheck)
 		{
 			if (MainHandCheck->EquipmentType == EEquipmentType::EET_2HWeapon)
@@ -431,6 +435,223 @@ bool UEquipmentComponent::Unequip(EEquipmentSlot WornEquipmentSlot, UInventoryCo
 			return true;
 		}	
 	}
+	return false;
+}
+
+bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo, UInventoryComponent* InInventoryComponentRef, int ItemToEquipInventoryKey, bool bPopulateEquipCheckDataMap)
+{
+	UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::Equip called."));
+
+	if (!InInventoryComponentRef)
+	{
+		if (OwnerInventoryComponentRef)
+		{
+			InInventoryComponentRef = OwnerInventoryComponentRef;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck InventoryComponentRef is nullptr."));
+			return false;
+		}
+	}
+
+	if (bPopulateEquipCheckDataMap)
+	{
+		EquipCheckDataMap = WornEquipmentDataMap;
+		EmptyInventorySlots = InInventoryComponentRef->GetEmptyInventorySpace();
+	}
+
+	if (EquipCheckDataMap.IsEmpty() && !WornEquipmentDataMap.IsEmpty()) { return false; }
+
+	// Check that the item is a piece of equipment
+	UItemEquipmentData* ItemEquipmentCast = Cast<UItemEquipmentData>(ItemToEquip);
+	if (!ItemEquipmentCast)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck ItemToEquip is not equipment."));
+		return false;
+	}
+
+	// Check that the item can be equipped to an equipment slot
+	EEquipmentSlot EquipSlot = EEquipmentSlot::EES_None;
+	if (SlotToEquipTo != EEquipmentSlot::EES_None)
+	{
+		EquipSlot = SlotToEquipTo;
+	}
+	else
+	{
+		EquipSlot = GetEquipmentSlotForItem(ItemToEquip);
+	}
+
+	if (EquipSlot == EEquipmentSlot::EES_None) { return false; }
+
+	if (!IsEquipSlotValidForItem(EquipSlot, ItemEquipmentCast))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck SlotToEquipTo is not a valid slot for ItemToEquip."));
+
+		return false;
+	}
+	
+
+	// Check if character has stats required to equip the item
+	if (!OwningCharacterHasAttributesToEquipItem(ItemEquipmentCast))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck Character does not meet the stat requirements to equip the item."));
+		return false;
+	}
+
+	if (EquipSlot == EEquipmentSlot::EES_OffHandOne)
+	{
+		UItemEquipmentData* MainHandCheck = nullptr;
+		if (EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandOne))
+		{
+			MainHandCheck = Cast<UItemEquipmentData>(EquipCheckDataMap[EEquipmentSlot::EES_MainHandOne]);
+		}
+
+		if (MainHandCheck)
+		{
+			if (MainHandCheck->EquipmentType == EEquipmentType::EET_2HWeapon)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck Mainhand is currently holding a two-handed weapon, cannot equip."));
+				return false;
+			}
+		}
+	}
+
+	if (EquipSlot == EEquipmentSlot::EES_OffHandTwo)
+	{
+		UItemEquipmentData* MainHandCheck = nullptr;
+		if (EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandOne))
+		{
+			MainHandCheck = Cast<UItemEquipmentData>(EquipCheckDataMap[EEquipmentSlot::EES_MainHandTwo]);
+		}
+
+		if (MainHandCheck)
+		{
+			if (MainHandCheck->EquipmentType == EEquipmentType::EET_2HWeapon)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck Mainhand is currently holding a two-handed weapon, cannot equip."));
+				return false;
+			}
+		}
+	}
+
+	// If equipment slot is empty
+	if (!EquipCheckDataMap.Contains(EquipSlot))
+	{
+		return true;
+	}
+	// If equipment slot is already in use
+	else
+	{
+		// Unequip the current equipment in slot and equip the new item
+		
+		// +1 free inventory slot
+		EmptyInventorySlots += 1;
+
+		switch (EquipSlot)
+		{
+		case EEquipmentSlot::EES_MainHandOne:
+			if (EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandOne))
+			{
+				if (EmptyInventorySlots >= 2)
+				{
+					EquipCheckDataMap.Remove(EEquipmentSlot::EES_MainHandOne);
+					const bool bUnequippedMain = EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandOne);
+
+					EquipCheckDataMap.Remove(EEquipmentSlot::EES_OffHandOne);
+					const bool bUnequippedOff = EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandOne);
+
+					if (bUnequippedMain && bUnequippedOff)
+					{
+						return EquipCheck(ItemToEquip, SlotToEquipTo, InInventoryComponentRef,ItemToEquipInventoryKey, false);
+					}
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck Equipment cannot be equipped, no space in inventory for two items."));
+					return false;
+				}
+			}
+			else
+			{
+				EquipCheckDataMap.Remove(EquipSlot);
+				const bool bUnequipSuccessful = EquipCheckDataMap.Contains(EquipSlot);
+
+				if (bUnequipSuccessful)
+				{
+					return EquipCheck(ItemToEquip, SlotToEquipTo, InInventoryComponentRef, ItemToEquipInventoryKey, false);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck Equipment cannot be equipped, slot is in use and no space in inventory."));
+					return false;
+				}
+			}
+			break;
+
+		case EEquipmentSlot::EES_MainHandTwo:
+			if (EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandTwo))
+			{
+				if (EmptyInventorySlots >= 2)
+				{
+					EquipCheckDataMap.Remove(EEquipmentSlot::EES_MainHandTwo);
+					const bool bUnequippedMain = EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandTwo);
+
+					EquipCheckDataMap.Remove(EEquipmentSlot::EES_OffHandTwo);
+					const bool bUnequippedOff = EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandTwo);
+
+					if (bUnequippedMain && bUnequippedOff)
+					{
+						return EquipCheck(ItemToEquip, SlotToEquipTo, InInventoryComponentRef, ItemToEquipInventoryKey, false);
+					}
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck Equipment cannot be equipped, no space in inventory for two items."));
+					InInventoryComponentRef->AddItemToInventory(ItemToEquip, ItemToEquipInventoryKey);
+					return false;
+				}
+			}
+			else
+			{
+				EquipCheckDataMap.Remove(EquipSlot);
+				const bool bUnequipSuccessful = EquipCheckDataMap.Contains(EquipSlot);
+
+				if (bUnequipSuccessful)
+				{
+					return EquipCheck(ItemToEquip, SlotToEquipTo, InInventoryComponentRef, ItemToEquipInventoryKey, false);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck Equipment cannot be equipped, slot is in use and no space in inventory."));
+					return false;
+				}
+			}
+			break;
+
+		default:
+			EquipCheckDataMap.Remove(EquipSlot);
+			const bool bUnequipSuccessful = EquipCheckDataMap.Contains(EquipSlot);
+
+			if (bUnequipSuccessful)
+			{
+				return EquipCheck(ItemToEquip, SlotToEquipTo, InInventoryComponentRef, ItemToEquipInventoryKey, false);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck Equipment cannot be equipped, slot is in use and no space in inventory."));
+				return false;
+			}
+			break;
+		}
+		// Equip new item and put old item in inventory (same place new item came from)
+
+
+		UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::EquipCheck Equipment cannot be equipped, slot is full."));
+		return false;
+	}
+
+
 	return false;
 }
 
@@ -907,4 +1128,70 @@ float UEquipmentComponent::GetEquipmentWeight()
 		}
 	}
 	return TotalWeight;
+}
+
+bool UEquipmentComponent::IsEquipSlotValidForItem(EEquipmentSlot EquipSlot, UItemEquipmentData* Item)
+{
+	const EEquipmentSlot ValidEquipmentSlot = GetEquipmentSlotForItem(Item);
+	// Check that SlotToEquipTo is valid for ItemToEquip
+	if (ValidEquipmentSlot == EquipSlot)
+	{
+		return true;
+	}
+	else if (EquipSlot != EEquipmentSlot::EES_None && ValidEquipmentSlot != EquipSlot)
+	{
+		switch (EquipSlot)
+		{
+		case EEquipmentSlot::EES_MainHandOne:
+			if (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo)
+			{
+				return true;
+			}
+			break;
+
+		case EEquipmentSlot::EES_OffHandOne:
+			if (Item->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo))
+			{
+				return true;
+			}
+			break;
+
+		case EEquipmentSlot::EES_MainHandTwo:
+			if (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo)
+			{
+				return true;
+			}
+			break;
+
+		case EEquipmentSlot::EES_OffHandTwo:
+			if (Item->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne))
+			{
+				return true;
+			}
+			break;
+
+		default:
+			break;
+		}
+	}
+	return false;
+}
+
+bool UEquipmentComponent::OwningCharacterHasAttributesToEquipItem(UItemEquipmentData* Item)
+{
+	if (UCharacterStatisticComponent* CharacterStatisticComponent = Cast<UCharacterStatisticComponent>(OwningCharacter->GetComponentByClass(UCharacterStatisticComponent::StaticClass())))
+	{
+		if (CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Strength)		>= Item->RequiredStrength &&
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Dexterity)	>= Item->RequiredDexterity &&
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Vitality)		>= Item->RequiredVitality &&
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Grit)			>= Item->RequiredGrit &&
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Intelligence) >= Item->RequiredIntelligence &&
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Wisdom)		>= Item->RequiredWisdom &&
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Charisma)		>= Item->RequiredCharisma &&
+			CharacterStatisticComponent->GetAttribute(EAttributeType::EAT_Luck)			>= Item->RequiredLuck)
+		{
+			return true;
+		}
+	}
+	return false;
 }

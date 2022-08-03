@@ -95,6 +95,9 @@ public:
 	bool Unequip(EEquipmentSlot WornEquipmentSlot, UInventoryComponent* InInventoryComponentRef = nullptr, int InventoryItemKey = -1, bool bDropOnGround = false);
 
 	UFUNCTION(BlueprintCallable)
+	bool EquipCheck(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::EES_None, UInventoryComponent* InInventoryComponentRef = nullptr, int ItemToEquipInventoryKey = -1, bool bPopulateEquipCheckDataMap = true);
+
+	UFUNCTION(BlueprintCallable)
 	bool RemoveEquipmentInSlot(EEquipmentSlot EquipmentSlot);
 
 	UFUNCTION(BlueprintCallable)
@@ -156,4 +159,15 @@ protected:
 
 	UInventoryComponent* OwnerInventoryComponentRef;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
+	TMap<EEquipmentSlot, UItemData*> EquipCheckDataMap;
+
+	int EmptyInventorySlots = 0;
+
+private:
+
+	bool IsEquipSlotValidForItem(EEquipmentSlot EquipSlot, UItemEquipmentData* Item);
+
+	bool OwningCharacterHasAttributesToEquipItem(UItemEquipmentData* Item);
+
 };

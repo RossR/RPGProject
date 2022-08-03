@@ -65,10 +65,22 @@ protected:
 	UOverlay* BackgroundOverlay;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
-	UScaleBox* BackgroundImageScaleBox;
+	UOverlay* BackgroundImageOverlay;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
+	UScaleBox* BackgroundOutlineScaleBox;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
+	UScaleBox* BackgroundIconScaleBox;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
 	UImage* BackgroundImage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
+	UImage* BackgroundOutlineImage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
+	UImage* BackgroundIconImage;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Instanced, Category = "Equipment Slot Widgets")
 	UBorder* ContentBorder;
@@ -80,9 +92,6 @@ protected:
 	UNamedSlot* EquipmentSlot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings")
-	FSlateBrush RootBorderAppearance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings")
 	float SlotWidth = 50.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings")
@@ -91,8 +100,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings")
 	EEquipmentSlot WidgetEquipmentSlot;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings")
-	UTexture2D* BackgroundImageTexture;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings - Slate Brushes")
+	FSlateBrush RootBorderSlateBrush;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings - Slate Brushes")
+	FSlateBrush BackgroundSlateBrush;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings - Slate Brushes")
+	FSlateBrush BackgroundOutlineSlateBrush;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Slot Settings - Slate Brushes")
+	FSlateBrush BackgroundIconSlateBrush;
 
 	float PaddingValue = 2.0f;
 	float ClampSlotWidth;
