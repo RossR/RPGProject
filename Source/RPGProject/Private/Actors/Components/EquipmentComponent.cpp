@@ -459,9 +459,10 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 	{
 		EquipCheckDataMap = WornEquipmentDataMap;
 		EmptyInventorySlots = InInventoryComponentRef->GetEmptyInventorySpace();
+		if (EquipCheckDataMap.IsEmpty() && !WornEquipmentDataMap.IsEmpty()) { return false; }
 	}
 
-	if (EquipCheckDataMap.IsEmpty() && !WornEquipmentDataMap.IsEmpty()) { return false; }
+	
 
 	// Check that the item is a piece of equipment
 	UItemEquipmentData* ItemEquipmentCast = Cast<UItemEquipmentData>(ItemToEquip);
@@ -556,10 +557,10 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 				if (EmptyInventorySlots >= 2)
 				{
 					EquipCheckDataMap.Remove(EEquipmentSlot::EES_MainHandOne);
-					const bool bUnequippedMain = EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandOne);
+					const bool bUnequippedMain = !EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandOne);
 
 					EquipCheckDataMap.Remove(EEquipmentSlot::EES_OffHandOne);
-					const bool bUnequippedOff = EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandOne);
+					const bool bUnequippedOff = !EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandOne);
 
 					if (bUnequippedMain && bUnequippedOff)
 					{
@@ -575,7 +576,7 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 			else
 			{
 				EquipCheckDataMap.Remove(EquipSlot);
-				const bool bUnequipSuccessful = EquipCheckDataMap.Contains(EquipSlot);
+				const bool bUnequipSuccessful = !EquipCheckDataMap.Contains(EquipSlot);
 
 				if (bUnequipSuccessful)
 				{
@@ -595,10 +596,10 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 				if (EmptyInventorySlots >= 2)
 				{
 					EquipCheckDataMap.Remove(EEquipmentSlot::EES_MainHandTwo);
-					const bool bUnequippedMain = EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandTwo);
+					const bool bUnequippedMain = !EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandTwo);
 
 					EquipCheckDataMap.Remove(EEquipmentSlot::EES_OffHandTwo);
-					const bool bUnequippedOff = EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandTwo);
+					const bool bUnequippedOff = !EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandTwo);
 
 					if (bUnequippedMain && bUnequippedOff)
 					{
@@ -615,7 +616,7 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 			else
 			{
 				EquipCheckDataMap.Remove(EquipSlot);
-				const bool bUnequipSuccessful = EquipCheckDataMap.Contains(EquipSlot);
+				const bool bUnequipSuccessful = !EquipCheckDataMap.Contains(EquipSlot);
 
 				if (bUnequipSuccessful)
 				{
@@ -631,7 +632,7 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 
 		default:
 			EquipCheckDataMap.Remove(EquipSlot);
-			const bool bUnequipSuccessful = EquipCheckDataMap.Contains(EquipSlot);
+			const bool bUnequipSuccessful = !EquipCheckDataMap.Contains(EquipSlot);
 
 			if (bUnequipSuccessful)
 			{
