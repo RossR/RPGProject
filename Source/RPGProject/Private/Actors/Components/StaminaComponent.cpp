@@ -32,9 +32,9 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	StaminaRegenInterval = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
-
 	CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
+
+	StaminaRegenPerFrame = (MaxStamina / TimeToFullyRegenStamina) * DeltaTime;
 
 	if (CurrentStamina == MaxStamina)
 	{
@@ -46,23 +46,31 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 		// UE_LOG(LogTemp, Warning, TEXT("UStaminaComponent::TickComponent StaminaRegenTimerHandle Set"));
 		if (!GetWorld()->GetTimerManager().IsTimerActive(StaminaRegenTimerHandle))
 		{
-			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &UStaminaComponent::RegenerateStamina, StaminaRegenInterval, true, StaminaRegenDelay);
+			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &UStaminaComponent::RegenerateStamina, DeltaTime, true, StaminaRegenDelay * StaminaRegenDelayMultiplier);
 		}
+
+		
+		
 	}
 }
 
-void UStaminaComponent::TakeStaminaDamage(float Damage)
+void UStaminaComponent::ReduceCurrentStamina(float Damage)
 {
 	CurrentStamina -= Damage;
-	if (IsRegeneratingStamina)
+	if (true)//IsRegeneratingStamina)
 	{
 		IsRegeneratingStamina = false;
-		GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
+		ResetStaminaRegenDelay();
 	}
 }
 
 void UStaminaComponent::RegenerateStamina() 
 { 
 	IsRegeneratingStamina = true;
-	CurrentStamina += StaminaRegenPerInterval; 
+	CurrentStamina += StaminaRegenPerFrame * StaminaRegenMultiplier;
+}
+
+void UStaminaComponent::ResetStaminaRegenDelay()
+{
+	GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
 }

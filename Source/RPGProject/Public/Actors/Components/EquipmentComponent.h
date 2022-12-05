@@ -4,36 +4,51 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Actors/ItemTypes/ItemBase.h"
-#include "Actors/ItemTypes/ItemWeapon.h"
-#include "Actors/ItemTypes/ItemEquipment.h"
+//#include "Actors/ItemTypes/ItemBase.h"
+//#include "Actors/ItemTypes/Equipment/Weapons/ItemWeapon.h"
+//#include "Actors/ItemTypes/Equipment/ItemEquipment.h"
 #include "EquipmentComponent.generated.h"
+
+class UCombatComponent;
+class UInventoryComponent;
+class AItemBase;
+class UItemData;
+class AItemWeapon;
+class UItemWeaponData;
+class AItemEquipment;
+class UItemEquipmentData;
 
 UENUM(BlueprintType)
 enum class EEquipmentSlot : uint8
 {
-	EES_None			UMETA(DisplayName = "None"),
-	EES_MainHandOne		UMETA(DisplayName = "Main-hand #1"),
-	EES_OffHandOne		UMETA(DisplayName = "Off-hand #1"),
-	EES_MainHandTwo		UMETA(DisplayName = "Main-hand #2"),
-	EES_OffHandTwo		UMETA(DisplayName = "Off-hand #2"),
-	EES_Head			UMETA(DisplayName = "Head"),
-	EES_Torso			UMETA(DisplayName = "Torso"),
-	EES_Hands			UMETA(DisplayName = "Hands"),
-	EES_Legs			UMETA(DisplayName = "Legs"),
-	EES_Feet			UMETA(DisplayName = "Feet"),
-	EES_TorsoAccessory	UMETA(DisplayName = "Torso Accessory"),
-	EES_HeadAccessory	UMETA(DisplayName = "Head Accessory"),
-	EES_NeckAccessory	UMETA(DisplayName = "Neck Accessory"),
-	EES_ArmAccessory	UMETA(DisplayName = "Arm Accessory"),
-	EES_RingAccessory1	UMETA(DisplayName = "Ring Accessory #1"),
-	EES_RingAccessory2	UMETA(DisplayName = "Ring Accessory #2"),
+	ES_None				UMETA(DisplayName = "None"),
+	ES_MainHandOne		UMETA(DisplayName = "Main-hand #1"),
+	ES_OffHandOne		UMETA(DisplayName = "Off-hand #1"),
+	ES_MainHandTwo		UMETA(DisplayName = "Main-hand #2"),
+	ES_OffHandTwo		UMETA(DisplayName = "Off-hand #2"),
+	ES_Head				UMETA(DisplayName = "Head"),
+	ES_Torso			UMETA(DisplayName = "Torso"),
+	ES_Hands			UMETA(DisplayName = "Hands"),
+	ES_Legs				UMETA(DisplayName = "Legs"),
+	ES_Feet				UMETA(DisplayName = "Feet"),
+	ES_TorsoAccessory	UMETA(DisplayName = "Torso Accessory"),
+	ES_HeadAccessory	UMETA(DisplayName = "Head Accessory"),
+	ES_NeckAccessory	UMETA(DisplayName = "Neck Accessory"),
+	ES_ArmAccessory		UMETA(DisplayName = "Arm Accessory"),
+	ES_RingAccessory1	UMETA(DisplayName = "Ring Accessory #1"),
+	ES_RingAccessory2	UMETA(DisplayName = "Ring Accessory #2"),
 
-	EES_MAX			UMETA(Hidden)
+	ES_MAX			UMETA(Hidden)
 };
 
-class UCombatComponent;
-class UInventoryComponent;
+UENUM(BlueprintType)
+enum class EWeaponLoadout : uint8
+{
+	WL_LoadoutOne	UMETA(DisplayName = "Loadout 1"),
+	WL_LoadoutTwo	UMETA(DisplayName = "Loadout 2"),
+
+	WL_MAX			UMETA(Hidden)
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPGPROJECT_API UEquipmentComponent : public UActorComponent
@@ -46,6 +61,9 @@ public:
 
 	// Sets default values for this component's properties
 	UEquipmentComponent();
+
+	UFUNCTION(BlueprintPure)
+	bool HasEquipmentInSlot(EEquipmentSlot EquipmentSlot) const { return WornEquipmentDataMap.Contains(EquipmentSlot); }
 
 	UFUNCTION(BlueprintPure)
 	UItemData* GetWornEquipmentDataInSlot(EEquipmentSlot EquipmentSlot) const { if (WornEquipmentDataMap.Contains(EquipmentSlot)) { return WornEquipmentDataMap[EquipmentSlot]; } return nullptr; }
@@ -71,8 +89,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	ACharacter* GetOwnerCharacter() { return OwningCharacter; }
 
-	UFUNCTION(BlueprintCallable)
-	void AttachWeaponToSocket(AItemEquipment* WeaponToAttach, FName SocketName);
+
 
 protected:
 
@@ -89,13 +106,13 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	bool Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::EES_None, UInventoryComponent* InInventoryComponentRef = nullptr, int ItemToEquipInventoryKey = -1, bool bRemoveFromInventoryOnSuccessfulEquip = true);
+	bool Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::ES_None, UInventoryComponent* InInventoryComponentRef = nullptr, int ItemToEquipInventoryKey = -1, bool bRemoveFromInventoryOnSuccessfulEquip = true);
 
 	UFUNCTION(BlueprintCallable)
 	bool Unequip(EEquipmentSlot WornEquipmentSlot, UInventoryComponent* InInventoryComponentRef = nullptr, int InventoryItemKey = -1, bool bDropOnGround = false);
 
 	UFUNCTION(BlueprintCallable)
-	bool EquipCheck(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::EES_None, UInventoryComponent* InInventoryComponentRef = nullptr, int ItemToEquipInventoryKey = -1, bool bPopulateEquipCheckDataMap = true);
+	bool EquipCheck(UItemData* ItemToEquip, EEquipmentSlot SlotToEquipTo = EEquipmentSlot::ES_None, UInventoryComponent* InInventoryComponentRef = nullptr, int ItemToEquipInventoryKey = -1, bool bPopulateEquipCheckDataMap = true);
 
 	UFUNCTION(BlueprintCallable)
 	bool RemoveEquipmentInSlot(EEquipmentSlot EquipmentSlot);
@@ -119,21 +136,37 @@ public:
 	void EquipStartingEquipment();
 
 	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToSocket(AItemEquipment* WeaponToAttach, FName SocketName);
+
+	UFUNCTION(BlueprintCallable)
 	void AttachEquipmentToMesh(USkeletalMeshComponent* CharacterMesh);
 
 	UFUNCTION(BlueprintCallable)
 	void AttachEquipmentToSocket(EEquipmentSlot EquipmentSlot);
 
 	UFUNCTION(BlueprintCallable)
-	EEquipmentSlot GetCurrentlyEquippedWeaponSet();
+	EEquipmentSlot GetEquipmentSlotForCurrentWeaponLoadout(bool bReturnMainhandSlot = true);
 
 	UFUNCTION(BlueprintPure)
-	// Returns true if using the first weapon set.
-	bool GetIsUsingFirstWeaponSet() { return bIsUsingFirstWeaponSet; }
+	// Returns current weapon loadout
+	EWeaponLoadout GetCurrentWeaponLoadout() { return CurrentWeaponLoadout; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentWeaponLoadout(EWeaponLoadout NewCurrentWeaponLoadout) { CurrentWeaponLoadout = NewCurrentWeaponLoadout; }
 
 	// ToDo - Add functionality to calculate total weight of equipment
 	UFUNCTION(BlueprintPure)
 	float GetEquipmentWeight();
+
+	UFUNCTION(BlueprintPure)
+	AItemWeapon* GetMainhandWeaponActor();
+	UFUNCTION(BlueprintPure)
+	UItemWeaponData* GetMainhandWeaponData();
+
+	UFUNCTION(BlueprintPure)
+	AItemWeapon* GetOffhandWeaponActor();
+	UFUNCTION(BlueprintPure)
+	UItemWeaponData* GetOffhandWeaponData();
 
 protected:
 
@@ -143,7 +176,7 @@ protected:
 	TMap<EEquipmentSlot, UItemData*> WornEquipmentDataMap;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
-	bool bIsUsingFirstWeaponSet = true;
+	EWeaponLoadout CurrentWeaponLoadout = EWeaponLoadout::WL_LoadoutOne;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	ACharacter* OwningCharacter;

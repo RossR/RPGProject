@@ -17,7 +17,7 @@ class ADEPRECATEDRPGProjectCharacter : public ACharacter
 
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+	class UCameraComponent* PlayerCamera;
 public:
 	ADEPRECATEDRPGProjectCharacter();
 
@@ -66,7 +66,7 @@ protected:
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	/** Returns PlayerCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return PlayerCamera; }
 };
 

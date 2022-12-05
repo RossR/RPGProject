@@ -4,6 +4,7 @@
 #include "Actors/ItemTypes/ItemBase.h"
 #include "Actors/Components/InventoryComponent.h"
 #include "Characters/RPGProjectPlayerCharacter.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AItemBase::AItemBase()
@@ -17,7 +18,8 @@ AItemBase::AItemBase()
 	ItemMesh->SetCollisionProfileName("Item");
 	ItemMesh->SetSimulatePhysics(true);
 
-	ItemData = CreateDefaultSubobject<UItemData>(TEXT("Item Data"));
+	ItemDataDefault = CreateDefaultSubobject<UItemData>(TEXT("Item Data Default"));
+	//ItemData = CreateDefaultSubobject<UItemData>(TEXT("Item Data"));
 
 	Tags.Add("Interactable");
 }
@@ -27,11 +29,19 @@ void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (ItemDataOverride) { ItemData = ItemDataOverride; }
+	if (ItemDataOverride) { SetItemData(ItemDataOverride); }
+	else { SetItemData(ItemDataDefault); }
 
-	if (ItemData->bUseItemWeightForPhysics)
+	if (GetItemData()->bUseItemWeightForPhysics)
 	{
-		ItemMesh->SetMassOverrideInKg(NAME_None, ItemData->ItemWeight, true);
+		ItemMesh->SetMassOverrideInKg(NAME_None, GetItemData()->ItemWeight, true);
+	}
+
+	if (ACharacter* OwningCharacterRef = Cast<ACharacter>(GetParentActor()))
+	{
+		OwnerSkeletalMeshComponentRef = OwningCharacterRef->GetMesh();
+
+		if (OwnerSkeletalMeshComponentRef) { OwnerAnimInstanceRef = Cast<URPGProjectAnimInstance>(OwnerSkeletalMeshComponentRef->GetAnimInstance()); }
 	}
 }
 
@@ -43,6 +53,15 @@ void AItemBase::Tick(float DeltaTime)
 
 }
 
+void AItemBase::SetItemData(UItemData* NewItemData)
+{
+	if (NewItemData)
+	{
+		ItemData = NULL;
+		ItemData = NewObject<UItemData>(this, UItemData::StaticClass(), TEXT("Item Data"), EObjectFlags::RF_NoFlags, NewItemData);
+	}
+}
+
 void AItemBase::EnableHighlight(bool bActive, int Colour)
 {
 	ItemMesh->SetRenderCustomDepth(bActive);
@@ -52,7 +71,7 @@ void AItemBase::EnableHighlight(bool bActive, int Colour)
 	if (Colour == -1)
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::FromInt((int)ItemData->ItemRarity));
-		ItemMesh->SetCustomDepthStencilValue((int)ItemData->ItemRarity);
+		ItemMesh->SetCustomDepthStencilValue((int)GetItemData()->ItemRarity);
 	}
 	else
 	{
@@ -77,7 +96,7 @@ void AItemBase::InteractionStart(AActor* InteractingActor)
 {
 	if (UInventoryComponent* InventoryComponentRef = Cast<UInventoryComponent>(InteractingActor->GetComponentByClass(UInventoryComponent::StaticClass())))
 	{
-		if (InventoryComponentRef->AddItemToInventory(ItemData))
+		if (InventoryComponentRef->AddItemToInventory(GetItemData()))
 		{
 			// Create notification on HUD
 			ItemPickupEvent();
@@ -110,4 +129,17 @@ void AItemBase::InteractableDeactivated()
 bool AItemBase::GetIsInInteractableRange(AActor* InteractingActor)
 {
 	return true;
+}
+
+void AItemBase::SetDurability(float NewDurability)
+{
+	GetItemData()->ItemCurrentDurability = NewDurability;
+	GetItemData()->ItemCurrentDurability = UKismetMathLibrary::FClamp(GetItemData()->ItemCurrentDurability, 0.f, GetItemData()->ItemMaxDurability);
+}
+
+void AItemBase::UpdateCurves()
+{
+	if (!OwnerAnimInstanceRef) { return; }
+
+
 }

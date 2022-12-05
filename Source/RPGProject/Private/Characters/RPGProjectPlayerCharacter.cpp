@@ -2,7 +2,9 @@
 
 
 #include "Characters/RPGProjectPlayerCharacter.h"
+#include "Components/SceneComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Camera/CameraComponent.h"
@@ -12,8 +14,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "DrawDebugHelpers.h"
+#include "AIController.h"
 
 #include "Actors/Components/CharacterStatisticComponent.h"
 #include "Actors/Components/HealthComponent.h"
@@ -22,7 +26,7 @@
 #include "Actors/Components/InventoryComponent.h"
 #include "Actors/Components/EquipmentComponent.h"
 #include "Actors/Components/CombatComponent.h"
-#include "Actors/ItemTypes/ItemWeapon.h"
+#include "Actors/ItemTypes/Equipment/Weapons/ItemWeapon.h"
 
 #include "Controllers/RPGProjectPlayerController.h"
 
@@ -44,33 +48,6 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	// set our turn rates for input
-	BaseTurnRate = 70.0f;
-	BaseLookUpRate = 70.0f;
-
-	PlayerVerticalMobilityState = EPlayerVerticalMobility::PVM_Standing;
-	PlayerHorizontalMobilityState = EPlayerHorizontalMobility::PHM_Idle;
-	PlayerActionState = EPlayerActionState::PAS_Idle;
-
-	LastPlayerVerticalMobilityState = PlayerVerticalMobilityState;
-	LastPlayerHorizontalMobilityState = PlayerHorizontalMobilityState;
-	LastPlayerActionState = PlayerActionState;
-
-	EquippedWeaponType = EWeaponType::WT_None;
-
-	// Variables for character movement
-	SprintSpeedMultiplier = 1.6875f;
-	CrouchSprintSpeedMultiplier = 1.25f;
-	CombatSpeedMultiplier = 1.0f;
-
-	NormalMaxAcceleration = 2048;
-	SprintingMaxAcceleration = 8192;
-	CharacterMinAnalogWalkSpeed = 0;
-
-	MovementSpeed = 400;
-	CrouchMovementSpeed = 265;
-	WalkMovementSpeed = 150;
-	
 	// Don't rotate when the controller rotates. Let that just affect the camera. - Taken from 3rdP Character BP
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -87,14 +64,6 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	
 	JumpMaxHoldTime = 0.2f;
 
-	bIsCrouched = false;
-	bIsRagdollDeath = false;
-	bIsExhausted = false;
-	bIsAttacking = false;
-	bCanAttack = true;
-	bIsAiming = false;
-	bIsInUninterruptableAction = false;
-
 	// Create the camera arm
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
 	CameraArm->SetupAttachment(RootComponent);
@@ -107,24 +76,25 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	CameraArm->bEnableCameraLag = true;
 	CameraArm->CameraLagSpeed = 10.0f;
 
-	// Create the follow camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	FollowCamera->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
-	FollowCamera->bUsePawnControlRotation = false;
-	
-	ChaseArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Chase"));
-	ChaseArrow->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
+	PopulateCameraSpringArmMap();
+	PopulateCameraArrowMap();
 
-	RightShoulderArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("RightShoulder"));
-	RightShoulderArrow->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
-	RightShoulderArrow->SetRelativeLocation({250.0f, 50.0f, 50.0f});
+	// Create the follow camera
+	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
+	PlayerCamera->SetupAttachment(CameraSpringArmMap[ECameraView::CV_Exploration], USpringArmComponent::SocketName);
+	PlayerCamera->SetRelativeLocation(CameraArrowMap[ECameraView::CV_Exploration]->GetRelativeLocation());
+	PlayerCamera->bUsePawnControlRotation = false;
+	
+	HitFXOverride = CreateDefaultSubobject<UHitFXData>(TEXT("Hit FX Override"));
 	
 	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
-	ParticleSystemComponent->SetupAttachment(RootComponent);
+	ParticleSystemComponent->SetupAttachment(GetMesh(), "spine_02");
 
 	CharacterStatisticComponent = CreateDefaultSubobject<UCharacterStatisticComponent>(TEXT("CharacterStatComponent"));
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+
+	PopulateHealthComponentHitboxMap();
 
 	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
 	
@@ -137,6 +107,19 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 
+	QuiverMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("QuiverMesh"));
+	QuiverMesh->SetupAttachment(GetMesh(), "Equipment_Quiver");
+
+	for (int i = 1; i <= 20.f; i++)
+	{
+		FName ArrowName = (FName)("Arrow_" + FString::FromInt(i));
+
+		ArrowMeshMap.Add(i);
+		ArrowMeshMap[i] = CreateDefaultSubobject<UStaticMeshComponent>(ArrowName);
+		ArrowMeshMap[i]->SetupAttachment(QuiverMesh, ArrowName);
+	}
+	
+
 	// Tags.Add("Player");
 
 }
@@ -146,13 +129,33 @@ void ARPGProjectPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PC = Cast<ARPGProjectPlayerController>(GetWorld()->GetFirstPlayerController());
+	PC = Cast<ARPGProjectPlayerController>(GetController()); //GetWorld()->GetFirstPlayerController());
+	AIPC = Cast< AAIController>(GetController());
+
+	if (PC)
+	{
+		RPGPlayerCameraManager = PC->GetRPGPlayerCameraManager();
+		if (RPGPlayerCameraManager)
+		{
+			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_Exploration, CameraSpringArmMap[ECameraView::CV_Exploration]);
+			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_Action, CameraSpringArmMap[ECameraView::CV_Action]);
+			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_Aim, CameraSpringArmMap[ECameraView::CV_Aim]);
+			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_LockOn, CameraSpringArmMap[ECameraView::CV_LockOn]);
+			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_Skill, CameraSpringArmMap[ECameraView::CV_Skill]);
+
+			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_Exploration, CameraArrowMap[ECameraView::CV_Exploration]);
+			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_Action, CameraArrowMap[ECameraView::CV_Action]);
+			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_Aim, CameraArrowMap[ECameraView::CV_Aim]);
+			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_LockOn, CameraArrowMap[ECameraView::CV_LockOn]);
+			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_Skill, CameraArrowMap[ECameraView::CV_Skill]);
+		}
+	}
 
 	if (HealthComponent)
 	{
 		FCharacterStatistics CharacterStatistics = CharacterStatisticComponent->GetCharacterStatistics();
 
-		HealthComponent->SetMaxHealth(CharacterStatistics.HealthPoints);
+		HealthComponent->SetMaxHealthPoints(CharacterStatistics.HealthPoints);
 	}
 
 	if (StaminaComponent)
@@ -173,15 +176,27 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 
 	Super::Tick(DeltaTime);
 
-	DeltaSeconds = DeltaTime;
+	UpdateCurves();
 
-	CharacterStatisticsUpdate();
+	if (!IsAlive())
+	{
+		GetCharacterMovement()->DisableMovement();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SetPlayerActionState(EPlayerActionState::PAS_Incapacitated);
+	}
+
+	DeltaSeconds = DeltaTime;
 
 	bIsFalling = GetVelocity().Z != 0;
 
+	if (bIsFalling)
+	{
+		RequestStopCrouching();
+	}
+
 	// CrouchMovementSpeed = MovementSpeed * 0.66f;
-	SprintMovementSpeed = MovementSpeed * SprintSpeedMultiplier;
-	CombatMovementSpeed = MovementSpeed * CombatSpeedMultiplier;
+	SprintMovementSpeed = MovementSpeed * SprintSpeedModifier;
+	CombatMovementSpeed = MovementSpeed * CombatSpeedModifier;
 
 	CurrentCharacterXYVelocity = UKismetMathLibrary::VSizeXY(GetVelocity());
 
@@ -195,37 +210,25 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 	PlayerHorizontalMobilityUpdate();
 	PlayerActionStateUpdate();
 
+	CombatStanceUpdate();
+
 	InteractionTrace();
 }
+
+
 
 // Called to bind functionality to 
 void ARPGProjectPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	/*
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump); // &ARPGProjectPlayerCharacter::Jump also works
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping); // &ARPGProjectPlayerCharacter::StopJumping also works
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ARPGProjectPlayerCharacter::Sprint);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ARPGProjectPlayerCharacter::StopSprinting);
-	PlayerInputComponent->BindAction("HoldCrouch", IE_Pressed, this, &ARPGProjectPlayerCharacter::HoldCrouch);
-	PlayerInputComponent->BindAction("HoldCrouch", IE_Released, this, &ARPGProjectPlayerCharacter::StopHoldingCrouch);
-	PlayerInputComponent->BindAction("ToggleCrouch", IE_Pressed, this, &ARPGProjectPlayerCharacter::ToggleCrouch);
-
-	PlayerInputComponent->BindAxis("MoveForward", this, &ARPGProjectPlayerCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ARPGProjectPlayerCharacter::MoveRight);
-	PlayerInputComponent->BindAxis("TurnRate", this, &ARPGProjectPlayerCharacter::TurnRate);
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &ARPGProjectPlayerCharacter::LookUpRate);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-	*/
 }
 
 void ARPGProjectPlayerCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 {
 	if (HealthComponent && !HealthComponent->IsDead())
 	{
-		HealthComponent->SetCurrentHealth(0.0f);
+		HealthComponent->SetCurrentHealthPoints(0.0f);
 		OnDeath(true);
 	}
 }
@@ -234,7 +237,7 @@ void ARPGProjectPlayerCharacter::OnDeath(bool IsFellOut)
 {
 	GetWorldTimerManager().SetTimer(RestartLevelTimerHandle, this, &ARPGProjectPlayerCharacter::OnDeathTimerFinished, TimeRestartAfterDeath, false);
 	GetCharacterMovement()->DisableMovement();
-	
+	PlayerActionState = EPlayerActionState::PAS_Incapacitated;
 }
 
 void ARPGProjectPlayerCharacter::OnDeathTimerFinished()
@@ -246,54 +249,16 @@ void ARPGProjectPlayerCharacter::OnDeathTimerFinished()
 	}
 }
 
-void ARPGProjectPlayerCharacter::CharacterStatisticsUpdate()
+void ARPGProjectPlayerCharacter::UpdateCurves()
 {
-	//if (CharacterStatComponent)
-	//{
-	//	int OldStamina = 0;
+	if (!GetMesh()) { return; }
 
-	//	FString AdditionalCharacterStatistics.HealthPointsString = "AdditionalCharacterStatistics.HealthPoints: " + FString::FromInt(CharacterStatComponent->AdditionalCharacterStatistics.HealthPoints);
-	//	// GEngine->AddOnScreenDebugMessage(1, DeltaSeconds, FColor::Yellow, AdditionalCharacterStatistics.HealthPointsString);
-
-	//	if (CharacterStatComponent->HaveStatisticsChanged())
-	//	{
-	//		OldStamina = CharacterStatComponent->AdditionalCharacterStatistics.StaminaPoints;
-
-	//		
-	//	}
-
-	//	FCharacterStatistics CharacterStatistics = CharacterStatComponent->GetCharacterStatistics();
-	//	
-	//	if (HealthComponent)
-	//	{
-	//		
-	//		
-
-	//		if (CharacterStatComponent->HaveStatisticsChanged())
-	//		{
-	//			HealthComponent->HealDamage(CharacterStatComponent->StatChangeHealthDifference);
-
-	//			FString OldHealthPointsString = "OldHealthPoints: " + FString::FromInt(CharacterStatComponent->OldHealthPoints);
-	//			GEngine->AddOnScreenDebugMessage(2, 2.0f, FColor::Red, OldHealthPointsString);
-	//			
-	//			FString HealthToHealString = "HealthToHeal: " + FString::FromInt(CharacterStatComponent->StatChangeHealthDifference);
-	//			GEngine->AddOnScreenDebugMessage(3, 2.0f, FColor::Emerald, HealthToHealString);
-	//		}
-	//	}
-
-	//	if (StaminaComponent)
-	//	{
-	//		StaminaComponent->SetMaxStamina(CharacterStatistics.StaminaPoints);
-
-	//		if (CharacterStatComponent->HaveStatisticsChanged())
-	//		{
-	//			StaminaComponent->TakeStaminaDamage(OldStamina - CharacterStatComponent->AdditionalCharacterStatistics.StaminaPoints);
-	//		}
-	//	}
-
-	//	// CharacterStatComponent->OldHealthPoints = CharacterStatComponent->AdditionalCharacterStatistics.HealthPoints;
-	//	CharacterStatComponent->SetHaveStatisticsChanged(false);
-	//}
+	if (UAnimInstance* CharacterAnimInstance = GetMesh()->GetAnimInstance())
+	{
+		float CurveValue = 0.f;
+		CharacterAnimInstance->GetCurveValue("MovementSpeedReductionScale", CurveValue);
+		MovementSpeedReductionScaleCurve = 1.f - CurveValue;
+	}
 }
 
 //--------------------------------------------------------------
@@ -381,45 +346,62 @@ void ARPGProjectPlayerCharacter::PlayerHorizontalMobilityUpdate()
 {
 	if (true)//HasPlayerHorizontalMobilityStateChanged())
 	{
+		if (StaminaComponent)
+		{
+			if (StaminaComponent->IsStaminaExhausted())
+			{
+				TotalSpeedModifier = MovementSpeedReductionScaleCurve * StaminaExhaustedSpeedModifier;
+			}
+			else
+			{
+				TotalSpeedModifier = MovementSpeedReductionScaleCurve;
+			}
+		}
+		else
+		{
+			TotalSpeedModifier = MovementSpeedReductionScaleCurve;
+		}
+		
+
 		switch (PlayerHorizontalMobilityState)
 		{
 			case EPlayerHorizontalMobility::PHM_Idle:
 			{
-				GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed;
-				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+				GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration * TotalSpeedModifier;
 							
 				break;
 			}
 			case EPlayerHorizontalMobility::PHM_Walking:
 			{
-				GetCharacterMovement()->MaxWalkSpeed = WalkMovementSpeed;
-				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed;
-				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+				GetCharacterMovement()->MaxWalkSpeed = WalkMovementSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration * TotalSpeedModifier;
 
 				break;
 			}
 			case EPlayerHorizontalMobility::PHM_Jogging:
 			{
-				GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
-				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed;
-				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed;
-				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration;
+				GetCharacterMovement()->MaxWalkSpeed = MovementSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MinAnalogWalkSpeed = CharacterMinAnalogWalkSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MaxAcceleration = NormalMaxAcceleration * TotalSpeedModifier;
 				
 				break;
 			}
 			case EPlayerHorizontalMobility::PHM_Sprinting:
 			{
-				GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed;
-				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed * CrouchSprintSpeedMultiplier;
-				GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-				GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration;
+				GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchMovementSpeed * CrouchSprintSpeedModifier * TotalSpeedModifier;
+				GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MaxWalkSpeed * TotalSpeedModifier;
+				GetCharacterMovement()->MaxAcceleration = SprintingMaxAcceleration * TotalSpeedModifier;
 				
-				if (CurrentCharacterXYVelocity > 0 && GetCharacterMovement()->IsMovingOnGround()) //&& PlayerVerticalMobilityState == EPlayerVerticalMobility::PVM_Standing)
+				if (CurrentCharacterXYVelocity > (MovementSpeed * TotalSpeedModifier) && GetCharacterMovement()->IsMovingOnGround()) //&& PlayerVerticalMobilityState == EPlayerVerticalMobility::PVM_Standing)
 				{
-					TakeStaminaDamage(StaminaDamagePerInterval);
+					ReduceCurrentStamina(StaminaDamagePerSecond * GetWorld()->GetDeltaSeconds());
 				}
 
 				break;
@@ -454,21 +436,88 @@ void ARPGProjectPlayerCharacter::PlayerActionStateUpdate()
 
 }
 
+void ARPGProjectPlayerCharacter::CombatStanceUpdate()
+{
+	if (!CombatComponent) { return; }
+	if (!EquipmentComponent) { return; }
+
+	if (CombatComponent->GetCombatState() == ECombatState::CS_CombatReady) 
+	{
+		if (CombatComponent->GetCombatWeaponStance() != RequestedCombatWeaponStance)//ECombatWeaponStance::CWS_None) { return; }
+		{
+			if (RequestedCombatWeaponStance == ECombatWeaponStance::CWS_None)
+			{
+				CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::CWS_None);
+				ResetWeaponStance();
+
+				return;
+			}
+
+			if (CombatComponent->GetCurrentWeaponStanceType() != EWeaponStanceType::ST_None) { ResetWeaponStance(); }
+
+			UItemWeaponData* StanceWeaponData = nullptr;
+
+			switch (RequestedCombatWeaponStance)
+			{
+			case ECombatWeaponStance::CWS_Mainhand:
+				if (EquipmentComponent->GetMainhandWeaponData())
+				{
+					StanceWeaponData = EquipmentComponent->GetMainhandWeaponData();
+				}
+				break;
+
+			case ECombatWeaponStance::CWS_Offhand:
+				if (EquipmentComponent->GetOffhandWeaponData())
+				{
+					StanceWeaponData = EquipmentComponent->GetOffhandWeaponData();
+				}
+				else if (EquipmentComponent->GetMainhandWeaponData())
+				{
+					StanceWeaponData = EquipmentComponent->GetMainhandWeaponData();
+				}
+				break;
+
+			default:
+				break;
+			}
+			
+			SetWeaponStance(RequestedCombatWeaponStance, StanceWeaponData);
+		}
+		else
+		{
+
+		}
+	}
+	else
+	{
+		if (CombatComponent->GetCombatWeaponStance() != ECombatWeaponStance::CWS_None)
+		{
+			CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::CWS_None);
+			ResetWeaponStance();
+		}
+	}
+	
+	
+}
+
 void ARPGProjectPlayerCharacter::ClearLastPlayerActionStateChanges()
 {
 
 }
-
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
 void ARPGProjectPlayerCharacter::RequestJump()
 {
-	if (bIsInUninterruptableAction) { return; }
+	if (bIsInUninterruptableAction || PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
 
 
-	if (!GetCharacterMovement()->IsCrouching())
+	if (GetCharacterMovement()->bWantsToCrouch)
+	{
+		RequestStopCrouching();
+	}
+	else
 	{
 		Jump();
 	}
@@ -481,6 +530,7 @@ void ARPGProjectPlayerCharacter::RequestStopJumping()
 
 void ARPGProjectPlayerCharacter::RequestSprint()
 {
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
 	SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Sprinting);
 }
 
@@ -495,17 +545,37 @@ void ARPGProjectPlayerCharacter::RequestStopSprinting()
 
 void ARPGProjectPlayerCharacter::RequestHoldCrouch()
 {
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
 	if (!GetCharacterMovement()->IsMovingOnGround()) { return; }
 
 	GetCharacterMovement()->bWantsToCrouch = true;
 	SetIsCrouched(true);
+
+	if (RPGPlayerCameraManager)
+	{
+		if (RPGPlayerCameraManager->GetCameraView() == ECameraView::CV_Exploration)
+		{
+			CameraSpringArmMap[ECameraView::CV_Exploration]->SetRelativeLocation({ CameraSpringArmMap[ECameraView::CV_Exploration]->GetRelativeLocation().X, CameraSpringArmMap[ECameraView::CV_Exploration]->GetRelativeLocation().Y, 5.f });
+		}
+	}
+
 	SetPlayerVerticalMobilityState(EPlayerVerticalMobility::PVM_Crouching);
 }
 
 void ARPGProjectPlayerCharacter::RequestStopCrouching()
 {
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
+
 	GetCharacterMovement()->bWantsToCrouch = false;
 	SetIsCrouched(false);
+
+	if (RPGPlayerCameraManager)
+	{
+		if (RPGPlayerCameraManager->GetCameraView() == ECameraView::CV_Exploration)
+		{
+			CameraSpringArmMap[ECameraView::CV_Exploration]->SetRelativeLocation({ CameraSpringArmMap[ECameraView::CV_Exploration]->GetRelativeLocation().X, CameraSpringArmMap[ECameraView::CV_Exploration]->GetRelativeLocation().Y, 45.f });
+		}
+	}
 
 	if (GetPlayerVerticalMobilityState() == EPlayerVerticalMobility::PVM_Crouching)
 	{
@@ -515,8 +585,9 @@ void ARPGProjectPlayerCharacter::RequestStopCrouching()
 
 void ARPGProjectPlayerCharacter::RequestToggleCrouch()
 {
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
 	//ToDo - Fix this as it will not trigger the else statement
-	if (!GetCharacterMovement()->IsCrouching())
+	if (!GetCharacterMovement()->bWantsToCrouch)
 	{
 		RequestHoldCrouch();
 	}
@@ -526,44 +597,104 @@ void ARPGProjectPlayerCharacter::RequestToggleCrouch()
 	}
 }
 
-void ARPGProjectPlayerCharacter::RequestAim()
+void ARPGProjectPlayerCharacter::RequestMainhandStance()
 {
-	if (GetPlayerCombatState() == ECombatState::CS_AtEase)
-	{
-		MoveCameraToArrowLocation(FName(TEXT("RightShoulder")));
-		CameraArm->TargetArmLength = 150.f;
-		bUseControllerRotationYaw = true;
-		bIsAiming = true;
-	}
+	if (RequestedCombatWeaponStance != ECombatWeaponStance::CWS_None) { return; }
+
+	RequestedCombatWeaponStance = ECombatWeaponStance::CWS_Mainhand;
+
+	/*if (!CombatComponent) { return; }
+
+	if (CombatComponent->GetCombatState() != ECombatState::CS_CombatReady) { return; }
+	if (CombatComponent->GetCombatWeaponStance() != ECombatWeaponStance::CWS_None) { return; }
+
+	CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::CWS_Mainhand);
+
+	if (CombatComponent->GetCurrentWeaponStanceType() != EWeaponStanceType::ST_None) { ResetWeaponStance(); }
+
+	SetWeaponStance(ECombatWeaponStance::CWS_Mainhand, EquipmentComponent->GetMainhandWeaponData());*/
 }
 
-void ARPGProjectPlayerCharacter::RequestStopAiming()
+void ARPGProjectPlayerCharacter::RequestStopMainhandStance()
 {
-	MoveCameraToArrowLocation(FName(TEXT("Chase")));
-	CameraArm->TargetArmLength = 400.f;
-	bUseControllerRotationYaw = false;
-	bIsAiming = false;
+	if (RequestedCombatWeaponStance == ECombatWeaponStance::CWS_Mainhand)
+	{
+		RequestedCombatWeaponStance = ECombatWeaponStance::CWS_None;
+	}
+	/*if (!CombatComponent) { return; }
+
+	if (CombatComponent->GetCombatState() != ECombatState::CS_CombatReady) { return; }
+	if (CombatComponent->GetCombatWeaponStance() != ECombatWeaponStance::CWS_Mainhand) { return; }
+
+	CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::CWS_None);
+
+	ResetWeaponStance();*/
 }
 
-void ARPGProjectPlayerCharacter::RequestReadyWeapon()
+void ARPGProjectPlayerCharacter::RequestOffhandStance()
 {
-	if (CombatComponent)
+	if (RequestedCombatWeaponStance != ECombatWeaponStance::CWS_None) { return; }
+
+	RequestedCombatWeaponStance = ECombatWeaponStance::CWS_Offhand;
+
+	/*if (!EquipmentComponent) { return; }
+	if (!CombatComponent) { return; }
+
+	if (CombatComponent->GetCombatState() != ECombatState::CS_CombatReady) { return; }
+	if (CombatComponent->GetCombatWeaponStance() != ECombatWeaponStance::CWS_None) { return; }
+
+	CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::CWS_Offhand);
+
+	if (CombatComponent->GetCurrentWeaponStanceType() != EWeaponStanceType::ST_None) { ResetWeaponStance(); }
+
+	if (EquipmentComponent->GetOffhandWeaponData())
 	{
-		CombatComponent->ToggleCombatState();
+		SetWeaponStance(ECombatWeaponStance::CWS_Offhand, EquipmentComponent->GetOffhandWeaponData());
 	}
+	else if (EquipmentComponent->GetMainhandWeaponData())
+	{
+		SetWeaponStance(ECombatWeaponStance::CWS_Offhand, EquipmentComponent->GetMainhandWeaponData());
+	}*/
+}
+
+void ARPGProjectPlayerCharacter::RequestStopOffhandStance()
+{
+	if (RequestedCombatWeaponStance == ECombatWeaponStance::CWS_Offhand)
+	{
+		RequestedCombatWeaponStance = ECombatWeaponStance::CWS_None;
+	}
+	/*if (!CombatComponent) { return; }
+	if (CombatComponent->GetCombatWeaponStance() != ECombatWeaponStance::CWS_Offhand) { return; }
+
+	CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::CWS_None);
+
+	ResetWeaponStance();*/
+}
+
+void ARPGProjectPlayerCharacter::RequestSheatheUnsheatheWeapon()
+{
+	if (!CombatComponent) { return; }
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated || bIsInUninterruptableAction) { return; }
+	
+	CombatComponent->ToggleCombatState();
+
 }
 
 void ARPGProjectPlayerCharacter::RequestWalkMode()
 {
+
 }
 
 void ARPGProjectPlayerCharacter::RequestStopWalkMode()
 {
+
 }
 
-void ARPGProjectPlayerCharacter::RequestInteractOrDodge()
+void ARPGProjectPlayerCharacter::RequestContextAction()
 {
-	if (GetVelocity().Length() > 151.f || GetPlayerCombatState() == ECombatState::CS_CombatReady)
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
+
+	if (GetVelocity().Length() > 151.f)
 	{
 		RequestDodge();
 	}
@@ -573,8 +704,35 @@ void ARPGProjectPlayerCharacter::RequestInteractOrDodge()
 	}
 }
 
+void ARPGProjectPlayerCharacter::RequestHoldContextAction()
+{
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
+
+	RequestSprint();
+}
+
+void ARPGProjectPlayerCharacter::RequestStopContextAction(bool bWasButtonHeld)
+{
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
+
+	/*if (bWasButtonHeld)
+	{
+		RequestStopSprinting();
+	}
+	else if (GetVelocity().Length() > 151.f)
+	{
+		RequestDodge();
+	}
+	else
+	{
+		RequestInteraction();
+	}*/
+}
+
 void ARPGProjectPlayerCharacter::RequestInteraction()
 {
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
+
 	if (LookedAtActor)
 	{
 		//if (LookedAtActor->Implements<IInteractionInterface>())
@@ -596,140 +754,440 @@ void ARPGProjectPlayerCharacter::RequestInteraction()
 
 void ARPGProjectPlayerCharacter::RequestDodge()
 {
-	if (bIsInUninterruptableAction || GetCharacterMovement()->IsFalling()) { return; }
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated || bIsInUninterruptableAction || GetCharacterMovement()->IsFalling()) { return; }
+	if (!CombatComponent) { return; }
+	if (CombatComponent->GetIsInAttackRecovery()) { return; }
+	if (StaminaComponent) { if (StaminaComponent->IsStaminaExhausted()) { return; } }
 
-	if (PlayDodgeMontage())
-	{
-		SetPlayerActionState(EPlayerActionState::PAS_Dodging);
-		bIsInUninterruptableAction = true;
-		bCanAttack = false;
-	}
+	CombatComponent->CombatDodge();
 }
-
-
 
 void ARPGProjectPlayerCharacter::RequestLightAttack()
 {
-	if (CombatComponent && !bIsExhausted)
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
+	if (!CombatComponent) { return; }
+	if (StaminaComponent) { if (StaminaComponent->IsStaminaExhausted()) { return; } }
+	if (bIsInUninterruptableAction) { return; }
+	
+	switch (CombatComponent->GetCombatWeaponStance())
 	{
+	case ECombatWeaponStance::CWS_None:
 		CombatComponent->CharacterAttack(EAttackType::AT_LightAttack);
+		break;
+
+	case ECombatWeaponStance::CWS_Mainhand:
+		// Mainhand Skill #1
+		break;
+
+	case ECombatWeaponStance::CWS_Offhand:
+		// Offhand Skill #1
+		break;
 	}
+}
+
+void ARPGProjectPlayerCharacter::RequestStopLightAttack()
+{
+
 }
 
 void ARPGProjectPlayerCharacter::RequestHeavyAttack()
 {
-	if (CombatComponent && !bIsExhausted)
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
+	if (!CombatComponent) { return; }
+	if (StaminaComponent) { if (StaminaComponent->IsStaminaExhausted()) { return; } }
+	if (bIsInUninterruptableAction) { return; }
+
+	switch (CombatComponent->GetCombatWeaponStance())
 	{
+	case ECombatWeaponStance::CWS_None:
 		CombatComponent->CharacterAttack(EAttackType::AT_HeavyAttack);
+		break;
+
+	case ECombatWeaponStance::CWS_Mainhand:
+		// Mainhand Skill #2
+		break;
+
+	case ECombatWeaponStance::CWS_Offhand:
+		// Offhand Skill #2
+		break;
 	}
 }
 
-
-
-bool ARPGProjectPlayerCharacter::PlayDodgeMontage()
+void ARPGProjectPlayerCharacter::RequestStopHeavyAttack()
 {
-	const float PlayRate = 1.0f;
-	bool bPlayedSuccessfully = PlayAnimMontage(DodgeMontage, PlayRate) > 0.f;
-	if (bPlayedSuccessfully)
+
+}
+
+void ARPGProjectPlayerCharacter::RequestLightAttackFinisher()
+{
+
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
+	if (!CombatComponent) { return; }
+	if (StaminaComponent) { if (StaminaComponent->IsStaminaExhausted()) { return; } }
+	if (bIsInUninterruptableAction) { return; }
+		
+	CombatComponent->CharacterAttack(EAttackType::AT_LightFinisher);
+
+}
+
+void ARPGProjectPlayerCharacter::RequestHeavyAttackFinisher()
+{
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated) { return; }
+	if (!CombatComponent) { return; }
+	if (StaminaComponent) { if (StaminaComponent->IsStaminaExhausted()) { return; } }
+	if (bIsInUninterruptableAction) { return; }
+
+	CombatComponent->CharacterAttack(EAttackType::AT_HeavyFinisher);
+	
+}
+
+void ARPGProjectPlayerCharacter::RequestCombatAction()
+{
+	if (!CombatComponent) { return; }
+	if (!EquipmentComponent) { return; }
+	
+	switch (CombatComponent->GetCombatWeaponStance())
 	{
-		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	case ECombatWeaponStance::CWS_None:
+		CombatComponent->StartNeutralCombatAction();
+		break;
+
+	case ECombatWeaponStance::CWS_Mainhand:
+		CombatComponent->StartStanceCombatAction();
+		break;
+
+	case ECombatWeaponStance::CWS_Offhand:
+		CombatComponent->StartStanceCombatAction();
+		break;
+
+	default:
+		break;
+	}
+
+	CombatComponent->SetCombatActionIsPressed(true);
+}
+
+void ARPGProjectPlayerCharacter::RequestStopCombatAction()
+{
+	if (!CombatComponent) { return; }
+	if (!EquipmentComponent) { return; }
+
+	switch (CombatComponent->GetCombatWeaponStance())
+	{
+	case ECombatWeaponStance::CWS_None:
+		CombatComponent->StopNeutralCombatAction();
+		break;
+
+	case ECombatWeaponStance::CWS_Mainhand:
+		CombatComponent->StopStanceCombatAction();
+		break;
+
+	case ECombatWeaponStance::CWS_Offhand:
+		CombatComponent->StopStanceCombatAction();
+		break;
+
+	default:
+		break;
+	}
+
+	CombatComponent->SetCombatActionIsPressed(false);
+}
+
+void ARPGProjectPlayerCharacter::RequestSwapWeaponLoadout()
+{
+	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated || bIsInUninterruptableAction) { return; }
+
+	if (CombatComponent)
+	{
+		CombatComponent->SwapWeaponLoadout();
+	}
+}
+
+void ARPGProjectPlayerCharacter::PopulateHealthComponentHitboxMap()
+{
+	if (HealthComponent)
+	{
+		HealthComponent->AddToBodyPartMap("Head",		{ {"head", "neck_01"}, .1f, 100.f, 100.f, 1.25f, true, true });
+		HealthComponent->AddToBodyPartMap("Torso",		{ {"pelvis", "spine_01", "spine_02"}, .3f, 300.f, 300.f, 1.f, true , true });
+		HealthComponent->AddToBodyPartMap("Left Arm",	{ {"upperarm_l", "lowerarm_l", "hand_l"}, .15f, 150.f, 150.f, 1.f, false, true });
+		HealthComponent->AddToBodyPartMap("Right Arm",	{ {"upperarm_r", "lowerarm_r", "hand_r"}, .15f, 150.f, 150.f, 1.f, false, true });
+		HealthComponent->AddToBodyPartMap("Left Leg",	{ {"thigh_l", "calf_l", "foot_l", "ball_l"}, .15f, 150.f, 150.f, 1.f, false, true });
+		HealthComponent->AddToBodyPartMap("Right Leg",	{ {"thigh_r", "calf_r", "foot_r", "ball_r"}, .15f, 150.f, 150.f, 1.f, false, true });
+	}
+}
+
+void ARPGProjectPlayerCharacter::PopulateCameraSpringArmMap()
+{
+	CameraSpringArmMap.Emplace(ECameraView::CV_Exploration, CreateDefaultSubobject<USpringArmComponent>(TEXT("Exploration_SpringArm")));
+	CameraSpringArmMap.Emplace(ECameraView::CV_Action, CreateDefaultSubobject<USpringArmComponent>(TEXT("Action_SpringArm")));
+	CameraSpringArmMap.Emplace(ECameraView::CV_Aim, CreateDefaultSubobject<USpringArmComponent>(TEXT("Aim_SpringArm")));
+	CameraSpringArmMap.Emplace(ECameraView::CV_LockOn, CreateDefaultSubobject<USpringArmComponent>(TEXT("LockOn_SpringArm")));
+	CameraSpringArmMap.Emplace(ECameraView::CV_Skill, CameraSpringArmMap[ECameraView::CV_Action]);
+
+	for (uint8 i = 1; i < (uint8)ECameraView::CV_MAX; i++)
+	{
+
+		if (CameraSpringArmMap.Contains((ECameraView)i))
 		{
-			if (!DodgeMontageBlendingOutDelegate.IsBound())
-			{
-				DodgeMontageBlendingOutDelegate.BindUObject(this, &ARPGProjectPlayerCharacter::OnDodgeMontageBlendingOut);
-			}
-
-			AnimInstance->Montage_SetBlendingOutDelegate(DodgeMontageBlendingOutDelegate, DodgeMontage);
-
-			if (!DodgeMontageEndedDelegate.IsBound())
-			{
-				DodgeMontageEndedDelegate.BindUObject(this, &ARPGProjectPlayerCharacter::OnDodgeMontageEnded);
-			}
-
-			AnimInstance->Montage_SetEndDelegate(DodgeMontageEndedDelegate, DodgeMontage);
-
-			AnimInstance->OnPlayMontageNotifyBegin.AddDynamic(this, &ARPGProjectPlayerCharacter::DodgeMontageOnNotifyBeginReceived);
-			AnimInstance->OnPlayMontageNotifyEnd.AddDynamic(this, &ARPGProjectPlayerCharacter::DodgeMontageOnNotifyEndReceived);
+			CameraSpringArmMap[(ECameraView)i]->SetupAttachment(RootComponent);
+			CameraSpringArmMap[(ECameraView)i]->bUsePawnControlRotation = true;
+			CameraSpringArmMap[(ECameraView)i]->bInheritRoll = false;
 		}
 	}
-	return bPlayedSuccessfully;
+	
+	CameraSpringArmMap[ECameraView::CV_Exploration]->SetRelativeLocation({ 0.f, 0.f, 45.f });
+	CameraSpringArmMap[ECameraView::CV_Exploration]->TargetArmLength = 300.f;
+	CameraSpringArmMap[ECameraView::CV_Exploration]->bEnableCameraLag = true;
+	
+	CameraSpringArmMap[ECameraView::CV_Action]->SetRelativeLocation({ 0.f, 0.f, 40.f });
+	CameraSpringArmMap[ECameraView::CV_Action]->TargetArmLength = 450.f;
+	CameraSpringArmMap[ECameraView::CV_Action]->bEnableCameraLag = false;
+	
+	CameraSpringArmMap[ECameraView::CV_Aim]->SetRelativeLocation({ 0.f, 80.f, 75.f });
+	CameraSpringArmMap[ECameraView::CV_Aim]->TargetArmLength = 200.f;
+	CameraSpringArmMap[ECameraView::CV_Aim]->bEnableCameraLag = false;
+
+	CameraSpringArmMap[ECameraView::CV_LockOn]->SetRelativeLocation({ 0.f, 0.f, 95.f });
+	CameraSpringArmMap[ECameraView::CV_LockOn]->TargetArmLength = 500.f;
+	CameraSpringArmMap[ECameraView::CV_LockOn]->bEnableCameraLag = false;
+	CameraSpringArmMap[ECameraView::CV_LockOn]->bEnableCameraRotationLag = true;
+	CameraSpringArmMap[ECameraView::CV_LockOn]->CameraRotationLagSpeed = 10.f;
 }
 
-void ARPGProjectPlayerCharacter::UnbindDodgeMontage()
+void ARPGProjectPlayerCharacter::PopulateCameraArrowMap()
 {
-	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	CameraArrowMap.Emplace(ECameraView::CV_Exploration, CreateDefaultSubobject<UArrowComponent>(TEXT("Exploration_Arrow")));
+	CameraArrowMap.Emplace(ECameraView::CV_Action, CreateDefaultSubobject<UArrowComponent>(TEXT("Action_Arrow")));
+	CameraArrowMap.Emplace(ECameraView::CV_Aim, CreateDefaultSubobject<UArrowComponent>(TEXT("Aim_Arrow")));
+	CameraArrowMap.Emplace(ECameraView::CV_LockOn, CreateDefaultSubobject<UArrowComponent>(TEXT("LockOn_Arrow")));
+	CameraArrowMap.Emplace(ECameraView::CV_Skill, CreateDefaultSubobject<UArrowComponent>(TEXT("Skill_Arrow")));
+
+	for (uint8 i = 1; i < (uint8)ECameraView::CV_MAX; i++)
 	{
-		AnimInstance->OnPlayMontageNotifyBegin.RemoveDynamic(this, &ARPGProjectPlayerCharacter::DodgeMontageOnNotifyBeginReceived);
-		AnimInstance->OnPlayMontageNotifyEnd.RemoveDynamic(this, &ARPGProjectPlayerCharacter::DodgeMontageOnNotifyEndReceived);
+		if (CameraArrowMap.Contains((ECameraView)i))
+		{
+			if (i != (uint8)ECameraView::CV_Skill)
+			{
+				CameraArrowMap[(ECameraView)i]->SetupAttachment(CameraSpringArmMap[(ECameraView)i], USpringArmComponent::SocketName);
+			}
+			else
+			{
+				CameraArrowMap[(ECameraView)i]->SetupAttachment(CameraSpringArmMap[ECameraView::CV_Action], USpringArmComponent::SocketName);
+			}
+			CameraSpringArmMap[ECameraView::CV_Exploration]->SetRelativeLocation({ 0.f, 0.f, 0.f });
+			CameraArrowMap[(ECameraView)i]->ArrowLength = 40.f;
+		}
 	}
 }
 
-void ARPGProjectPlayerCharacter::OnDodgeMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
+void ARPGProjectPlayerCharacter::SetWeaponStance(ECombatWeaponStance CombatWeaponStanceType, UItemWeaponData* StanceWeaponData)
 {
-	bCanAttack = true;
-	bIsInUninterruptableAction = false;
+	//if (!PC) { return; }
+	//if (!RPGPlayerCameraManager) { return; }
+	if (!CombatComponent) { return; }
+	if (CombatWeaponStanceType == ECombatWeaponStance::CWS_None) { return; }
+
+	EWeaponStanceType StanceType = EWeaponStanceType::ST_None;
+
+	switch (CombatWeaponStanceType)
+	{
+	case ECombatWeaponStance::CWS_Mainhand:
+		StanceType = StanceWeaponData->MainhandStanceType;
+		break;
+	
+	case ECombatWeaponStance::CWS_Offhand:
+		StanceType = StanceWeaponData->OffhandStanceType;
+		break;
+	
+	default:
+		break;
+	}
+
+	CombatComponent->SetCombatWeaponStance(RequestedCombatWeaponStance);
+
+	CombatComponent->SetCurrentWeaponStanceType(StanceType);
+
+	switch (StanceType)
+	{
+	case EWeaponStanceType::ST_None:
+
+		break;
+
+	case EWeaponStanceType::ST_Ranged:
+		if (RPGPlayerCameraManager)
+		{
+			RPGPlayerCameraManager->SetCameraView(ECameraView::CV_Aim);
+		}
+		bUseControllerRotationYaw = true;
+		CombatComponent->SetAimAtCrosshair(true);
+		break;
+
+	case EWeaponStanceType::ST_Guard:
+		if (PC)
+		{
+			PC->DisableCharacterRotation(true);
+		}
+		break;
+	}
+
+	if (StaminaComponent && StanceType != EWeaponStanceType::ST_None)
+	{
+		StaminaComponent->SetStaminaRegenMultiplier(StanceWeaponData->WeaponStanceStaminaRegenMultiplier);
+		StaminaComponent->SetStaminaRegenDelayMultiplier(StanceWeaponData->WeaponStanceStaminaRegenDelayMultiplier);
+	}
+
+	
+
 }
 
-void ARPGProjectPlayerCharacter::OnDodgeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void ARPGProjectPlayerCharacter::ResetWeaponStance()
 {
-	UnbindDodgeMontage();
-	SetPlayerActionState(EPlayerActionState::PAS_Idle);
+	if (!PC) { return; }
+	if (!RPGPlayerCameraManager) { return; }
+	if (!CombatComponent) { return; }
+
+	if (StaminaComponent && CombatComponent->GetCurrentWeaponStanceType() != EWeaponStanceType::ST_None)
+	{
+		StaminaComponent->SetStaminaRegenMultiplier(1.f);
+		StaminaComponent->SetStaminaRegenDelayMultiplier(1.f);
+
+	}
+	switch (CombatComponent->GetCurrentWeaponStanceType())
+	{
+	case EWeaponStanceType::ST_None:
+
+		break;
+
+	case EWeaponStanceType::ST_Ranged:
+		if (RPGPlayerCameraManager->GetCameraView() != ECameraView::CV_Action)
+		{
+			RPGPlayerCameraManager->SetCameraView(ECameraView::CV_Action);
+			bUseControllerRotationYaw = false;
+			CombatComponent->SetAimAtCrosshair(false);
+		}
+		break;
+
+	case EWeaponStanceType::ST_Guard:
+		PC->DisableCharacterRotation(false);
+		break;
+
+	case EWeaponStanceType::ST_MAX:
+
+		break;
+	}
+
+	CombatComponent->SetCurrentWeaponStanceType(EWeaponStanceType::ST_None);
+
+	
 }
 
-void ARPGProjectPlayerCharacter::DodgeMontageOnNotifyBeginReceived(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointNotifyPayload)
+void ARPGProjectPlayerCharacter::EnableDodgeCollision(bool bActive)
 {
+	if (bActive)
+	{
+		if (GetMesh())
+		{
+			GetMesh()->SetCollisionProfileName("CharacterMeshDodge");
+		}
 
-}
+		if (EquipmentComponent)
+		{
+			TMap<EEquipmentSlot, UChildActorComponent*> EquipmentMap = EquipmentComponent->GetWornEquipmentActorMap();
 
-void ARPGProjectPlayerCharacter::DodgeMontageOnNotifyEndReceived(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointNotifyPayload)
-{
+			for (uint8 i = 1; i < (uint8)EEquipmentSlot::ES_MAX; i++)
+			{
+				if (EquipmentMap.Contains((EEquipmentSlot)i))
+				{
+					AActor* ChildActor = EquipmentMap[(EEquipmentSlot)i]->GetChildActor();
+					AItemBase* EquippedItem = Cast<AItemBase>(ChildActor);
+					if (EquippedItem) { EquippedItem->GetItemMesh()->SetCollisionProfileName("NoCollision"); }
+				}
+			}
+		}
+	}
+	else
+	{
+		if (GetMesh())
+		{
+			GetMesh()->SetCollisionProfileName("CharacterMesh");
+		}
 
+		if (EquipmentComponent)
+		{
+			TMap<EEquipmentSlot, UChildActorComponent*> EquipmentMap = EquipmentComponent->GetWornEquipmentActorMap();
+
+			for (uint8 i = 1; i < (uint8)EEquipmentSlot::ES_MAX; i++)
+			{
+				if (EquipmentMap.Contains((EEquipmentSlot)i))
+				{
+					AActor* ChildActor = EquipmentMap[(EEquipmentSlot)i]->GetChildActor();
+					AItemBase* EquippedItem = Cast<AItemBase>(ChildActor);
+					if (EquippedItem) { EquippedItem->GetItemMesh()->SetCollisionProfileName("EquippedItem"); }
+				}
+			}
+		}
+	}
 }
 
 void ARPGProjectPlayerCharacter::CheckCharacterExhaustion()
 {
+	if (!StaminaComponent) { return; }
+	if (!CombatComponent) { return; }
 
-	if (StaminaComponent)
+	if (StaminaComponent->IsStaminaExhausted() && !CombatComponent->GetIsGuarding() && GetVelocity().Length() <= 0.f)
 	{
-		if (StaminaComponent->IsStaminaExhausted())
-		{
-			bIsExhausted = true;
-		}
-		else
-		{
-			bIsExhausted = false;
-		}
+		CombatComponent->StaminaExhausted();
 	}
-
+	else if (StaminaComponent->IsStaminaExhausted() && GetVelocity().Length() >= 0.f)
+	{
+		StaminaComponent->ResetStaminaRegenDelay();
+	}
 }
 
 float ARPGProjectPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
-	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::TakeDamage Damage %.2f"), Damage);
-	if (HealthComponent && !HealthComponent->IsDead())
+	if (!CombatComponent) { return 0.f; }
+
+	if (!CombatComponent->GetIsDodging())
 	{
-		HealthComponent->TakeDamage(Damage);
-		if (HealthComponent->IsDead())
+		float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+		UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::TakeDamage Damage %.2f"), Damage);
+		if (HealthComponent && !HealthComponent->IsDead())
 		{
-			OnDeath(false);
+			if (GetBodyPartHit().IsNone())
+			{
+				HealthComponent->TakeDamage(Damage);
+			}
+			else
+			{
+				HealthComponent->TakeDamage(Damage, BodyPartHit);
+				SetBodyPartHit("");
+			}
+
+			if (HealthComponent->IsDead())
+			{
+				OnDeath(false);
+			}
 		}
+		return Damage;
 	}
-	return Damage;
+
+	return 0.f;
 }
 
-void ARPGProjectPlayerCharacter::TakeStaminaDamage(float Damage)
+void ARPGProjectPlayerCharacter::ReduceCurrentStamina(float Damage)
 {
 	if (StaminaComponent)
 	{
-		StaminaComponent->TakeStaminaDamage(Damage);
+		StaminaComponent->ReduceCurrentStamina(Damage);
 	}
 }
 
 void ARPGProjectPlayerCharacter::SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval)
 {
-	
-	if (DamageHandlerComponent)
+	if (!CombatComponent) { return; }
+
+	if (!CombatComponent->GetIsDodging() && DamageHandlerComponent)
 	{
 		DamageHandlerComponent->TakeFireDamage(BaseDamage, DamageTotalTime, TakeDamageInterval);
 	}
@@ -755,14 +1213,14 @@ void ARPGProjectPlayerCharacter::MoveCameraToArrowLocation(FName ArrowName)
 	FLatentActionInfo ActionInfo;
 	ActionInfo.CallbackTarget = this;
 
-	if (FollowCamera != NULL && ArrowComp != nullptr)
+	if (PlayerCamera != NULL && ArrowComp != nullptr)
 	{
-		UKismetSystemLibrary::MoveComponentTo(FollowCamera, ArrowComp->GetRelativeLocation(), ArrowComp->GetRelativeRotation(), false, false, 0.15f,false, EMoveComponentAction::Move, ActionInfo);
-		// FollowCamera->SetRelativeLocation(NewCameraLocation);
+		UKismetSystemLibrary::MoveComponentTo(PlayerCamera, ArrowComp->GetRelativeLocation(), ArrowComp->GetRelativeRotation(), false, false, 0.15f,false, EMoveComponentAction::Move, ActionInfo);
+		// PlayerCamera->SetRelativeLocation(NewCameraLocation);
 	}
 	else
 	{
-		if (FollowCamera == NULL)
+		if (PlayerCamera == NULL)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::MoveCameraToArrowLocation FollowCamera is NULL"));
 			UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::MoveCameraToArrowLocation FollowCamera is NULL"));
@@ -773,7 +1231,7 @@ void ARPGProjectPlayerCharacter::MoveCameraToArrowLocation(FName ArrowName)
 		}
 		
 	}
-	// FollowCamera->SetRelativeLocation(NewCameraLocation);
+	// PlayerCamera->SetRelativeLocation(NewCameraLocation);
 }
 
 const bool ARPGProjectPlayerCharacter::IsAlive() const
@@ -785,11 +1243,11 @@ const bool ARPGProjectPlayerCharacter::IsAlive() const
 	return false;
 }
 
-const float ARPGProjectPlayerCharacter::GetCurrentHealth() const
+const float ARPGProjectPlayerCharacter::GetCurrentHealthPoints() const
 {
 	if (HealthComponent)
 	{
-		return HealthComponent->GetCurrentHealth();
+		return HealthComponent->GetCurrentHealthPoints();
 	}
 	return 0.0f;
 }
@@ -838,6 +1296,7 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 				if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
 				{
 					HighlightInterface->EnableHighlight(false);
+					SetIsInteractionAvailable(false);
 				}
 
 				LookedAtActor = nullptr;
@@ -900,6 +1359,7 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 								if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
 								{
 									HighlightInterface->EnableHighlight(false);
+									SetIsInteractionAvailable(false);
 								}
 							}
 
@@ -912,15 +1372,18 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 								if (InteractionInterface->CanBeInteractedWith())
 								{
 									InteractionInterface->EnableHighlight(bWillHightlight);
+									SetIsInteractionAvailable(bWillHightlight);
 								}
 								else
 								{
 									InteractionInterface->EnableHighlight(false);
+									SetIsInteractionAvailable(false);
 								}
 							}
 							else if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
 							{
 								HighlightInterface->EnableHighlight(true);
+								SetIsInteractionAvailable(true);
 							}
 
 							bFirstInteractableFound = true;
@@ -937,6 +1400,7 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 			if (IHighlightInterface* HighlightInterface = Cast<IHighlightInterface>(LookedAtActor))
 			{
 				HighlightInterface->EnableHighlight(false);
+				SetIsInteractionAvailable(false);
 			}
 			LookedAtActor = nullptr;
 		}
@@ -944,8 +1408,8 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 #if ENABLE_DRAW_DEBUG
 		if (CVarDisplayTrace->GetBool())
 		{
-			const FString DotResultString = "DotResult: " + FString::SanitizeFloat(DotResult);
-			GEngine->AddOnScreenDebugMessage(-1, GetWorld()->GetDeltaSeconds(), FColor::Red, DotResultString);
+			//const FString DotResultString = "DotResult: " + FString::SanitizeFloat(DotResult);
+			//GEngine->AddOnScreenDebugMessage(-1, GetWorld()->GetDeltaSeconds(), FColor::Red, DotResultString);
 
 			static float FovDeg = 90.0f;
 			DrawDebugCamera(GetWorld(), Location, Rotation, FovDeg);

@@ -33,36 +33,6 @@ bool UEquipmentComponent::RemoveWornEquipmentDataInSlot(EEquipmentSlot Equipment
 	return false;
 }
 
-void UEquipmentComponent::AttachWeaponToSocket(AItemEquipment* WeaponToAttach, FName SocketName)
-{
-
-	if (OwningCharacter && OwningCharacter->GetMesh()->DoesSocketExist(SocketName))
-	{
-		const EEquipmentSlot CurrentMainHandSlot = GetCurrentlyEquippedWeaponSet();
-		/*EEquipmentSlot CurrentOffHandSlot;
-
-		if (CurrentMainHandSlot == EEquipmentSlot::EES_MainHandOne)
-		{
-			CurrentOffHandSlot = EEquipmentSlot::EES_OffHandOne;
-		}
-		else
-		{
-			CurrentOffHandSlot = EEquipmentSlot::EES_OffHandTwo;
-		}*/
-
-		AItemEquipment* EquippedMainHandItem = Cast<AItemEquipment>(GetWornEquipmentActorInSlot(CurrentMainHandSlot)->GetChildActor());
-		//AItemEquipment* EquippedOffHandItem = Cast<AItemEquipment>(EquipmentComponent->GetWornEquipmentActorInSlot(CurrentOffHandSlot)->GetChildActor());
-
-		if (EquippedMainHandItem)
-		{
-			EquippedMainHandItem->AttachToComponent(OwningCharacter->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true), SocketName);
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::AttackWeaponToSocket SocketName is null."));
-	}
-}
 
 // Called when the game starts
 void UEquipmentComponent::BeginPlay()
@@ -112,40 +82,40 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 	// Check that the item can be equipped to an equipment slot
 	EEquipmentSlot EquipSlot;
 
-	SlotToEquipTo != EEquipmentSlot::EES_None ? EquipSlot = SlotToEquipTo : EquipSlot = GetEquipmentSlotForItem(ItemToEquip);
-	if (EquipSlot == EEquipmentSlot::EES_None) { return false; }
+	SlotToEquipTo != EEquipmentSlot::ES_None ? EquipSlot = SlotToEquipTo : EquipSlot = GetEquipmentSlotForItem(ItemToEquip);
+	if (EquipSlot == EEquipmentSlot::ES_None) { return false; }
 
 	const EEquipmentSlot ValidEquipmentSlot = GetEquipmentSlotForItem(ItemToEquip);
 	// Check that SlotToEquipTo is valid for ItemToEquip
-	if (SlotToEquipTo != EEquipmentSlot::EES_None && ValidEquipmentSlot != SlotToEquipTo)
+	if (SlotToEquipTo != EEquipmentSlot::ES_None && ValidEquipmentSlot != SlotToEquipTo)
 	{
 		bool IsValidSlot = false;
 
 		switch (SlotToEquipTo)
 		{
-		case EEquipmentSlot::EES_MainHandOne:
-			if (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo)
+		case EEquipmentSlot::ES_MainHandOne:
+			if (ValidEquipmentSlot == EEquipmentSlot::ES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandTwo)
 			{
 				IsValidSlot = true;
 			}
 			break;
 
-		case EEquipmentSlot::EES_OffHandOne:
-			if (ItemEquipmentCast->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo))
+		case EEquipmentSlot::ES_OffHandOne:
+			if (ItemEquipmentCast->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::ES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandTwo))
 			{
 				IsValidSlot = true;
 			}
 			break;
 
-		case EEquipmentSlot::EES_MainHandTwo:
-			if (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo)
+		case EEquipmentSlot::ES_MainHandTwo:
+			if (ValidEquipmentSlot == EEquipmentSlot::ES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandTwo)
 			{
 				IsValidSlot = true;
 			}
 			break;
 
-		case EEquipmentSlot::EES_OffHandTwo:
-			if (ItemEquipmentCast->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne))
+		case EEquipmentSlot::ES_OffHandTwo:
+			if (ItemEquipmentCast->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::ES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandOne))
 			{
 				IsValidSlot = true;
 			}
@@ -179,10 +149,10 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 		}
 	}
 
-	if (EquipSlot == EEquipmentSlot::EES_OffHandOne)
+	if (EquipSlot == EEquipmentSlot::ES_OffHandOne)
 	{
 		UItemEquipmentData* MainHandCheck = nullptr;
-		WornEquipmentDataMap.Contains(EEquipmentSlot::EES_MainHandOne) ? MainHandCheck = Cast<UItemEquipmentData>(WornEquipmentDataMap[EEquipmentSlot::EES_MainHandOne]) : false;
+		WornEquipmentDataMap.Contains(EEquipmentSlot::ES_MainHandOne) ? MainHandCheck = Cast<UItemEquipmentData>(WornEquipmentDataMap[EEquipmentSlot::ES_MainHandOne]) : false;
 
 		if (MainHandCheck)
 		{
@@ -194,10 +164,10 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 		}
 	}
 
-	if (EquipSlot == EEquipmentSlot::EES_OffHandTwo)
+	if (EquipSlot == EEquipmentSlot::ES_OffHandTwo)
 	{
 		UItemEquipmentData* MainHandCheck = nullptr;
-		WornEquipmentDataMap.Contains(EEquipmentSlot::EES_MainHandOne) ? MainHandCheck = Cast<UItemEquipmentData>(WornEquipmentDataMap[EEquipmentSlot::EES_MainHandTwo]) : false;
+		WornEquipmentDataMap.Contains(EEquipmentSlot::ES_MainHandOne) ? MainHandCheck = Cast<UItemEquipmentData>(WornEquipmentDataMap[EEquipmentSlot::ES_MainHandTwo]) : false;
 
 		if (MainHandCheck)
 		{
@@ -218,13 +188,17 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 
 		if (WornEquipmentActorMap[EquipSlot]->GetChildActorClass() == nullptr)
 		{
-			WornEquipmentActorMap[EquipSlot]->SetChildActorClass(WornEquipmentDataMap[EquipSlot]->ClassToSpawn.Get());
+			//WornEquipmentActorMap[EquipSlot]->SetChildActorClass(WornEquipmentDataMap[EquipSlot]->ClassToSpawn.Get());
+			WornEquipmentActorMap[EquipSlot]->SetChildActorClass(ItemToEquip->ClassToSpawn.Get());
 
 			AItemEquipment* EquippedItem = Cast<AItemEquipment>(WornEquipmentActorMap[EquipSlot]->GetChildActor());
 			if (EquippedItem)
 			{
 				// Copy ItemData to child actor
-				EquippedItem->SetItemData(WornEquipmentDataMap[EquipSlot]);
+				//EquippedItem->SetItemData(WornEquipmentDataMap[EquipSlot]);
+				EquippedItem->SetItemData(ItemToEquip);
+
+				WornEquipmentDataMap.Emplace(EquipSlot, EquippedItem->GetItemData());
 
 				AttachEquipmentToSocket(EquipSlot);
 
@@ -266,13 +240,13 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 
 		switch (EquipSlot)
 		{
-		case EEquipmentSlot::EES_MainHandOne:
-			if (WornEquipmentDataMap.Contains(EEquipmentSlot::EES_OffHandOne))
+		case EEquipmentSlot::ES_MainHandOne:
+			if (WornEquipmentDataMap.Contains(EEquipmentSlot::ES_OffHandOne))
 			{
 				if (InInventoryComponentRef->GetEmptyInventorySpace() >= 2)
 				{
-					const bool bUnequippedMain = Unequip(EEquipmentSlot::EES_MainHandOne, InInventoryComponentRef, ItemToEquipInventoryKey);
-					const bool bUnequippedOff = Unequip(EEquipmentSlot::EES_OffHandOne, InInventoryComponentRef);
+					const bool bUnequippedMain = Unequip(EEquipmentSlot::ES_MainHandOne, InInventoryComponentRef, ItemToEquipInventoryKey);
+					const bool bUnequippedOff = Unequip(EEquipmentSlot::ES_OffHandOne, InInventoryComponentRef);
 
 					if (bUnequippedMain && bUnequippedOff)
 					{
@@ -302,13 +276,13 @@ bool UEquipmentComponent::Equip(UItemData* ItemToEquip, EEquipmentSlot SlotToEqu
 			}
 			break;
 
-		case EEquipmentSlot::EES_MainHandTwo:
-			if (WornEquipmentDataMap.Contains(EEquipmentSlot::EES_OffHandTwo))
+		case EEquipmentSlot::ES_MainHandTwo:
+			if (WornEquipmentDataMap.Contains(EEquipmentSlot::ES_OffHandTwo))
 			{
 				if (InInventoryComponentRef->GetEmptyInventorySpace() >= 2)
 				{
-					const bool bUnequippedMain = Unequip(EEquipmentSlot::EES_MainHandTwo, InInventoryComponentRef, ItemToEquipInventoryKey);
-					const bool bUnequippedOff = Unequip(EEquipmentSlot::EES_OffHandTwo, InInventoryComponentRef);
+					const bool bUnequippedMain = Unequip(EEquipmentSlot::ES_MainHandTwo, InInventoryComponentRef, ItemToEquipInventoryKey);
+					const bool bUnequippedOff = Unequip(EEquipmentSlot::ES_OffHandTwo, InInventoryComponentRef);
 
 					if (bUnequippedMain && bUnequippedOff)
 					{
@@ -473,8 +447,8 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 	}
 
 	// Check that the item can be equipped to an equipment slot
-	EEquipmentSlot EquipSlot = EEquipmentSlot::EES_None;
-	if (SlotToEquipTo != EEquipmentSlot::EES_None)
+	EEquipmentSlot EquipSlot = EEquipmentSlot::ES_None;
+	if (SlotToEquipTo != EEquipmentSlot::ES_None)
 	{
 		EquipSlot = SlotToEquipTo;
 	}
@@ -483,7 +457,7 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 		EquipSlot = GetEquipmentSlotForItem(ItemToEquip);
 	}
 
-	if (EquipSlot == EEquipmentSlot::EES_None) { return false; }
+	if (EquipSlot == EEquipmentSlot::ES_None) { return false; }
 
 	if (!IsEquipSlotValidForItem(EquipSlot, ItemEquipmentCast))
 	{
@@ -500,12 +474,12 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 		return false;
 	}
 
-	if (EquipSlot == EEquipmentSlot::EES_OffHandOne)
+	if (EquipSlot == EEquipmentSlot::ES_OffHandOne)
 	{
 		UItemEquipmentData* MainHandCheck = nullptr;
-		if (EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandOne))
+		if (EquipCheckDataMap.Contains(EEquipmentSlot::ES_MainHandOne))
 		{
-			MainHandCheck = Cast<UItemEquipmentData>(EquipCheckDataMap[EEquipmentSlot::EES_MainHandOne]);
+			MainHandCheck = Cast<UItemEquipmentData>(EquipCheckDataMap[EEquipmentSlot::ES_MainHandOne]);
 		}
 
 		if (MainHandCheck)
@@ -518,12 +492,12 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 		}
 	}
 
-	if (EquipSlot == EEquipmentSlot::EES_OffHandTwo)
+	if (EquipSlot == EEquipmentSlot::ES_OffHandTwo)
 	{
 		UItemEquipmentData* MainHandCheck = nullptr;
-		if (EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandOne))
+		if (EquipCheckDataMap.Contains(EEquipmentSlot::ES_MainHandOne))
 		{
-			MainHandCheck = Cast<UItemEquipmentData>(EquipCheckDataMap[EEquipmentSlot::EES_MainHandTwo]);
+			MainHandCheck = Cast<UItemEquipmentData>(EquipCheckDataMap[EEquipmentSlot::ES_MainHandTwo]);
 		}
 
 		if (MainHandCheck)
@@ -551,16 +525,16 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 
 		switch (EquipSlot)
 		{
-		case EEquipmentSlot::EES_MainHandOne:
-			if (EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandOne))
+		case EEquipmentSlot::ES_MainHandOne:
+			if (EquipCheckDataMap.Contains(EEquipmentSlot::ES_OffHandOne))
 			{
 				if (EmptyInventorySlots >= 2)
 				{
-					EquipCheckDataMap.Remove(EEquipmentSlot::EES_MainHandOne);
-					const bool bUnequippedMain = !EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandOne);
+					EquipCheckDataMap.Remove(EEquipmentSlot::ES_MainHandOne);
+					const bool bUnequippedMain = !EquipCheckDataMap.Contains(EEquipmentSlot::ES_MainHandOne);
 
-					EquipCheckDataMap.Remove(EEquipmentSlot::EES_OffHandOne);
-					const bool bUnequippedOff = !EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandOne);
+					EquipCheckDataMap.Remove(EEquipmentSlot::ES_OffHandOne);
+					const bool bUnequippedOff = !EquipCheckDataMap.Contains(EEquipmentSlot::ES_OffHandOne);
 
 					if (bUnequippedMain && bUnequippedOff)
 					{
@@ -590,16 +564,16 @@ bool UEquipmentComponent::EquipCheck(UItemData* ItemToEquip, EEquipmentSlot Slot
 			}
 			break;
 
-		case EEquipmentSlot::EES_MainHandTwo:
-			if (EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandTwo))
+		case EEquipmentSlot::ES_MainHandTwo:
+			if (EquipCheckDataMap.Contains(EEquipmentSlot::ES_OffHandTwo))
 			{
 				if (EmptyInventorySlots >= 2)
 				{
-					EquipCheckDataMap.Remove(EEquipmentSlot::EES_MainHandTwo);
-					const bool bUnequippedMain = !EquipCheckDataMap.Contains(EEquipmentSlot::EES_MainHandTwo);
+					EquipCheckDataMap.Remove(EEquipmentSlot::ES_MainHandTwo);
+					const bool bUnequippedMain = !EquipCheckDataMap.Contains(EEquipmentSlot::ES_MainHandTwo);
 
-					EquipCheckDataMap.Remove(EEquipmentSlot::EES_OffHandTwo);
-					const bool bUnequippedOff = !EquipCheckDataMap.Contains(EEquipmentSlot::EES_OffHandTwo);
+					EquipCheckDataMap.Remove(EEquipmentSlot::ES_OffHandTwo);
+					const bool bUnequippedOff = !EquipCheckDataMap.Contains(EEquipmentSlot::ES_OffHandTwo);
 
 					if (bUnequippedMain && bUnequippedOff)
 					{
@@ -678,148 +652,148 @@ EEquipmentSlot UEquipmentComponent::GetEquipmentSlotForItem(UItemData* Item)
 		{
 		case EEquipmentType::EET_None:
 			UE_LOG(LogTemp, Warning, TEXT("UEquipmentComponent::Equip ItemToEquip does not have a valid EquipmentType."));
-			return EEquipmentSlot::EES_None;
+			return EEquipmentSlot::ES_None;
 			break;
 
 		case EEquipmentType::EET_1HWeapon:
-			if (bIsUsingFirstWeaponSet)
+			if (GetCurrentWeaponLoadout() == EWeaponLoadout::WL_LoadoutOne)
 			{
-				if (!WornEquipmentDataMap.Contains(EEquipmentSlot::EES_MainHandOne))
+				if (!WornEquipmentDataMap.Contains(EEquipmentSlot::ES_MainHandOne))
 				{
-					return EEquipmentSlot::EES_MainHandOne;
+					return EEquipmentSlot::ES_MainHandOne;
 				}
-				else if (!WornEquipmentDataMap.Contains(EEquipmentSlot::EES_OffHandOne))
+				else if (!WornEquipmentDataMap.Contains(EEquipmentSlot::ES_OffHandOne))
 				{
-					return EEquipmentSlot::EES_OffHandOne;
+					return EEquipmentSlot::ES_OffHandOne;
 				}
 				else
 				{
-					return EEquipmentSlot::EES_MainHandOne;
+					return EEquipmentSlot::ES_MainHandOne;
 				}
 			}
 			else
 			{
-				if (!WornEquipmentDataMap.Contains(EEquipmentSlot::EES_MainHandTwo))
+				if (!WornEquipmentDataMap.Contains(EEquipmentSlot::ES_MainHandTwo))
 				{
-					return EEquipmentSlot::EES_MainHandTwo;
+					return EEquipmentSlot::ES_MainHandTwo;
 				}
-				else if (!WornEquipmentDataMap.Contains(EEquipmentSlot::EES_OffHandTwo))
+				else if (!WornEquipmentDataMap.Contains(EEquipmentSlot::ES_OffHandTwo))
 				{
-					return EEquipmentSlot::EES_OffHandTwo;
+					return EEquipmentSlot::ES_OffHandTwo;
 				}
 				else
 				{
-					return EEquipmentSlot::EES_MainHandTwo;
+					return EEquipmentSlot::ES_MainHandTwo;
 				}
 			}
 			break;
 
 		case EEquipmentType::EET_2HWeapon:
-			if (bIsUsingFirstWeaponSet)
+			if (GetCurrentWeaponLoadout() == EWeaponLoadout::WL_LoadoutOne)
 			{
-				return EEquipmentSlot::EES_MainHandOne;
+				return EEquipmentSlot::ES_MainHandOne;
 			}
 			else
 			{
-				return EEquipmentSlot::EES_MainHandTwo;
+				return EEquipmentSlot::ES_MainHandTwo;
 			}
 			break;
 
 		case EEquipmentType::EET_OffHand:
-			if (bIsUsingFirstWeaponSet)
+			if (GetCurrentWeaponLoadout() == EWeaponLoadout::WL_LoadoutOne)
 			{
-				return EEquipmentSlot::EES_OffHandOne;
+				return EEquipmentSlot::ES_OffHandOne;
 			}
 			else
 			{
-				return EEquipmentSlot::EES_OffHandTwo;
+				return EEquipmentSlot::ES_OffHandTwo;
 			}
 			break;
 
 		case EEquipmentType::EET_Head:
-			return EEquipmentSlot::EES_Head;
+			return EEquipmentSlot::ES_Head;
 			break;
 
 		case EEquipmentType::EET_Torso:
-			return EEquipmentSlot::EES_Torso;
+			return EEquipmentSlot::ES_Torso;
 			break;
 
 		case EEquipmentType::EET_Hands:
-			return EEquipmentSlot::EES_Hands;
+			return EEquipmentSlot::ES_Hands;
 			break;
 
 		case EEquipmentType::EET_Legs:
-			return EEquipmentSlot::EES_Legs;
+			return EEquipmentSlot::ES_Legs;
 			break;
 
 		case EEquipmentType::EET_Feet:
-			return EEquipmentSlot::EES_Feet;
+			return EEquipmentSlot::ES_Feet;
 			break;
 
-		case EEquipmentType::EET_TorsoAccessory:
-			return EEquipmentSlot::EES_TorsoAccessory;
+		case EEquipmentType::EET_Torso_Accessory:
+			return EEquipmentSlot::ES_TorsoAccessory;
 			break;
 
-		case EEquipmentType::EET_HeadAccessory:
-			return EEquipmentSlot::EES_HeadAccessory;
+		case EEquipmentType::EET_Head_Accessory:
+			return EEquipmentSlot::ES_HeadAccessory;
 			break;
 
-		case EEquipmentType::EET_NeckAccessory:
-			return EEquipmentSlot::EES_NeckAccessory;
+		case EEquipmentType::EET_Neck_Accessory:
+			return EEquipmentSlot::ES_NeckAccessory;
 			break;
 
-		case EEquipmentType::EET_ArmAccessory:
-			return EEquipmentSlot::EES_ArmAccessory;
+		case EEquipmentType::EET_Arm_Accessory:
+			return EEquipmentSlot::ES_ArmAccessory;
 			break;
 
-		case EEquipmentType::EET_RingAccessory:
-			if (!WornEquipmentDataMap.Contains(EEquipmentSlot::EES_RingAccessory1))
+		case EEquipmentType::EET_Ring_Accessory:
+			if (!WornEquipmentDataMap.Contains(EEquipmentSlot::ES_RingAccessory1))
 			{
-				return EEquipmentSlot::EES_RingAccessory1;
+				return EEquipmentSlot::ES_RingAccessory1;
 			}
-			else if (!WornEquipmentDataMap.Contains(EEquipmentSlot::EES_RingAccessory2))
+			else if (!WornEquipmentDataMap.Contains(EEquipmentSlot::ES_RingAccessory2))
 			{
-				return EEquipmentSlot::EES_RingAccessory2;
+				return EEquipmentSlot::ES_RingAccessory2;
 			}
 			else
 			{
-				return EEquipmentSlot::EES_RingAccessory1;
+				return EEquipmentSlot::ES_RingAccessory1;
 			}
 			break;
 
 		default:
-			return EEquipmentSlot::EES_None;
+			return EEquipmentSlot::ES_None;
 			break;
 		}
 	}
-	return EEquipmentSlot::EES_None;
+	return EEquipmentSlot::ES_None;
 }
 
 void UEquipmentComponent::EquipOffHandIfMainHandIsEmpty()
 {
-	if (!WornEquipmentDataMap.Contains(EEquipmentSlot::EES_MainHandOne) && WornEquipmentDataMap.Contains(EEquipmentSlot::EES_OffHandOne))
+	if (!WornEquipmentDataMap.Contains(EEquipmentSlot::ES_MainHandOne) && WornEquipmentDataMap.Contains(EEquipmentSlot::ES_OffHandOne))
 	{
-		UItemWeaponData* OffHandData = Cast<UItemWeaponData>(WornEquipmentDataMap[EEquipmentSlot::EES_OffHandOne]);
+		UItemWeaponData* OffHandData = Cast<UItemWeaponData>(WornEquipmentDataMap[EEquipmentSlot::ES_OffHandOne]);
 		if (OffHandData->EquipmentType == EEquipmentType::EET_1HWeapon)
 		{
-			if (Equip(OffHandData, EEquipmentSlot::EES_MainHandOne, nullptr, -1, false))
+			if (Equip(OffHandData, EEquipmentSlot::ES_MainHandOne, nullptr, -1, false))
 			{
-				WornEquipmentDataMap.Remove(EEquipmentSlot::EES_OffHandOne);
+				WornEquipmentDataMap.Remove(EEquipmentSlot::ES_OffHandOne);
 			}
 		}
 	}
-	if (!WornEquipmentDataMap.Contains(EEquipmentSlot::EES_MainHandTwo) && WornEquipmentDataMap.Contains(EEquipmentSlot::EES_OffHandTwo))
+	if (!WornEquipmentDataMap.Contains(EEquipmentSlot::ES_MainHandTwo) && WornEquipmentDataMap.Contains(EEquipmentSlot::ES_OffHandTwo))
 	{
-		UItemWeaponData* OffHandData = Cast<UItemWeaponData>(WornEquipmentDataMap[EEquipmentSlot::EES_OffHandTwo]);
+		UItemWeaponData* OffHandData = Cast<UItemWeaponData>(WornEquipmentDataMap[EEquipmentSlot::ES_OffHandTwo]);
 		if (OffHandData->EquipmentType == EEquipmentType::EET_1HWeapon)
 		{
-			if (Equip(OffHandData, EEquipmentSlot::EES_MainHandTwo, nullptr, -1, false))
+			if (Equip(OffHandData, EEquipmentSlot::ES_MainHandTwo, nullptr, -1, false))
 			{
-				WornEquipmentDataMap.Remove(EEquipmentSlot::EES_OffHandTwo);
+				WornEquipmentDataMap.Remove(EEquipmentSlot::ES_OffHandTwo);
 			}
 		}
-		//WornEquipmentDataMap.Emplace(EEquipmentSlot::EES_MainHandTwo, WornEquipmentDataMap[EEquipmentSlot::EES_OffHandTwo]);
-		//WornEquipmentDataMap.Remove(EEquipmentSlot::EES_OffHandTwo);
+		//WornEquipmentDataMap.Emplace(EEquipmentSlot::ES_MainHandTwo, WornEquipmentDataMap[EEquipmentSlot::ES_OffHandTwo]);
+		//WornEquipmentDataMap.Remove(EEquipmentSlot::ES_OffHandTwo);
 	}
 }
 
@@ -850,42 +824,42 @@ bool UEquipmentComponent::SwapEquipment(EEquipmentSlot FirstEquipment, EEquipmen
 
 void UEquipmentComponent::CreateEquipmentChildActors()
 {
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_MainHandOne, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_MainHandOne")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_MainHandOne, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_MainHandOne")));
 
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_OffHandOne, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_OffHandOne")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_OffHandOne, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_OffHandOne")));
 	
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_MainHandTwo, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_MainHandTwo")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_MainHandTwo, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_MainHandTwo")));
 	
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_OffHandTwo, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_OffHandTwo")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_OffHandTwo, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_OffHandTwo")));
 	
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_Head, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Head")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_Head, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Head")));
 	
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_Torso, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Torso")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_Torso, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Torso")));
 	
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_Hands, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Hands")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_Hands, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Hands")));
 	
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_Legs, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Legs")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_Legs, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Legs")));
 
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_Feet, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Feet")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_Feet, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_Feet")));
 
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_TorsoAccessory, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_TorsoAccessory")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_TorsoAccessory, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_TorsoAccessory")));
 
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_HeadAccessory, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_HeadAccessory")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_HeadAccessory, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_HeadAccessory")));
 
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_NeckAccessory, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_NeckAccessory")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_NeckAccessory, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_NeckAccessory")));
 
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_ArmAccessory, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_ArmAccessory")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_ArmAccessory, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_ArmAccessory")));
 
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_RingAccessory1, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_RingAccessory1")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_RingAccessory1, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_RingAccessory1")));
 
-	WornEquipmentActorMap.Emplace(EEquipmentSlot::EES_RingAccessory2, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_RingAccessory2")));
+	WornEquipmentActorMap.Emplace(EEquipmentSlot::ES_RingAccessory2, CreateDefaultSubobject<UChildActorComponent>(TEXT("Equipped_RingAccessory2")));
 }
 
 void UEquipmentComponent::UpdateEquipmentChildActors(bool bForceUpdate)
 {
 	EEquipmentSlot EquipmentSlot;
 
-	for (uint8 i = 1; i < (uint8)EEquipmentSlot::EES_MAX; i++)
+	for (uint8 i = 1; i < (uint8)EEquipmentSlot::ES_MAX; i++)
 	{
 		EquipmentSlot = (EEquipmentSlot)i;
 		if (WornEquipmentDataMap.Contains(EquipmentSlot))
@@ -940,13 +914,13 @@ void UEquipmentComponent::EquipStartingEquipment()
 
 	EEquipmentSlot EquipmentSlot;
 	
-	for (uint8 i = 1; i < (uint8)EEquipmentSlot::EES_MAX; i++)
+	for (uint8 i = 1; i < (uint8)EEquipmentSlot::ES_MAX; i++)
 	{
 		EquipmentSlot = (EEquipmentSlot)i;
 
 		if (StartingEquipment.Contains(EquipmentSlot))
 		{
-			if (UItemData* ItemData = StartingEquipment[EquipmentSlot].GetDefaultObject()->GetItemData())
+			if (UItemData* ItemData = StartingEquipment[EquipmentSlot].GetDefaultObject()->GetItemDataDefault())
 			{
 				Equip(ItemData, EquipmentSlot);
 			}
@@ -954,37 +928,53 @@ void UEquipmentComponent::EquipStartingEquipment()
 	}
 }
 
+void UEquipmentComponent::AttachWeaponToSocket(AItemEquipment* WeaponToAttach, FName SocketName)
+{
+	if (!OwningCharacter) { return; }
+	if (!Cast<AItemWeapon>(WeaponToAttach)) { return; }
+
+
+	if (OwningCharacter->GetMesh()->DoesSocketExist(SocketName))
+	{
+		WeaponToAttach->AttachToComponent(OwningCharacter->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true), SocketName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::AttackWeaponToSocket SocketName is null."));
+	}
+}
+
 void UEquipmentComponent::AttachEquipmentToMesh(USkeletalMeshComponent* CharacterMesh)
 {
-	WornEquipmentActorMap[EEquipmentSlot::EES_MainHandOne]->SetupAttachment(CharacterMesh, FName("Equipment_MainHandOne"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_MainHandOne]->SetupAttachment(CharacterMesh, FName("Equipment_MainHandOne"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_OffHandOne]->SetupAttachment(CharacterMesh, FName("Equipment_OffHandOne"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_OffHandOne]->SetupAttachment(CharacterMesh, FName("Equipment_OffHandOne"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_MainHandTwo]->SetupAttachment(CharacterMesh, FName("Equipment_MainHandTwo"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_MainHandTwo]->SetupAttachment(CharacterMesh, FName("Equipment_MainHandTwo"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_OffHandTwo]->SetupAttachment(CharacterMesh, FName("Equipment_OffHandTwo"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_OffHandTwo]->SetupAttachment(CharacterMesh, FName("Equipment_OffHandTwo"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_Head]->SetupAttachment(CharacterMesh, FName("Equipment_Head"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_Head]->SetupAttachment(CharacterMesh, FName("Equipment_Head"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_Torso]->SetupAttachment(CharacterMesh, FName("Equipment_Torso"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_Torso]->SetupAttachment(CharacterMesh, FName("Equipment_Torso"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_Hands]->SetupAttachment(CharacterMesh, FName("Equipment_Hands"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_Hands]->SetupAttachment(CharacterMesh, FName("Equipment_Hands"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_Legs]->SetupAttachment(CharacterMesh, FName("Equipment_Legs"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_Legs]->SetupAttachment(CharacterMesh, FName("Equipment_Legs"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_Feet]->SetupAttachment(CharacterMesh, FName("Equipment_Feet"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_Feet]->SetupAttachment(CharacterMesh, FName("Equipment_Feet"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_TorsoAccessory]->SetupAttachment(CharacterMesh, FName("Equipment_TorsoAccessory"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_TorsoAccessory]->SetupAttachment(CharacterMesh, FName("Equipment_TorsoAccessory"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_HeadAccessory]->SetupAttachment(CharacterMesh, FName("Equipment_HeadAccessory"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_HeadAccessory]->SetupAttachment(CharacterMesh, FName("Equipment_HeadAccessory"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_NeckAccessory]->SetupAttachment(CharacterMesh, FName("Equipment_NeckAccessory"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_NeckAccessory]->SetupAttachment(CharacterMesh, FName("Equipment_NeckAccessory"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_ArmAccessory]->SetupAttachment(CharacterMesh, FName("Equipment_ArmAccessory"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_ArmAccessory]->SetupAttachment(CharacterMesh, FName("Equipment_ArmAccessory"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_RingAccessory1]->SetupAttachment(CharacterMesh, FName("Equipment_RingAccessory1"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_RingAccessory1]->SetupAttachment(CharacterMesh, FName("Equipment_RingAccessory1"));
 
-	WornEquipmentActorMap[EEquipmentSlot::EES_RingAccessory2]->SetupAttachment(CharacterMesh, FName("Equipment_RingAccessory2"));
+	WornEquipmentActorMap[EEquipmentSlot::ES_RingAccessory2]->SetupAttachment(CharacterMesh, FName("Equipment_RingAccessory2"));
 }
 
 void UEquipmentComponent::AttachEquipmentToSocket(EEquipmentSlot EquipmentSlot)
@@ -1001,84 +991,84 @@ void UEquipmentComponent::AttachEquipmentToSocket(EEquipmentSlot EquipmentSlot)
 
 	if (UCombatComponent* CombatComponentRef = Cast<UCombatComponent>(OwningCharacter->FindComponentByClass(UCombatComponent::StaticClass())))
 	{
-		if (UItemWeaponData* WeaponData = Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EquipmentSlot)))
-		{
-			switch (CombatComponentRef->GetCombatState())
-			{
-			case ECombatState::CS_AtEase:
-				SocketName = WeaponData->SheathSocket;
-				break;
-
-			case ECombatState::CS_CombatReady:
-				SocketName = WeaponData->EquippedSocket;
-				break;
-
-			default:
-				break;
-			}
-		}
 		// ToDo - Add universal sheath sockets for weapons for both weapon sets
-		else if (UItemEquipmentData* EquipmentData = Cast<UItemEquipmentData>(GetWornEquipmentDataInSlot(EquipmentSlot)))
+		if (UItemEquipmentData* EquipmentData = Cast<UItemEquipmentData>(GetWornEquipmentDataInSlot(EquipmentSlot)))
 		{
 			switch (EquipmentSlot)
 			{
-			/*case EEquipmentSlot::EES_MainHandOne:
-				SocketName = "Equipment_MainHandOne";
+			case EEquipmentSlot::ES_MainHandOne:
+				//SocketName = "Equipment_MainHandOne";
+				if (UItemWeaponData* WeaponData = Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EquipmentSlot)))
+				{
+					SocketName = WeaponData->MainhandSheatheSocket;
+				}
 				break;
 
-			case EEquipmentSlot::EES_OffHandOne:
-				SocketName = "Equipment_OffHandOne";
+			case EEquipmentSlot::ES_OffHandOne:
+				//SocketName = "Equipment_OffHandOne";
+				if (UItemWeaponData* WeaponData = Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EquipmentSlot)))
+				{
+					SocketName = WeaponData->OffhandSheatheSocket;
+				}
 				break;
 
-			case EEquipmentSlot::EES_MainHandTwo:
-				SocketName = "Equipment_MainHandTwo";
+			case EEquipmentSlot::ES_MainHandTwo:
+				//SocketName = "Equipment_MainHandTwo";
+				if (UItemWeaponData* WeaponData = Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EquipmentSlot)))
+				{
+					SocketName = WeaponData->MainhandSheatheSocket;
+				}
 				break;
 
-			case EEquipmentSlot::EES_OffHandTwo:
-				SocketName = "Equipment_OffHandTwo";
-				break;*/
+			case EEquipmentSlot::ES_OffHandTwo:
+				//SocketName = "Equipment_OffHandTwo";
+				if (UItemWeaponData* WeaponData = Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EquipmentSlot)))
+				{
+					SocketName = WeaponData->OffhandSheatheSocket;
+				}
+				break;
 
-			case EEquipmentSlot::EES_Head:
+			case EEquipmentSlot::ES_Head:
 				SocketName = "Equipment_Head";
 				break;
 
-			case EEquipmentSlot::EES_Torso:
+			case EEquipmentSlot::ES_Torso:
 				SocketName = "Equipment_Torso";
 				break;
 
-			case EEquipmentSlot::EES_Hands:
+			case EEquipmentSlot::ES_Hands:
 				SocketName = "Equipment_Hands";
 				break;
 
-			case EEquipmentSlot::EES_Legs:
+			case EEquipmentSlot::ES_Legs:
 				SocketName = "Equipment_Legs";
 				break;
 
-			case EEquipmentSlot::EES_Feet:
+			case EEquipmentSlot::ES_Feet:
 				SocketName = "Equipment_Feet";
 				break;
 
-			case EEquipmentSlot::EES_TorsoAccessory:
+			case EEquipmentSlot::ES_TorsoAccessory:
 				SocketName = "Equipment_TorsoAccessory";
 				break;
 
-			case EEquipmentSlot::EES_HeadAccessory:
+			case EEquipmentSlot::ES_HeadAccessory:
 				SocketName = "Equipment_HeadAccessory";
 				break;
 
-			case EEquipmentSlot::EES_NeckAccessory:
+			case EEquipmentSlot::ES_NeckAccessory:
 				SocketName = "Equipment_NeckAccessory";
 				break;
 
-			case EEquipmentSlot::EES_ArmAccessory:
+			case EEquipmentSlot::ES_ArmAccessory:
 				SocketName = "Equipment_ArmAccessory";
 				break;
 
-			case EEquipmentSlot::EES_RingAccessory1:
+			case EEquipmentSlot::ES_RingAccessory1:
 				SocketName = "Equipment_RingAccessory1";
 				break;
 
-			case EEquipmentSlot::EES_RingAccessory2:
+			case EEquipmentSlot::ES_RingAccessory2:
 				SocketName = "Equipment_RingAccessory2";
 				break;
 
@@ -1104,24 +1094,41 @@ void UEquipmentComponent::AttachEquipmentToSocket(EEquipmentSlot EquipmentSlot)
 	}
 }
 
-EEquipmentSlot UEquipmentComponent::GetCurrentlyEquippedWeaponSet()
+EEquipmentSlot UEquipmentComponent::GetEquipmentSlotForCurrentWeaponLoadout(bool bReturnMainhandSlot)
 {
-	if (bIsUsingFirstWeaponSet)
+	switch (CurrentWeaponLoadout)
 	{
-		return EEquipmentSlot::EES_MainHandOne;
+	case EWeaponLoadout::WL_LoadoutOne:
+		if (bReturnMainhandSlot)
+		{
+			return EEquipmentSlot::ES_MainHandOne;
+		}
+		else
+		{
+			return EEquipmentSlot::ES_OffHandOne;
+		}
+		break;
+	case EWeaponLoadout::WL_LoadoutTwo:
+		if (bReturnMainhandSlot)
+		{
+			return EEquipmentSlot::ES_MainHandTwo;
+		}
+		else
+		{
+			return EEquipmentSlot::ES_OffHandTwo;
+		}
+		break;
+	default:
+		return EEquipmentSlot::ES_None;
+		break;
 	}
-	else
-	{
-		return EEquipmentSlot::EES_MainHandTwo;
-	}
-	return EEquipmentSlot::EES_None;
 }
 
 float UEquipmentComponent::GetEquipmentWeight()
 {
 	float TotalWeight = 0.0f;
 
-	for (uint8 i = 1; i < (uint8)EEquipmentSlot::EES_MAX; i++)
+	for (uint8 i = 1; i < (uint8)EEquipmentSlot::ES_MAX; i++)
 	{
 		if (WornEquipmentDataMap.Contains((EEquipmentSlot)i))
 		{
@@ -1129,6 +1136,48 @@ float UEquipmentComponent::GetEquipmentWeight()
 		}
 	}
 	return TotalWeight;
+}
+
+AItemWeapon* UEquipmentComponent::GetMainhandWeaponActor()
+{
+	return Cast<AItemWeapon>(GetWornEquipmentActorInSlot(GetEquipmentSlotForCurrentWeaponLoadout())->GetChildActor());
+}
+
+UItemWeaponData* UEquipmentComponent::GetMainhandWeaponData()
+{
+	return Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(GetEquipmentSlotForCurrentWeaponLoadout()));
+}
+
+AItemWeapon* UEquipmentComponent::GetOffhandWeaponActor()
+{
+	switch (GetEquipmentSlotForCurrentWeaponLoadout())
+	{
+	case EEquipmentSlot::ES_MainHandOne:
+		return Cast<AItemWeapon>(GetWornEquipmentActorInSlot(EEquipmentSlot::ES_OffHandOne)->GetChildActor());
+		break;
+	case EEquipmentSlot::ES_MainHandTwo:
+		return Cast<AItemWeapon>(GetWornEquipmentActorInSlot(EEquipmentSlot::ES_OffHandTwo)->GetChildActor());
+		break;
+	default:
+		break;
+	}
+	return nullptr;
+}
+
+UItemWeaponData* UEquipmentComponent::GetOffhandWeaponData()
+{
+	switch (GetEquipmentSlotForCurrentWeaponLoadout())
+	{
+	case EEquipmentSlot::ES_MainHandOne:
+		return Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EEquipmentSlot::ES_OffHandOne));
+		break;
+	case EEquipmentSlot::ES_MainHandTwo:
+		return Cast<UItemWeaponData>(GetWornEquipmentDataInSlot(EEquipmentSlot::ES_OffHandTwo));
+		break;
+	default:
+		break;
+	}
+	return nullptr;
 }
 
 bool UEquipmentComponent::IsEquipSlotValidForItem(EEquipmentSlot EquipSlot, UItemEquipmentData* Item)
@@ -1139,33 +1188,33 @@ bool UEquipmentComponent::IsEquipSlotValidForItem(EEquipmentSlot EquipSlot, UIte
 	{
 		return true;
 	}
-	else if (EquipSlot != EEquipmentSlot::EES_None && ValidEquipmentSlot != EquipSlot)
+	else if (EquipSlot != EEquipmentSlot::ES_None && ValidEquipmentSlot != EquipSlot)
 	{
 		switch (EquipSlot)
 		{
-		case EEquipmentSlot::EES_MainHandOne:
-			if (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo)
+		case EEquipmentSlot::ES_MainHandOne:
+			if (ValidEquipmentSlot == EEquipmentSlot::ES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandTwo)
 			{
 				return true;
 			}
 			break;
 
-		case EEquipmentSlot::EES_OffHandOne:
-			if (Item->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo))
+		case EEquipmentSlot::ES_OffHandOne:
+			if (Item->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::ES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandTwo))
 			{
 				return true;
 			}
 			break;
 
-		case EEquipmentSlot::EES_MainHandTwo:
-			if (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandTwo)
+		case EEquipmentSlot::ES_MainHandTwo:
+			if (ValidEquipmentSlot == EEquipmentSlot::ES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandTwo)
 			{
 				return true;
 			}
 			break;
 
-		case EEquipmentSlot::EES_OffHandTwo:
-			if (Item->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::EES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::EES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::EES_OffHandOne))
+		case EEquipmentSlot::ES_OffHandTwo:
+			if (Item->EquipmentType != EEquipmentType::EET_2HWeapon && (ValidEquipmentSlot == EEquipmentSlot::ES_MainHandOne || ValidEquipmentSlot == EEquipmentSlot::ES_MainHandTwo || ValidEquipmentSlot == EEquipmentSlot::ES_OffHandOne))
 			{
 				return true;
 			}

@@ -23,7 +23,7 @@ public:
 	int DraggedItemKey = -1.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drag and Drop", meta = (ExposeOnSpawn = "true"))
-	EEquipmentSlot DraggedEquipmentSlot = EEquipmentSlot::EES_None;
+	EEquipmentSlot DraggedEquipmentSlot = EEquipmentSlot::ES_None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drag and Drop", meta = (ExposeOnSpawn = "true"))
 	UItemData* DraggedItemData = nullptr;

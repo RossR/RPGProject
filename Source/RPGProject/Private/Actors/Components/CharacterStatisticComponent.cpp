@@ -25,7 +25,6 @@ UCharacterStatisticComponent::UCharacterStatisticComponent()
 
 	TotalAttributePointsSpent = 0;
 
-	bHaveStatisticsChanged = false;
 	OldHealthPoints = 0;
 }
 
@@ -61,8 +60,8 @@ void UCharacterStatisticComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 		if (HealthComponent)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString::FromInt(StatChangeHealthDifference));
-			HealthComponent->SetMaxHealth(CharacterStatistics.HealthPoints);
+			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString::FromInt(StatChangeHealthDifference));
+			HealthComponent->SetMaxHealthPoints(CharacterStatistics.HealthPoints);
 			HealthComponent->HealDamage(StatChangeHealthDifference);
 		}
 		else
@@ -76,7 +75,7 @@ void UCharacterStatisticComponent::TickComponent(float DeltaTime, ELevelTick Tic
 		{
 			StaminaComponent->SetMaxStamina(CharacterStatistics.StaminaPoints);
 
-			StaminaComponent->TakeStaminaDamage(OldStaminaPoints - AdditionalCharacterStatistics.StaminaPoints);
+			StaminaComponent->ReduceCurrentStamina(OldStaminaPoints - AdditionalCharacterStatistics.StaminaPoints);
 		}
 
 

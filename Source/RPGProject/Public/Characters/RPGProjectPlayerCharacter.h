@@ -4,9 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Actors/ItemTypes/ItemWeapon.h"
+#include "Actors/ItemTypes/Equipment/Weapons/ItemWeapon.h"
 #include "Actors/Components/CombatComponent.h"
 #include "Interfaces/InteractionInterface.h"
+#include "Interfaces/HitFXInterface.h"
+#include "DataAssets/HitFXData.h"
+#include "PlayerCameraManagers/RPGPlayerCameraManager.h"
 #include "RPGProjectPlayerCharacter.generated.h"
 
 
@@ -18,14 +21,6 @@ enum class EPlayerVerticalMobility : uint8
 	PVM_Crawling	UMETA(DisplayName = "Crawling"),
 	PVM_Jumping		UMETA(DisplayName = "Jumping"),
 	PVM_Falling		UMETA(DisplayName = "Falling"),
-
-	/*
-	PMS_Idle UMETA(DisplayName = "Idle"),
-	PMS_Walking UMETA(DisplayName = "Walking"),
-	PMS_Jogging UMETA(DisplayName = "Jogging"),
-	PMS_Sprinting UMETA(DisplayName = "Sprinting"),
-	PMS_Crouching UMETA(DisplayName = "Crouching"),
-	*/
 
 	PVM_Max			UMETA(Hidden)
 };
@@ -44,21 +39,30 @@ enum class EPlayerHorizontalMobility : uint8
 UENUM(BlueprintType)
 enum class EPlayerActionState : uint8
 {
-	PAS_Idle		UMETA(DisplayName = "Idle"),
-	PAS_Dodging		UMETA(DisplayName = "Dodging"),
-	PAS_Interacting UMETA(DisplayName = "Interacting"),
-	PAS_Guarding	UMETA(DisplayName = "Guarding"),
-	PAS_Aiming		UMETA(DisplayName = "Aiming"),
-	PAS_Casting		UMETA(DisplayName = "Casting"),
+	PAS_Idle			UMETA(DisplayName = "Idle"),
+	PAS_Dodging			UMETA(DisplayName = "Dodging"),
+	PAS_Interacting		UMETA(DisplayName = "Interacting"),
+	PAS_Guarding		UMETA(DisplayName = "Guarding"),
+	PAS_Aiming			UMETA(DisplayName = "Aiming"),
+	PAS_Casting			UMETA(DisplayName = "Casting"),
+	PAS_CombatAction	UMETA(DisplayName = "Combat Action"),
+	PAS_Incapacitated	UMETA(DisplayName = "Incapacitated"),
 
 	PAS_MAX			UMETA(Hidden)
 };
 
 class ARPGProjectPlayerController;
+class ARPGPlayerCameraManager;
 
+class AAIController;
 class UCameraShakeBase;
 class UParticleSystemComponent;
 class UChildActorComponent;
+class UShapeComponent;
+class USceneComponent;
+class USpringArmComponent;
+class UCameraComponent;
+class UArrowComponent;
 
 class UCharacterStatisticComponent;
 class UHealthComponent;
@@ -69,7 +73,7 @@ class UEquipmentComponent;
 class UCombatComponent;
 
 UCLASS(BlueprintType)
-class RPGPROJECT_API ARPGProjectPlayerCharacter : public ACharacter
+class RPGPROJECT_API ARPGProjectPlayerCharacter : public ACharacter, public IHitFXInterface
 {
 	GENERATED_BODY()
 
@@ -89,7 +93,7 @@ public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	UFUNCTION(BlueprintCallable)
-	void TakeStaminaDamage(float Damage);
+	void ReduceCurrentStamina(float Damage);
 
 	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
 
@@ -108,12 +112,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void MoveCameraToArrowLocation(FName ArrowName);
 
-
 	UFUNCTION(BlueprintCallable)
 	const bool IsAlive() const;
 
 	UFUNCTION(BlueprintCallable)
-	const float GetCurrentHealth() const;
+	const float GetCurrentHealthPoints() const;
 
 	UFUNCTION(BlueprintCallable)
 	const float GetCurrentStamina() const;
@@ -121,22 +124,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsStaminaFull();
 
-	UFUNCTION(BlueprintCallable)
-	bool IsCharacterExhausted() { return bIsExhausted; }
+	/*UFUNCTION(BlueprintCallable)
+	bool IsCharacterExhausted() { return bIsExhausted; }*/
 
 	UFUNCTION(BlueprintCallable)
 	bool IsCharacterFalling() { return bIsFalling; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetIsCrouched(bool IsActive) { bIsCrouched = IsActive; }
-
 	UFUNCTION(BlueprintCallable)
 	// Returns true if the character is crouching
 	bool GetIsCrouched() { return bIsCrouched; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetCapsuleHeight(float NewCapsuleHeight);
-
 	UFUNCTION(BlueprintCallable)
 	void ResetCapsuleHeight();
 
@@ -157,9 +158,28 @@ public:
 	void InteractionTrace();
 
 	UFUNCTION(BlueprintCallable)
-	bool IsInUninterruptableAction() { return bIsInUninterruptableAction; }
+	void SetIsInUninterruptableAction(bool bActive) { bIsInUninterruptableAction = bActive; }
+	UFUNCTION(BlueprintPure)
+	bool GetIsInUninterruptableAction() { return bIsInUninterruptableAction; }
 
+	UFUNCTION(BlueprintCallable)
+	ARPGPlayerCameraManager* GetRPGPlayerCameraManager() { return RPGPlayerCameraManager; }
 
+	UFUNCTION(BlueprintCallable)
+	UCameraComponent* GetPlayerCamera() { return HasActiveCameraComponent() ? PlayerCamera : nullptr; }
+
+	UHitFXData* GetHitFXData() override { return HitFXOverride; };
+
+	UFUNCTION(BlueprintCallable)
+	void SetIsInteractionAvailable(bool IsActive) { bInteractionAvailable = IsActive; }
+	UFUNCTION(BlueprintPure)
+	bool GetIsInteractionAvailable() { return bInteractionAvailable; }
+
+	void SetWeaponStance(ECombatWeaponStance CombatWeaponStanceType, UItemWeaponData* StanceWeaponData);
+	void ResetWeaponStance();
+
+	UFUNCTION(BlueprintCallable)
+	void EnableDodgeCollision(bool bActive);
 
 	//--------------------------------------------------------------
 	// State Machine Functions
@@ -232,11 +252,17 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	// Set the attack type
-	void SetAttackType(EAttackType NewState) { AttackType = NewState; }
+	void SetAttackType(EAttackType NewState) { CurrentAttackType = NewState; }
 
 	UFUNCTION(BlueprintCallable)
 	// Get the current attack type
-	EAttackType GetAttackType() { return AttackType; }
+	EAttackType GetAttackType() { return CurrentAttackType; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetBodyPartHit(FName NewBodyPartHit) { BodyPartHit = NewBodyPartHit; }
+
+	UFUNCTION(BlueprintCallable)
+	FName GetBodyPartHit() { return BodyPartHit; }
 
 	void RequestJump();
 	void RequestStopJumping();
@@ -248,22 +274,41 @@ public:
 	void RequestStopCrouching();
 	void RequestToggleCrouch();
 
-	void RequestAim();
-	void RequestStopAiming();
+	UFUNCTION(BlueprintCallable)
+	void RequestMainhandStance();
+	UFUNCTION(BlueprintCallable)
+	void RequestStopMainhandStance();
 
-	void RequestReadyWeapon();
+	UFUNCTION(BlueprintCallable)
+	void RequestOffhandStance();
+	UFUNCTION(BlueprintCallable)
+	void RequestStopOffhandStance();
+
+	void RequestSheatheUnsheatheWeapon();
 
 	void RequestWalkMode();
 	void RequestStopWalkMode();
 
-	void RequestInteractOrDodge();
+	void RequestContextAction();
+	void RequestHoldContextAction();
+	void RequestStopContextAction(bool bWasButtonHeld = false);
+
 	void RequestInteraction();
 	void RequestDodge();
 
 	void RequestLightAttack();
-	void RequestHeavyAttack();
+	void RequestStopLightAttack();
 
+	void RequestHeavyAttack();
+	void RequestStopHeavyAttack();
+
+	void RequestLightAttackFinisher();
+	void RequestHeavyAttackFinisher();
+
+	void RequestCombatAction();
+	void RequestStopCombatAction();
 	
+	void RequestSwapWeaponLoadout();
 
 protected:
 	// Called when the game starts or when spawned
@@ -274,9 +319,7 @@ protected:
 	UFUNCTION()
 	void OnDeathTimerFinished();
 
-	// CharacterStatComponent functions
-
-	void CharacterStatisticsUpdate();
+	void UpdateCurves();
 
 	// State machine check functions
 
@@ -290,123 +333,140 @@ protected:
 	void PlayerHorizontalMobilityUpdate();
 	void PlayerActionStateUpdate();
 
+	void CombatStanceUpdate();
+
 	void CheckCharacterExhaustion();
+
+private:
+	
+	void PopulateHealthComponentHitboxMap();
+
+	void PopulateCameraSpringArmMap();
+	void PopulateCameraArrowMap();
 
 	
 
-	bool PlayDodgeMontage();
-	void UnbindDodgeMontage();
-
-	UFUNCTION()
-	void OnDodgeMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
-
-	UFUNCTION()
-	void OnDodgeMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
-	UFUNCTION()
-	void DodgeMontageOnNotifyBeginReceived(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointNotifyPayload);
-
-	UFUNCTION()
-	void DodgeMontageOnNotifyEndReceived(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointNotifyPayload);
-
 public:
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraArm;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UArrowComponent* ChaseArrow;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UArrowComponent* RightShoulderArrow;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Particle System")
 	UParticleSystemComponent* ParticleSystemComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stamina)
-	float StaminaDamagePerInterval = 1.0f;
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* CameraArm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Cameras - Spring Arms")
+	TMap<ECameraView, USpringArmComponent*> CameraSpringArmMap;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Cameras - Arrow")
+	TMap<ECameraView, UArrowComponent*> CameraArrowMap;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* PlayerCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UArrowComponent* ChaseArrow;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UArrowComponent* RightShoulderArrow;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "[Character Movement] Stamina Damage")
+	float StaminaDamagePerSecond = 1.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int ItemsCollected = 0;
 
-protected:
-
 	// Player state variables
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerVerticalMobility PlayerVerticalMobilityState;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerVerticalMobility LastPlayerVerticalMobilityState;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | States | Action")
+	EPlayerActionState PlayerActionState = EPlayerActionState::PAS_Idle;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerHorizontalMobility PlayerHorizontalMobilityState;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | States | Action")
+	EPlayerActionState LastPlayerActionState = PlayerActionState;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerHorizontalMobility LastPlayerHorizontalMobilityState;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | States | Combat |")
+	EAttackType CurrentAttackType = EAttackType::AT_None;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerActionState PlayerActionState;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | States | Combat | Weapon Stance")
+	ECombatWeaponStance RequestedCombatWeaponStance = ECombatWeaponStance::CWS_None;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player States")
-	EPlayerActionState LastPlayerActionState;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | States | Mobility | Horizonal ")
+	EPlayerHorizontalMobility PlayerHorizontalMobilityState = EPlayerHorizontalMobility::PHM_Idle;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	EAttackType AttackType;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | States | Mobility | Horizonal ")
+	EPlayerHorizontalMobility LastPlayerHorizontalMobilityState = PlayerHorizontalMobilityState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | States | Mobility | Vertical")
+	EPlayerVerticalMobility PlayerVerticalMobilityState = EPlayerVerticalMobility::PVM_Standing;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | States | Mobility | Vertical")
+	EPlayerVerticalMobility LastPlayerVerticalMobilityState = PlayerVerticalMobilityState;
 
 	// Movement variables
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
-	float CurrentCharacterXYVelocity;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | Movement")
+	float CurrentCharacterXYVelocity = 0.f;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	float MovementSpeed;
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	float MovementSpeed = 400.f;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	float CombatMovementSpeed;
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	float CombatMovementSpeed = 0.f;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	float WalkMovementSpeed;
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	float WalkMovementSpeed = 150.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
-	float CrouchMovementSpeed;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | Movement")
+	float CrouchMovementSpeed = 265.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement")
-	float SprintMovementSpeed;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | Movement")
+	float SprintMovementSpeed = 0.f;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	float CombatSpeedMultiplier;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | Movement")
+	float TotalSpeedModifier = 1.f;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	float SprintSpeedMultiplier;
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	float CombatSpeedModifier = 1.f;
 
-	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	float CrouchSprintSpeedMultiplier;
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	float SprintSpeedModifier = 1.6875f;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	int32 NormalMaxAcceleration;
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	float CrouchSprintSpeedModifier = 1.25f;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	int32 SprintingMaxAcceleration;
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	float StaminaExhaustedSpeedModifier = 0.5f;
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Movement")
-	int32 CharacterMinAnalogWalkSpeed;
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	int32 NormalMaxAcceleration = 2048;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	int32 SprintingMaxAcceleration = 8192;
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite, Category = "Character Settings | Movement")
+	int32 CharacterMinAnalogWalkSpeed = 0;
 
 	//-----
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player Controller")
 	ARPGProjectPlayerController* PC;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI Controller")
+	AAIController* AIPC;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player Camera Manager")
+	ARPGPlayerCameraManager* RPGPlayerCameraManager;
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	TSubclassOf<UCameraShakeBase> CamShake;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-	float BaseTurnRate;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	float BaseTurnRate = 70.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-	float BaseLookUpRate;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	float BaseLookUpRate = 70.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UCharacterStatisticComponent* CharacterStatisticComponent;
@@ -436,24 +496,22 @@ protected:
 	//UChildActorComponent* EquippedWeapon;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Equipped Weapon")
-	EWeaponType EquippedWeaponType;
+	EWeaponType EquippedWeaponType = EWeaponType::WT_None;
 
 	FTimerHandle RestartLevelTimerHandle;
 
-	bool bIsCrouched;
-	bool bIsRagdollDeath;
-	bool bIsExhausted;
-	bool bIsFalling;
-	bool bIsAiming;
+	bool bIsCrouched = false;
+	bool bIsRagdollDeath = false;
+	bool bIsFalling = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
-	bool bCanAttack;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Settings | Combat")
+	bool bCanAttack = true;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
-	bool bIsAttacking;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
+	//bool bIsAttacking = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player Actions")
-	bool bIsInUninterruptableAction;
+	bool bIsInUninterruptableAction = false;
 
 	
 
@@ -463,35 +521,54 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Force Feedback")
 	float ForceFeedbackDuration = 1.0f;
 
-	float DeltaSeconds;
+	float DeltaSeconds = 0.f;
 
-	UPROPERTY(EditAnywhere, Category = "Interaction Trace Settings")
+	UPROPERTY(EditAnywhere, Category = "Character Settings | Interaction Trace")
 	TEnumAsByte<ETraceTypeQuery> SeeInteractableTraceCollisionChannel;
 
-	UPROPERTY(EditAnywhere, Category = "Interaction Trace Settings")
+	UPROPERTY(EditAnywhere, Category = "Character Settings | Interaction Trace")
 	TArray<TEnumAsByte<EObjectTypeQuery>> InteractionObjectTypeArray;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Settings | Interaction Trace")
 	float TraceDistance = 300.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Settings | Interaction Trace")
 	float SphereCastRadius = 25.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Settings | Interaction Trace")
 	AActor* LookedAtActor;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Settings | Interaction Trace")
 	TArray<FHitResult> HitResultArray;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Settings | Interaction Trace")
 	TArray<AActor*> HitActorArray;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Trace")
-	bool bTraceWasBlocked;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Settings | Interaction Trace")
+	bool bTraceWasBlocked = false;
 
-	UPROPERTY(EditAnywhere, Category = "Animation")
-	UAnimMontage* DodgeMontage = nullptr;
+	FName BodyPartHit = "";
 
-	FOnMontageBlendingOutStarted DodgeMontageBlendingOutDelegate;
-	FOnMontageEnded DodgeMontageEndedDelegate;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lock-On Camera")
+	TArray<AActor*> LockOnActorArray;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, meta = (DisplayName = "Hit FX Override"), Category = "Hit FX Override")
+	UHitFXData* HitFXOverride;
+
+	bool bInteractionAvailable = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Quiver")
+	UStaticMeshComponent* QuiverMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Quiver - Arrow Mesh Array")
+	TMap<int, UStaticMeshComponent*> ArrowMeshMap;
+
+
+	// -- Curves --
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Settings | Curves")
+	float MovementSpeedReductionScaleCurve = 1.f;
+
+	// ------------
+
 };

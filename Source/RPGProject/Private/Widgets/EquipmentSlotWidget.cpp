@@ -190,7 +190,7 @@ void UEquipmentSlotWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 
 bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("EquipmentSlotWidget::NativeOnDrop called."));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("EquipmentSlotWidget::NativeOnDrop called."));
 
 	//BackgroundImage->SetColorAndOpacity(FLinearColor{ 0.f, 0.f, 0.f, 1.f });
 

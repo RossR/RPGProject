@@ -74,6 +74,7 @@ Plugins/*/Intermediate/*
 DerivedDataCache/*
 *.fbx
 *.uasset
+*.ipch
 Content/ParagonKhaimera/Characters/Maps/Khaimera.umap
 Content/ParagonKhaimera/Characters/Heroes/Khaimera/AnimationTestMap.umap
 Content/ParagonKhaimera/Placeholder.txt

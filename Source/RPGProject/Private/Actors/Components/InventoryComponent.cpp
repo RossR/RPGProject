@@ -457,7 +457,9 @@ void UInventoryComponent::AddStartingItems()
 	{
 		if (StartingInventoryItems.Contains(i))
 		{
-			if (UItemData* ItemData = StartingInventoryItems[i].GetDefaultObject()->GetItemData())
+			//AItemBase* Item = StartingInventoryItems[i].GetDefaultObject();
+			//Item->SetItemDataOnBeginPlay(Item->GetItemDataDefault());
+			if (UItemData* ItemData = StartingInventoryItems[i].GetDefaultObject()->GetItemDataDefault())
 			{
 				AddItemToInventory(ItemData, i);
 			}

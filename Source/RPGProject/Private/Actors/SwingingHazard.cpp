@@ -102,7 +102,7 @@ void ASwingingHazard::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, 
 		PlayerCharacter->GetMesh()->SetSimulatePhysics(true);
 		PlayerCharacter->SetIsRagdollDeath(true);
 		PlayerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		PlayerCharacter->TakeDamage(PlayerCharacter->GetCurrentHealth(), DamageEvent, nullptr, GetOwner());
+		PlayerCharacter->TakeDamage(PlayerCharacter->GetCurrentHealthPoints(), DamageEvent, nullptr, GetOwner());
 		// PlayerCharacter->GetMesh()->AddImpulse(SwingingHazard->GetComponentVelocity());
 	}
 }

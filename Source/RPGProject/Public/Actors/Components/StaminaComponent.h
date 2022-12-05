@@ -16,12 +16,24 @@ public:
 	// Sets default values for this component's properties
 	UStaminaComponent();
 
-	void TakeStaminaDamage(float Damage);
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+public:
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+public:
+
+	void ReduceCurrentStamina(float Damage);
+
+	UFUNCTION(BlueprintPure)
 	bool IsStaminaExhausted() { return CurrentStamina <= FLT_EPSILON; }
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	float GetMaxStamina() { return MaxStamina; }
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	float GetCurrentStamina() { return CurrentStamina; }
 	UFUNCTION(BlueprintCallable)
 	void SetMaxStamina(float NewMaxStamina) { MaxStamina = NewMaxStamina; }
@@ -29,10 +41,18 @@ public:
 	void SetCurrentStamina(float Stamina) { CurrentStamina = Stamina; }
 	UFUNCTION(BlueprintCallable)
 	void RegenerateStamina();
+	UFUNCTION(BlueprintCallable)
+	void ResetStaminaRegenDelay();
 
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
+	UFUNCTION(BlueprintPure)
+	float GetStaminaRegenMultiplier() { return StaminaRegenMultiplier; }
+	UFUNCTION(BlueprintCallable)
+	void SetStaminaRegenMultiplier(float NewFloat) { StaminaRegenMultiplier = NewFloat; }
+
+	UFUNCTION(BlueprintPure)
+	float GetStaminaRegenDelayMultiplier() { return StaminaRegenDelayMultiplier; }
+	UFUNCTION(BlueprintCallable)
+	void SetStaminaRegenDelayMultiplier(float NewFloat) { StaminaRegenDelayMultiplier = NewFloat; }
 
 protected:
 
@@ -40,25 +60,26 @@ protected:
 	float MaxStamina = 400;
 
 	UPROPERTY(VisibleAnywhere)
-	float CurrentStamina = 0.0f;
+	float CurrentStamina = 0.f;
 
 	UPROPERTY(EditAnywhere)
-	float StaminaRegenPerInterval = 1.0f;
+	float TimeToFullyRegenStamina = 5.f;
 
-	float StaminaRegenInterval;
+	UPROPERTY(VisibleAnywhere)
+	float StaminaRegenMultiplier = 1.f;
 
 	UPROPERTY(EditAnywhere)
 	float StaminaRegenDelay = 2.5f;
+
+	UPROPERTY(VisibleAnywhere)
+	float StaminaRegenDelayMultiplier = 1.f;
 
 	UPROPERTY(VisibleAnywhere)
 	bool IsRegeneratingStamina = true;
 
 	FTimerHandle StaminaRegenTimerHandle;
 
-
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	UPROPERTY(VisibleAnywhere)
+	float StaminaRegenPerFrame = 0.f;
 		
 };

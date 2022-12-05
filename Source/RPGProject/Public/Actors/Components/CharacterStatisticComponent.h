@@ -222,5 +222,5 @@ protected:
 	int OldStaminaPoints;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Statistics")
-	bool bHaveStatisticsChanged = false;
+	bool bHaveStatisticsChanged = true;
 };
