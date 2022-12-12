@@ -178,6 +178,11 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 
 	UpdateCurves();
 
+	if (bIsRagdollDeath && HealthComponent)
+	{
+		HealthComponent->TakeDamage(HealthComponent->GetMaxHealthPoints());
+	}
+
 	if (!IsAlive())
 	{
 		GetCharacterMovement()->DisableMovement();
@@ -213,6 +218,8 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 	CombatStanceUpdate();
 
 	InteractionTrace();
+
+	
 }
 
 
