@@ -60,6 +60,7 @@ public:
 
 	bool GetIsInInteractableRange(AActor* InteractingActor) override;
 
+	UFUNCTION(BlueprintPure)
 	EInteractableState GetInteractableState() override { return InteractableState; };
 
 	bool CanBeInteractedWith() { return bCanInteract; }
