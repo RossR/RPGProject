@@ -83,7 +83,7 @@ bool UProjectileSpawnerComponent::SpawnProjectile(TSubclassOf<AProjectileActor> 
 	}
 	else
 	{
-		SpawnAngle = FRotator((FMath::FRandRange(-FiringAngleVariance.Pitch, FiringAngleVariance.Pitch)) / ProjectileStrength, (FMath::FRandRange(-FiringAngleVariance.Yaw, FiringAngleVariance.Yaw)) / ProjectileStrength, 0.f);
+		SpawnAngle = ProjectileSpawnTransform->GetComponentRotation() + FRotator((FMath::FRandRange(-FiringAngleVariance.Pitch, FiringAngleVariance.Pitch)) / ProjectileStrength, (FMath::FRandRange(-FiringAngleVariance.Yaw, FiringAngleVariance.Yaw)) / ProjectileStrength, 0.f);
 	}
 	
 	const FTransform SpawnTransform{ SpawnAngle, ProjectileSpawnTransform->GetComponentLocation(), ProjectileSpawnTransform->GetComponentScale() };
