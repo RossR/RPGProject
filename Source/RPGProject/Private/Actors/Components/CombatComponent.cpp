@@ -955,7 +955,7 @@ void UCombatComponent::AttackBlocked(FWeaponAttackInfo& BlockedAttackInfo, AItem
 	case EWeaponToUse::Mainhand:
 		if (MainhandWeaponRef)
 		{
-			CharacterAnimInstance->SetReactToBlock(true);
+			if (InItemWeapon) { CharacterAnimInstance->SetReactToBlock(true); }
 			
 			MainhandWeaponRef->AttackBlocked(BlockedAttackInfo, InItemWeapon, BlockedAttackType, InProjectileActor);
 		}
@@ -964,7 +964,8 @@ void UCombatComponent::AttackBlocked(FWeaponAttackInfo& BlockedAttackInfo, AItem
 	case EWeaponToUse::Offhand:
 		if (OffhandWeaponRef)
 		{
-			CharacterAnimInstance->SetReactToBlock(true);
+			if (InItemWeapon) { CharacterAnimInstance->SetReactToBlock(true); }
+
 			OffhandWeaponRef->AttackBlocked(BlockedAttackInfo, InItemWeapon, BlockedAttackType, InProjectileActor);
 		}
 		break;
@@ -972,12 +973,14 @@ void UCombatComponent::AttackBlocked(FWeaponAttackInfo& BlockedAttackInfo, AItem
 	case EWeaponToUse::Both:
 		if (MainhandWeaponRef)
 		{
-			CharacterAnimInstance->SetReactToBlock(true);
+			if (InItemWeapon) { CharacterAnimInstance->SetReactToBlock(true); }
+
 			MainhandWeaponRef->AttackBlocked(BlockedAttackInfo, InItemWeapon, BlockedAttackType, InProjectileActor);
 		}
 		if (OffhandWeaponRef)
 		{
-			CharacterAnimInstance->SetReactToBlock(true);
+			if (InItemWeapon) { CharacterAnimInstance->SetReactToBlock(true); }
+
 			OffhandWeaponRef->AttackBlocked(BlockedAttackInfo, InItemWeapon, BlockedAttackType, InProjectileActor);
 		}
 		break;
