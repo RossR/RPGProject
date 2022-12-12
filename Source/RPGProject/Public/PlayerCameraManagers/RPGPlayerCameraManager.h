@@ -188,8 +188,8 @@ private:	// --- VARIABLES --- \\
 	UArrowComponent* CurrentCameraArrow;
 
 	FTimerHandle InterpToViewTimerHandle;
-
 	FTimerHandle SwapTargetCooldownTimerHandle;
+	FTimerHandle NoLineOfSightOnTargetTimerHandle;
 
 	UPROPERTY(VisibleAnywhere, Category = "Lock-On - Swap Targets")
 	bool bCanSwapTarget = true;

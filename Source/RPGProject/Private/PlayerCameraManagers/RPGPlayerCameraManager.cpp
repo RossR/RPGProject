@@ -68,37 +68,57 @@ void ARPGPlayerCameraManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (PC)
+	if (PC && CurrentCameraView == ECameraView::CV_LockOn)
 	{
-		if (CurrentCameraView == ECameraView::CV_LockOn )
+		if (UHealthComponent* HealthComponentRef = Cast<UHealthComponent>(LockOnTargetActor->GetComponentByClass(UHealthComponent::StaticClass())))
 		{
-			if (UHealthComponent* HealthComponentRef = Cast<UHealthComponent>(LockOnTargetActor->GetComponentByClass(UHealthComponent::StaticClass())))
+			if (HealthComponentRef->IsDead()) { LockOnTargetActor = nullptr; }
+		}
+
+		// Disable lock-on if target dies
+		if (LockOnTargetActor)
+		{
+			TArray<AActor*> ActorsToIgnore;
+			if (PlayerCharacter) { ActorsToIgnore.Add(PlayerCharacter); }
+
+			EDrawDebugTrace::Type DebugTrace = CVarDisplayActorInViewTrace->GetBool() ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None;
+			FHitResult InHitResult;
+			UKismetSystemLibrary::LineTraceSingle(GetWorld(), GetCameraLocation(), LockOnTargetActor->GetActorLocation(), ActorInViewTraceCollisionChannel, false, ActorsToIgnore, DebugTrace, InHitResult, true);
+
+			if (InHitResult.GetActor() != LockOnTargetActor && (PlayerCharacter->GetActorLocation() - LockOnTargetActor->GetActorLocation()).Length() > 750.f)
 			{
-				if (HealthComponentRef->IsDead()) { LockOnTargetActor = nullptr; }
-			}
-
-			// Disable lock-on if target dies
-			if (LockOnTargetActor)
-			{
-				if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
+				//DisableLockOn();
+				if (!GetWorldTimerManager().IsTimerActive(NoLineOfSightOnTargetTimerHandle))
 				{
-					TargetActorAngle = UKismetMathLibrary::FindLookAtRotation(CameraSpringArmMap[ECameraView::CV_LockOn]->GetComponentLocation(), ActorMeshComponent->GetSocketLocation(TargetSocket));
-
-				}
-				else
-				{
-					TargetActorAngle = UKismetMathLibrary::FindLookAtRotation(CameraSpringArmMap[ECameraView::CV_LockOn]->GetComponentLocation(), LockOnTargetActor->GetActorLocation());
-				}
-
-				if (TargetActorAngle != FRotator::ZeroRotator)
-				{
-					PC->SetControlRotation({ TargetActorAngle.Pitch, TargetActorAngle.Yaw, PC->GetControlRotation().Roll });
+					GetWorldTimerManager().SetTimer(NoLineOfSightOnTargetTimerHandle, this, &ARPGPlayerCameraManager::DisableLockOn, DeltaTime, false, 1.f);
 				}
 			}
-			else 
+			else
 			{
-				DisableLockOn();
+				if (GetWorldTimerManager().IsTimerActive(NoLineOfSightOnTargetTimerHandle))
+				{
+					GetWorldTimerManager().ClearTimer(NoLineOfSightOnTargetTimerHandle);
+				}
 			}
+
+			if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
+			{
+				TargetActorAngle = UKismetMathLibrary::FindLookAtRotation(CameraSpringArmMap[ECameraView::CV_LockOn]->GetComponentLocation(), ActorMeshComponent->GetSocketLocation(TargetSocket));
+
+			}
+			else
+			{
+				TargetActorAngle = UKismetMathLibrary::FindLookAtRotation(CameraSpringArmMap[ECameraView::CV_LockOn]->GetComponentLocation(), LockOnTargetActor->GetActorLocation());
+			}
+
+			if (TargetActorAngle != FRotator::ZeroRotator)
+			{
+				PC->SetControlRotation({ TargetActorAngle.Pitch, TargetActorAngle.Yaw, PC->GetControlRotation().Roll });
+			}
+		}
+		else
+		{
+			DisableLockOn();
 		}
 	}
 }
