@@ -253,6 +253,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon | Attack Combos")
 	uint8 HeavyAttackComboLimit;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon | Attack Info")
+	TMap<uint8, FWeaponAttackInfo> LightAttackInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon | Attack Info")
+	TMap<uint8, FWeaponAttackInfo> HeavyAttackInfo;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon | Blocking")
 	float WeaponBlockAngle = 0.f;
 

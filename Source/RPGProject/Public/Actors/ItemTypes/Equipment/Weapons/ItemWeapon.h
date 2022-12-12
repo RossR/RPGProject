@@ -83,16 +83,16 @@ public:
 	void SetIsFirstTrace(bool bActive) { bIsFirstTrace = bActive; }
 
 	UFUNCTION(BlueprintPure)
-	TMap<uint8, FWeaponAttackInfo> GetLightAttackInfo() const { return LightAttackInfo; }
+	TMap<uint8, FWeaponAttackInfo> GetLightAttackInfo() const { if (!WeaponData->LightAttackInfo.IsEmpty()) { return WeaponData->LightAttackInfo; } else { return TMap<uint8, FWeaponAttackInfo>(); } }
 
 	UFUNCTION(BlueprintPure)
-	FWeaponAttackInfo GetLightAttackInfoAtIndex(uint8 Index) { return LightAttackInfo.Find(Index) ? LightAttackInfo[Index] : FWeaponAttackInfo(); }
+	FWeaponAttackInfo GetLightAttackInfoAtIndex(uint8 Index) { return  WeaponData->LightAttackInfo.Find(Index) ? WeaponData->LightAttackInfo[Index] : FWeaponAttackInfo(); }
 
 	UFUNCTION(BlueprintPure)
-	TMap<uint8, FWeaponAttackInfo> GetHeavyAttackInfo() const { return HeavyAttackInfo; }
+	TMap<uint8, FWeaponAttackInfo> GetHeavyAttackInfo() const { if (!WeaponData->HeavyAttackInfo.IsEmpty()) { return WeaponData->HeavyAttackInfo; } else { return TMap<uint8, FWeaponAttackInfo>(); } }
 
 	UFUNCTION(BlueprintPure)
-	FWeaponAttackInfo GetHeavyAttackInfoAtIndex(uint8 Index) { return HeavyAttackInfo.Find(Index) ? HeavyAttackInfo[Index] : FWeaponAttackInfo(); }
+	FWeaponAttackInfo GetHeavyAttackInfoAtIndex(uint8 Index) { return WeaponData->HeavyAttackInfo.Find(Index) ? WeaponData->HeavyAttackInfo[Index] : FWeaponAttackInfo(); }
 
 	UFUNCTION(BlueprintCallable)
 	void EnableWeaponVFX(int Index = -1);
@@ -157,7 +157,7 @@ protected:
 
 	// --- VARIABLES --- //
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Mesh")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Mesh")
 	UStaticMeshComponent* WeaponMesh;
 
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Attack Blocking Volume")
@@ -166,106 +166,106 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Attack Blocking Volume")
 	UCapsuleComponent* AttackBlockerVolume = nullptr;*/
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item | Weapon | Weapon Attack Blocking Volume")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Actor | Weapon Attack Blocking Volume")
 	EAttackBlockerType AttackBlockerType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Weapon Attack Blocking Volume")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Weapon Attack Blocking Volume")
 	UBoxComponent* AttackBlockerBoxVolume;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Weapon Attack Blocking Volume")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Weapon Attack Blocking Volume")
 	UCapsuleComponent* AttackBlockerCapsuleVolume;
 
 
 	// - VFX - //
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item | Weapon | VFX", DisplayName = "Auto Set Melee Trail VFX Width")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Actor | VFX", DisplayName = "Auto Set Melee Trail VFX Width")
 	bool bAutoSetMeleeTrailVFXWidth = false;
 
 	// - WEAPON TRACING - //
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | Weapon | Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon Actor | Tracing")
 	TEnumAsByte<EDrawDebugTrace::Type> DebugTrace = EDrawDebugTrace::None;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	EAttackType CurrentAttackType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	TMap<uint8, FWeaponAttackInfo> LightAttackInfo;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing")
-	TMap<uint8, FWeaponAttackInfo> HeavyAttackInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing")
+	TMap<uint8, FWeaponAttackInfo> HeavyAttackInfo;*/
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	ETraceType CurrentTraceType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Trace Start Vectors")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Trace Start Vectors")
 	TMap<int, USceneComponent*> WeaponTraceStartMap;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Trace End Vectors")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Trace End Vectors")
 	TMap<int, USceneComponent*> WeaponTraceEndMap;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category = "Item | Weapon | VFX")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category = "Weapon Actor | VFX")
 	TMap<int, UNiagaraComponent*> WeaponVFXMap;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypesArray = { EObjectTypeQuery::ObjectTypeQuery4, EObjectTypeQuery::ObjectTypeQuery6, EObjectTypeQuery::ObjectTypeQuery11 };
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	bool bTraceComplex = false;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	bool bWeaponTraceHasHit = false;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	TArray<FHitResult> WeaponTraceHitResult;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	int BPTraceIndex = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	int TotalTraceSections = 10;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	float TraceAlpha;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	bool bIsFirstTrace = true;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	FVector CurrentTraceStart = FVector::ZeroVector;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	FVector CurrentTraceEnd = FVector::ZeroVector;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	TArray<FVector> LastTraceStart;//= FVector::ZeroVector;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	TArray<FVector> LastTraceEnd;// = FVector::ZeroVector;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	FVector CurrentTraceSection = FVector::ZeroVector;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	FVector LastTraceSection = FVector::ZeroVector;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing")
 	TArray<AActor*> IgnoredActorArray;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | Weapon | Tracing")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon Actor | Tracing")
 	uint8 AttackComboCount;
 
 	// - WEAPON TRACING - BOX - //
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing | Box")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing | Box")
 	FVector TraceBoxHalfSize = FVector::ZeroVector;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing | Box")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing | Box")
 	FRotator TraceOrientation = FRotator::ZeroRotator;
 
 	// - WEAPON TRACING - SPHERE - //
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Weapon | Tracing | Sphere")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Actor | Tracing | Sphere")
 	float TraceRadius;
 
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category = "TEST")
