@@ -457,6 +457,7 @@ void UCombatComponent::ToggleCombatState()
 bool UCombatComponent::UnsheatheWeapon()
 {
 	if (!CharacterRef) { return false; }
+	if (!CharacterAnimInstance) { return false; }
 	if (!MeshComponentRef) { return false; }
 	if (!EquipmentComponentRef) { return false; }
 	if (bIsInAttackSequence) { return false; }
@@ -524,6 +525,7 @@ bool UCombatComponent::UnsheatheWeapon()
 bool UCombatComponent::SheatheWeapon()
 {
 	if (!CharacterRef) { return false; }
+	if (!CharacterAnimInstance) { return false; }
 	if (!MeshComponentRef) { return false; }
 	if (!EquipmentComponentRef) { return false; }
 	if (bIsInAttackSequence) { return false; }
@@ -588,6 +590,7 @@ bool UCombatComponent::SheatheWeapon()
 bool UCombatComponent::CombatDodge()
 {
 	if (!CharacterRef) { return false; }
+	if (!CharacterAnimInstance) { return false; }
 	if (!MeshComponentRef) { return false; }
 	if (bIsInActionRecovery) { return false; }
 
