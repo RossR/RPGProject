@@ -75,6 +75,9 @@ public:		// --- FUNCTIONS --- \\
 	FRotator GetTargetActorAngle() { return TargetActorAngle; }
 
 	UFUNCTION(BlueprintPure)
+	FVector GetLockOnTargetActorsMainTargetLocation();
+
+	UFUNCTION(BlueprintPure)
 	bool GetCanSwapTarget() { return bCanSwapTarget; }
 	UFUNCTION(BlueprintCallable)
 	void SetCanSwapTarget(bool bIsActive) { bCanSwapTarget = bIsActive; }

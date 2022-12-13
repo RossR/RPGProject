@@ -219,6 +219,18 @@ UArrowComponent* ARPGPlayerCameraManager::GetValueFromCameraArrowMap(ECameraView
 	return nullptr;
 }
 
+FVector ARPGPlayerCameraManager::GetLockOnTargetActorsMainTargetLocation()
+{
+	if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
+	{
+		if (ActorMeshComponent->DoesSocketExist("LockOn_MainTarget"))
+		{
+			return ActorMeshComponent->GetSocketLocation("LockOn_MainTarget");
+		}
+	}
+	return LockOnTargetActor->GetActorLocation();
+}
+
 void ARPGPlayerCameraManager::GetRenderedActorsInView(AActor* ViewingActor, TArray<AActor*>& CurrentlyRenderedActors, FName ActorTag, float MinRecentTime, FRotator MinAllowedViewAngle, FRotator MaxAllowedViewAngle)
 {
 
