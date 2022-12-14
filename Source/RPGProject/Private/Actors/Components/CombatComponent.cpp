@@ -1457,7 +1457,8 @@ void UCombatComponent::UnbindDodgeMontage()
 
 void UCombatComponent::UnbindStaminaExhaustedMontage()
 {
-
+	if (StaminaExhaustedMontageBlendingOutDelegate.IsBound()) { StaminaExhaustedMontageBlendingOutDelegate.Unbind(); }
+	if (StaminaExhaustedMontageEndedDelegate.IsBound()) { StaminaExhaustedMontageEndedDelegate.Unbind(); }
 }
 
 bool UCombatComponent::DoesAttackNeedAmmunition(EWeaponToUse AttackingWeapon, EAttackType InAttackType)
@@ -1940,7 +1941,7 @@ void UCombatComponent::StaminaExhaustionUpdate()
 	if (!CharacterAnimInstance) { return; }
 	if (!StaminaComponentRef) { return; }
 	
-	if (!StaminaComponentRef->IsStaminaExhausted() && CharacterAnimInstance->GetCurrentActiveMontage() == StaminaExhaustedMontage)
+	if (StaminaComponentRef->GetCurrentStamina() / StaminaComponentRef->GetMaxStamina() >= .25f && CharacterAnimInstance->GetCurrentActiveMontage() == StaminaExhaustedMontage)
 	{
 		if (CharacterAnimInstance->Montage_GetCurrentSection(StaminaExhaustedMontage) == "Default_Loop" && StaminaExhaustedMontage->IsValidSectionName("Default_End"))
 		{
