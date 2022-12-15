@@ -47,7 +47,7 @@ void UAnimNotify_UnsheatheWeapon::BranchingPointNotify(FBranchingPointNotifyPayl
 			}
 			else
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("UAnimNotify_UnsheatheWeapon::BranchingPointNotify No Function Bound."));
+				//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("UAnimNotify_UnsheatheWeapon::BranchingPointNotify No Function Bound."));
 			}
 		}
 	}
