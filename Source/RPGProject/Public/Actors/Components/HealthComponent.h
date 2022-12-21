@@ -55,9 +55,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	void TakeDamage(float Damage, FName BodyPartName = "All"); //{ CurrentHealthPoints -= Damage; }
+	void TakeDamage(float Damage, FName InBodyPartName = "All", bool bUseDamageModifier = true); //{ CurrentHealthPoints -= Damage; }
 	UFUNCTION(BlueprintCallable)
-	void HealDamage(float HealAmount, FName BodyPartName = "All"); //{ CurrentHealthPoints += HealAmount; }
+	void HealDamage(float HealAmount, FName InBodyPartName = "All"); //{ CurrentHealthPoints += HealAmount; }
 
 	UFUNCTION(BlueprintCallable)
 	bool IsDead() { return CurrentHealthPoints <= FLT_EPSILON; }

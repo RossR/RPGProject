@@ -35,53 +35,49 @@ void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	BodyPartUpdate();
 }
 
-void UHealthComponent::TakeDamage(float Damage, FName BodyPartName)
+void UHealthComponent::TakeDamage(float Damage, FName InBodyPartName, bool bUseDamageModifier)
 {
 	if (!BodyPartMap.IsEmpty())
 	{
-		if (BodyPartName == "All")
+		if (InBodyPartName == "All")
 		{
 			TArray<FName> BodyPartNameArray;
 			BodyPartMap.GenerateKeyArray(BodyPartNameArray);
+			TArray<FName> FunctioningBodyPartsNameArray;
+			BodyPartMap.GenerateKeyArray(FunctioningBodyPartsNameArray);
 
-			int FunctioningBodyParts = 0;
-			float NonFunctioningBodyPartHPPercentage = 0.f;
+			float FunctioningBodyPartHPPercentage = 0.f;
 
-			for (int i = 0; i < BodyPartNameArray.Max(); i++)
+			for (auto& BodyPartName : BodyPartNameArray)
 			{
-				if (BodyPartMap[BodyPartNameArray[i]].BodyPartCurrentHP > 0.f)
-				{
-					FunctioningBodyParts++;
-				}
-				else
-				{
-					NonFunctioningBodyPartHPPercentage += BodyPartMap[BodyPartNameArray[i]].MaxHPPercentage;
-				}
+				if (BodyPartMap[BodyPartName].BodyPartCurrentHP > 0.f) { FunctioningBodyPartHPPercentage += BodyPartMap[BodyPartName].MaxHPPercentage; }
+				else { FunctioningBodyPartsNameArray.Remove(BodyPartName); }
 			}
 
-			//const float DamagePortion = Damage / FunctioningBodyParts;
-			const float ExtraDamagePercentage = NonFunctioningBodyPartHPPercentage / FunctioningBodyParts;
-
-			for (int i = 0; i < BodyPartNameArray.Max(); i++)
+			for (auto& BodyPartName : FunctioningBodyPartsNameArray)
 			{
-				if (BodyPartMap[BodyPartNameArray[i]].BodyPartCurrentHP > 0.f)
+				if (!BodyPartMap.Contains(BodyPartName)) { continue; }
+
+				if (BodyPartMap[BodyPartName].BodyPartCurrentHP > 0.f)
 				{
-					BodyPartMap[BodyPartNameArray[i]].BodyPartCurrentHP -= Damage * (BodyPartMap[BodyPartNameArray[i]].MaxHPPercentage + ExtraDamagePercentage);
+					float DamagePortion = Damage * (BodyPartMap[BodyPartName].MaxHPPercentage / FunctioningBodyPartHPPercentage);
+					TakeDamage(DamagePortion, BodyPartName, false);
+					//BodyPartMap[BodyPartName].BodyPartCurrentHP -= SplitDamage;
 				}
 			}
 		}
-		else if (BodyPartMap.Contains(BodyPartName))
+		else if (BodyPartMap.Contains(InBodyPartName))
 		{
-			const float ModifiedDamage = truncf(Damage * BodyPartMap[BodyPartName].DamageModifier);
+			const float ModifiedDamage = bUseDamageModifier ? truncf(Damage * BodyPartMap[InBodyPartName].DamageModifier) : Damage;
 
-			if (BodyPartMap[BodyPartName].BodyPartCurrentHP > 0.f)
+			if (BodyPartMap[InBodyPartName].BodyPartCurrentHP > 0.f)
 			{
 				
-				BodyPartMap[BodyPartName].BodyPartCurrentHP -= ModifiedDamage;
+				BodyPartMap[InBodyPartName].BodyPartCurrentHP -= ModifiedDamage;
 			}
 			else
 			{
-				TakeDamage(ModifiedDamage);
+				TakeDamage(ModifiedDamage, "All", false);
 			}
 		}
 	}
@@ -91,9 +87,9 @@ void UHealthComponent::TakeDamage(float Damage, FName BodyPartName)
 	}
 }
 
-void UHealthComponent::HealDamage(float HealAmount, FName BodyPartName)
+void UHealthComponent::HealDamage(float HealAmount, FName InBodyPartName)
 {
-	if (BodyPartName == "All")
+	if (InBodyPartName == "All")
 	{
 		TArray<FName> BodyPartNameArray;
 		BodyPartMap.GenerateKeyArray(BodyPartNameArray);
@@ -103,9 +99,9 @@ void UHealthComponent::HealDamage(float HealAmount, FName BodyPartName)
 			BodyPartMap[BodyPartNameArray[i]].BodyPartCurrentHP += (HealAmount * BodyPartMap[BodyPartNameArray[i]].MaxHPPercentage);
 		}
 	}
-	else if (BodyPartMap.Contains(BodyPartName))
+	else if (BodyPartMap.Contains(InBodyPartName))
 	{
-		BodyPartMap[BodyPartName].BodyPartCurrentHP += HealAmount;
+		BodyPartMap[InBodyPartName].BodyPartCurrentHP += HealAmount;
 	}
 }
 
