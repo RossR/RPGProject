@@ -521,8 +521,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Force Feedback")
 	float ForceFeedbackDuration = 1.0f;
 
-	float DeltaSeconds = 0.f;
-
 	UPROPERTY(EditAnywhere, Category = "Character Settings | Interaction Trace")
 	TEnumAsByte<ETraceTypeQuery> SeeInteractableTraceCollisionChannel;
 

@@ -190,8 +190,6 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 		SetPlayerActionState(EPlayerActionState::PAS_Incapacitated);
 	}
 
-	DeltaSeconds = DeltaTime;
-
 	bIsFalling = GetVelocity().Z != 0;
 
 	if (bIsFalling)
@@ -218,7 +216,6 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 	CombatStanceUpdate();
 
 	InteractionTrace();
-
 	
 }
 
@@ -1017,7 +1014,7 @@ void ARPGProjectPlayerCharacter::SetWeaponStance(ECombatWeaponStance CombatWeapo
 	switch (StanceType)
 	{
 	case EWeaponStanceType::ST_None:
-
+		
 		break;
 
 	case EWeaponStanceType::ST_Ranged:
@@ -1143,6 +1140,7 @@ void ARPGProjectPlayerCharacter::CheckCharacterExhaustion()
 
 	if (StaminaComponent->IsStaminaExhausted() && !CombatComponent->GetIsGuarding() && GetVelocity().Length() <= 0.f)
 	{
+		RequestStopCrouching();
 		CombatComponent->StaminaExhausted();
 	}
 	else if (StaminaComponent->IsStaminaExhausted() && GetVelocity().Length() >= 0.f)
