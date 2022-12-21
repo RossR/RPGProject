@@ -29,7 +29,7 @@ public:
 	void ReduceCurrentStamina(float Damage);
 
 	UFUNCTION(BlueprintPure)
-	bool IsStaminaExhausted() { return CurrentStamina <= FLT_EPSILON; }
+	bool IsStaminaExhausted(); //{ return CurrentStamina <= FLT_EPSILON; }
 
 	UFUNCTION(BlueprintPure)
 	float GetMaxStamina() { return MaxStamina; }
@@ -81,5 +81,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	float StaminaRegenPerFrame = 0.f;
+
+	UPROPERTY(VisibleAnywhere)
+	bool bHasStaminaBeenExhausted = false;
+
+	UPROPERTY(EditAnywhere)
+	float ExhaustionRecoveryPercentage = 0.25f;
 		
 };

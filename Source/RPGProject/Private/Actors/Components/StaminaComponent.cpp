@@ -64,6 +64,20 @@ void UStaminaComponent::ReduceCurrentStamina(float Damage)
 	}
 }
 
+bool UStaminaComponent::IsStaminaExhausted()
+{
+	if (!bHasStaminaBeenExhausted)
+	{
+		bHasStaminaBeenExhausted = CurrentStamina <= FLT_EPSILON;
+	}
+	else if (bHasStaminaBeenExhausted && (CurrentStamina / MaxStamina >= ExhaustionRecoveryPercentage))
+	{
+		bHasStaminaBeenExhausted = false;
+	}
+
+	return bHasStaminaBeenExhausted;
+}
+
 void UStaminaComponent::RegenerateStamina() 
 { 
 	IsRegeneratingStamina = true;
