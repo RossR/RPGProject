@@ -5,6 +5,8 @@
 
 AInteractableActor_Button::AInteractableActor_Button()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	ButtonMesh->SetupAttachment(InteractableMesh);
 }
@@ -16,6 +18,8 @@ void AInteractableActor_Button::BeginPlay()
 
 void AInteractableActor_Button::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
+
 	if (InteractableState == EInteractableState::Activating)
 	{
 		CurrentTranslationTime += DeltaTime;

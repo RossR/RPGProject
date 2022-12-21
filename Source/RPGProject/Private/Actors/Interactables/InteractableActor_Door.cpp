@@ -8,6 +8,7 @@ AInteractableActor_Door::AInteractableActor_Door()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
 void AInteractableActor_Door::BeginPlay()
@@ -33,6 +34,8 @@ void AInteractableActor_Door::BeginPlay()
 
 void AInteractableActor_Door::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
+
 	if (InteractableState == EInteractableState::Activating)
 	{
 		CurrentRotationTime += DeltaTime;

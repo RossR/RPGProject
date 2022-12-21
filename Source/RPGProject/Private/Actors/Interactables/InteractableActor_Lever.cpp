@@ -5,12 +5,17 @@
 
 AInteractableActor_Lever::AInteractableActor_Lever()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+
 	LeverHandleMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeverHandleMesh"));
 	LeverHandleMesh->SetupAttachment(InteractableMesh);
 }
 
 void AInteractableActor_Lever::BeginPlay()
 {
+	Super::BeginPlay();
+
 	if (bStartActive)
 	{
 		LeverHandleMesh->SetRelativeRotation(ActiveRotation);
@@ -23,6 +28,8 @@ void AInteractableActor_Lever::BeginPlay()
 
 void AInteractableActor_Lever::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
+
 	if (InteractableState == EInteractableState::Activating)
 	{
 		CurrentRotationTime += DeltaTime;
