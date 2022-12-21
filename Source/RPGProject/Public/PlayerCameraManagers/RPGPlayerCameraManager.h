@@ -24,6 +24,7 @@ class ARPGProjectPlayerCharacter;
 class USpringArmComponent;
 class UArrowComponent;
 class UCameraComponent;
+class UCombatComponent;
 
 /**
  * 
@@ -105,9 +106,13 @@ protected:	// --- FUNCTIONS --- \\
 	void InterpToView();
 
 	UFUNCTION(BlueprintPure)
+	float GetViewportAngleFromScreenPosition(FVector2D ScreenPosition);
+	UFUNCTION(BlueprintPure)
 	float GetViewportAngleFromVector2D(FVector2D InVector2D);
 
 	void ResetSwapTargetCooldown() { bSwapTargetOnCooldown = false; }
+
+	void EvaluateSwapLockOnTargets();
 
 protected:	// --- VARIABLES --- \\
 
@@ -116,6 +121,9 @@ protected:	// --- VARIABLES --- \\
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "References")
 	ARPGProjectPlayerCharacter* PlayerCharacter;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "References")
+	UCombatComponent* CombatComponentRef;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera View State")
 	ECameraView CurrentCameraView = ECameraView::CV_None;

@@ -11,8 +11,10 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 
 #include "Actors/Components/HealthComponent.h"
+#include "Actors/Components/CombatComponent.h"
 
 static TAutoConsoleVariable<bool> CVarDisplayActorInViewTrace
 (
@@ -53,6 +55,7 @@ void ARPGPlayerCameraManager::BeginPlay()
 		if (PlayerCharacter)
 		{
 			ViewTargetCameraRef = PlayerCharacter->GetPlayerCamera();
+			CombatComponentRef = Cast<UCombatComponent>(PlayerCharacter->GetComponentByClass(UCombatComponent::StaticClass()));
 		}
 	}
 
@@ -119,6 +122,48 @@ void ARPGPlayerCameraManager::Tick(float DeltaTime)
 		else
 		{
 			DisableLockOn();
+		}
+	}
+
+	if (PlayerCharacter && CombatComponentRef)
+	{
+		if (GetCameraView() == ECameraView::CV_LockOn && PlayerCharacter->GetPlayerHorizontalMobilityState() != EPlayerHorizontalMobility::PHM_Sprinting)
+		{
+			switch (CombatComponentRef->GetCurrentWeaponStanceType())
+			{
+			case EWeaponStanceType::ST_None:
+				PlayerCharacter->bUseControllerRotationYaw = true;
+				break;
+			case EWeaponStanceType::ST_Ranged:
+				PlayerCharacter->bUseControllerRotationYaw = true;
+				break;
+			case EWeaponStanceType::ST_Guard:
+				PlayerCharacter->bUseControllerRotationYaw = true;
+				break;
+			case EWeaponStanceType::ST_MAX:
+				break;
+			default:
+				break;
+			}
+		}
+		else
+		{
+			switch (CombatComponentRef->GetCurrentWeaponStanceType())
+			{
+			case EWeaponStanceType::ST_None:
+				PlayerCharacter->bUseControllerRotationYaw = false;
+				break;
+			case EWeaponStanceType::ST_Ranged:
+				PlayerCharacter->bUseControllerRotationYaw = true;
+				break;
+			case EWeaponStanceType::ST_Guard:
+				PlayerCharacter->bUseControllerRotationYaw = false;
+				break;
+			case EWeaponStanceType::ST_MAX:
+				break;
+			default:
+				break;
+			}
 		}
 	}
 }
@@ -237,29 +282,29 @@ void ARPGPlayerCameraManager::GetRenderedActorsInView(AActor* ViewingActor, TArr
 	//Empty any previous entries
 	CurrentlyRenderedActors.Empty();
 
-	TArray<AActor*> ActorArray;
+	TArray<AActor*> AllActorsInWorldArray;
 
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), ActorArray);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), AllActorsInWorldArray);
 
 	//Iterate Over Actors
-	for (int i = 0; i < ActorArray.Num(); ++i) // TObjectIterator Itr | 
+	for (int i = 0; i < AllActorsInWorldArray.Num(); ++i) // TObjectIterator Itr | 
 	{
 		if (PlayerCharacter)
 		{
-			if (ActorArray[i] == PlayerCharacter)
+			if (AllActorsInWorldArray[i] == PlayerCharacter)
 			{
 				continue;
 			}
 		}
 
-		if (ActorArray[i] == LockOnTargetActor) { continue; }
+		if (AllActorsInWorldArray[i] == LockOnTargetActor) { continue; }
 
-		if (UHealthComponent* HealthComponentRef = Cast<UHealthComponent>(ActorArray[i]->GetComponentByClass(UHealthComponent::StaticClass())))
+		if (UHealthComponent* HealthComponentRef = Cast<UHealthComponent>(AllActorsInWorldArray[i]->GetComponentByClass(UHealthComponent::StaticClass())))
 		{
 			if (HealthComponentRef->IsDead()) { continue; }
 		}
 
-		if (!CurrentlyRenderedActors.Contains(ActorArray[i]))
+		if (!CurrentlyRenderedActors.Contains(AllActorsInWorldArray[i]))
 		{
 			FRotator ViewingActorRotation = FRotator::ZeroRotator;
 			FVector ViewingActorLocation = FVector::ZeroVector;
@@ -275,13 +320,13 @@ void ARPGPlayerCameraManager::GetRenderedActorsInView(AActor* ViewingActor, TArr
 			}
 
 			FVector ActorLocation = FVector::ZeroVector;
-			if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(ActorArray[i]->GetComponentByClass(UMeshComponent::StaticClass())))
+			if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(AllActorsInWorldArray[i]->GetComponentByClass(UMeshComponent::StaticClass())))
 			{
 				ActorLocation = ActorMeshComponent->GetSocketLocation("LockOn_MainTarget");
 			}
 			else
 			{
-				ActorLocation = ActorArray[i]->GetActorLocation();
+				ActorLocation = AllActorsInWorldArray[i]->GetActorLocation();
 			}
 
 			const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(ViewingActorLocation, ActorLocation);
@@ -308,9 +353,9 @@ void ARPGPlayerCameraManager::GetRenderedActorsInView(AActor* ViewingActor, TArr
 
 			if (bAcceptablePitch && bAcceptableYaw && bAcceptableRoll)
 			{
-				if (ActorTag.IsNone() || ActorArray[i]->ActorHasTag(ActorTag))
+				if (ActorTag.IsNone() || AllActorsInWorldArray[i]->ActorHasTag(ActorTag))
 				{
-					if (ActorArray[i]->GetLastRenderTime() > MinRecentTime)
+					if (AllActorsInWorldArray[i]->GetLastRenderTime() > MinRecentTime)
 					{
 						TArray<AActor*> ActorsToIgnore;
 						if (PlayerCharacter)
@@ -328,9 +373,9 @@ void ARPGPlayerCameraManager::GetRenderedActorsInView(AActor* ViewingActor, TArr
 
 						if (HitResult.bBlockingHit)
 						{
-							if (HitResult.GetActor() == ActorArray[i])
+							if (HitResult.GetActor() == AllActorsInWorldArray[i])
 							{
-								CurrentlyRenderedActors.AddUnique(ActorArray[i]);
+								CurrentlyRenderedActors.AddUnique(AllActorsInWorldArray[i]);
 							}
 						}
 					}
@@ -347,6 +392,9 @@ void ARPGPlayerCameraManager::GetRenderedActorsInViewportCircularSector(AActor* 
 	CurrentlyRenderedActors.Empty();
 
 	TArray<AActor*> ActorArray;
+
+	FVector2D ViewportCentre = FVector2D::ZeroVector;
+	ViewportCentre = UWidgetLayoutLibrary::GetViewportSize(GetWorld()) * FVector2D(.5f, .5f);
 
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), ActorArray);
 
@@ -370,7 +418,7 @@ void ARPGPlayerCameraManager::GetRenderedActorsInViewportCircularSector(AActor* 
 
 		if (!CurrentlyRenderedActors.Contains(ActorArray[i]))
 		{
-			FRotator ViewingActorRotation = FRotator::ZeroRotator;
+			/*FRotator ViewingActorRotation = FRotator::ZeroRotator;
 			FVector ViewingActorLocation = FVector::ZeroVector;
 			if (APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(ViewingActor))
 			{
@@ -381,28 +429,34 @@ void ARPGPlayerCameraManager::GetRenderedActorsInViewportCircularSector(AActor* 
 			{
 				ViewingActorRotation = ViewingActor->GetActorRotation();
 				ViewingActorLocation = ViewingActor->GetActorLocation();
-			}
+			}*/
+						
+			bool bReturnedViewportPosition = false;
+			FVector2D ActorViewportPosition = FVector2D::ZeroVector;
 
 			FVector ActorLocation = FVector::ZeroVector;
 			if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(ActorArray[i]->GetComponentByClass(UMeshComponent::StaticClass())))
 			{
 				ActorLocation = ActorMeshComponent->GetSocketLocation("LockOn_MainTarget");
+				bReturnedViewportPosition = UGameplayStatics::ProjectWorldToScreen(PC, ActorMeshComponent->GetSocketLocation("LockOn_MainTarget"), ActorViewportPosition, true);
 			}
 			else
 			{
 				ActorLocation = ActorArray[i]->GetActorLocation();
+				bReturnedViewportPosition = UGameplayStatics::ProjectWorldToScreen(PC, ActorArray[i]->GetActorLocation(), ActorViewportPosition, true);
 			}
 
-			const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(ViewingActorLocation, ActorLocation);
-			const FRotator LookAtAngle = UKismetMathLibrary::ComposeRotators(ViewingActorRotation, UKismetMathLibrary::NegateRotator(LookAtRotation));
+			//const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(ViewingActorLocation, ActorLocation);
+			//const FRotator LookAtAngle = UKismetMathLibrary::ComposeRotators(ViewingActorRotation, UKismetMathLibrary::NegateRotator(LookAtRotation));
 
-			const bool bAcceptablePitch = (LookAtAngle.Pitch <= SwapTargetSearchRange && LookAtAngle.Pitch >= -SwapTargetSearchRange);
-			const bool bAcceptableYaw = (LookAtAngle.Yaw <= SwapTargetSearchRange && LookAtAngle.Yaw >= -SwapTargetSearchRange);
-			const bool bAcceptableRoll = (LookAtAngle.Roll <= SwapTargetSearchRange && LookAtAngle.Roll >= -SwapTargetSearchRange);
+			//const bool bAcceptablePitch = (LookAtAngle.Pitch <= SwapTargetSearchRange && LookAtAngle.Pitch >= -SwapTargetSearchRange);
+			//const bool bAcceptableYaw = (LookAtAngle.Yaw <= SwapTargetSearchRange && LookAtAngle.Yaw >= -SwapTargetSearchRange);
+			//const bool bAcceptableRoll = (LookAtAngle.Roll <= SwapTargetSearchRange && LookAtAngle.Roll >= -SwapTargetSearchRange);
 
-			if (bAcceptablePitch && bAcceptableYaw && bAcceptableRoll)
+			if (bReturnedViewportPosition)//bAcceptablePitch && bAcceptableYaw && bAcceptableRoll)
 			{
-				const float ActorsAngleFromCentre = GetViewportAngleFromVector2D({-LookAtAngle.Yaw, -LookAtAngle.Pitch});
+				const float ActorsAngleFromCentre = GetViewportAngleFromScreenPosition(ActorViewportPosition);
+				// const float ActorsAngleFromCentre = GetViewportAngleFromVector2D({-LookAtAngle.Yaw, -LookAtAngle.Pitch});
 
 				if (ActorsAngleFromCentre >= (TargetAngle - (SearchAngleRange * .5f)) && ActorsAngleFromCentre <= (TargetAngle + (SearchAngleRange * .5f)))
 				{
@@ -444,33 +498,56 @@ void ARPGPlayerCameraManager::EnableLockOn()
 	GetRenderedActorsInView(this, LockOnActorArray, "Targetable");
 	if (!LockOnActorArray.IsEmpty())
 	{
-		FVector StartPoint;
-		PlayerCharacter ? StartPoint = PlayerCharacter->GetActorLocation() : StartPoint = GetCameraLocation();
+		FVector2D ViewportCentre = FVector2D::ZeroVector;
+		ViewportCentre = UWidgetLayoutLibrary::GetViewportSize(GetWorld()) * FVector2D(.5f, .5f);
 
-		float ShortestActorDistance = FLT_MAX;
+		float ShortestViewportDistance = FLT_MAX;
 
+		// Remove actors that have a health component and are not alive
 		for (int i = 0; i < LockOnActorArray.Num(); i++)
 		{
 			if (UHealthComponent* HealthComponentRef = Cast<UHealthComponent>(LockOnActorArray[i]->GetComponentByClass(UHealthComponent::StaticClass())))
 			{
-				if (HealthComponentRef->IsDead()) { continue; }
-			}
-
-			float ActorDistance = UKismetMathLibrary::VSize(StartPoint - LockOnActorArray[i]->GetActorLocation());
-			if (ActorDistance < ShortestActorDistance)
-			{
-				ShortestActorDistance = ActorDistance;
-				LockOnTargetActor = LockOnActorArray[i];
-				if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
-				{
-					ActorMeshComponent->DoesSocketExist("LockOn_MainTarget") ? TargetSocket = "LockOn_MainTarget" : TargetSocket;
-				}
+				if (HealthComponentRef->IsDead()) { LockOnActorArray.RemoveAt(i); }
 			}
 		}
+
+		// Lock on to actor closest to the centre of the screen
+		for (int i = 0; i < LockOnActorArray.Num(); i++)
+		{
+			bool bReturnedViewportPosition = false;
+			FVector2D LockOnActorViewportPosition = FVector2D::ZeroVector;
+			
+			UMeshComponent* LockOnActorMeshComponent = Cast<UMeshComponent>(LockOnActorArray[i]->GetComponentByClass(UMeshComponent::StaticClass()));
+			if (LockOnActorMeshComponent)
+			{
+				bReturnedViewportPosition = UGameplayStatics::ProjectWorldToScreen(PC, LockOnActorMeshComponent->GetSocketLocation("LockOn_MainTarget"), LockOnActorViewportPosition, true);
+			}
+			else
+			{
+				bReturnedViewportPosition = UGameplayStatics::ProjectWorldToScreen(PC, LockOnActorArray[i]->GetActorLocation(), LockOnActorViewportPosition, true);
+			}
+
+			if (bReturnedViewportPosition)
+			{
+				float DistanceFromCentreOfViewport = fabsf(UKismetMathLibrary::VSize2D(LockOnActorViewportPosition - ViewportCentre));
+
+				if (DistanceFromCentreOfViewport < ShortestViewportDistance)
+				{
+					ShortestViewportDistance = DistanceFromCentreOfViewport;
+					LockOnTargetActor = LockOnActorArray[i];
+					if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
+					{
+						ActorMeshComponent->DoesSocketExist("LockOn_MainTarget") ? TargetSocket = "LockOn_MainTarget" : TargetSocket;
+					}
+				}
+			}
+			else { LockOnActorArray.RemoveAt(i); }
+		}
+
 		SetCameraView(ECameraView::CV_LockOn);
 		bSwapTargetOnCooldown = false;
 	}
-	
 }
 
 void ARPGPlayerCameraManager::DisableLockOn()
@@ -498,92 +575,18 @@ void ARPGPlayerCameraManager::SwapLockOnTarget(float InYawValue, float InPitchVa
 
 	if (!LockOnActorArray.IsEmpty())
 	{
-		FVector StartPoint;
-		PlayerCharacter ? StartPoint = ViewTargetCameraRef->GetComponentLocation() : StartPoint = GetCameraLocation();
-
-
-		// Closest to target angle
-		// Closest to centre of screen
-
-		float ClosestToSearchAngle = FLT_MAX;
-		//float ClosestToViewportCentre = FLT_MAX;
-
-		float ShortestActorDistance = FLT_MAX;
-		float ClosestToViewportCentre = FLT_MAX;
-
-		for (int i = 0; i < LockOnActorArray.Num(); i++)
-		{
-			// Don't target dead actors
-			if (UHealthComponent* HealthComponentRef = Cast<UHealthComponent>(LockOnActorArray[i]->GetComponentByClass(UHealthComponent::StaticClass())))
-			{
-				if (HealthComponentRef->IsDead()) { continue; }
-			}
-
-			// Get distance between current targeted actor and potential new target
-			FVector LockOnActorArrayLocation = FVector::ZeroVector;
-			if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
-			{
-				if (ActorMeshComponent->DoesSocketExist("LockOn_MainTarget")) { LockOnActorArrayLocation = ActorMeshComponent->GetSocketLocation("LockOn_MainTarget"); }
-				else { LockOnActorArrayLocation = LockOnActorArray[i]->GetActorLocation(); }
-			}
-			else
-			{
-				LockOnActorArrayLocation = LockOnActorArray[i]->GetActorLocation();
-			}
-			float ActorDistance = UKismetMathLibrary::VSize(StartPoint - LockOnActorArrayLocation);
-
-			FRotator ActorAngle = (UKismetMathLibrary::FindLookAtRotation(ViewTargetCameraRef->GetComponentLocation(), LockOnActorArrayLocation));
-			ActorAngle = UKismetMathLibrary::ComposeRotators(PC->GetControlRotation(), UKismetMathLibrary::NegateRotator(ActorAngle));
-
-			float DistanceToSearchAngle = FMath::Abs(SearchAngle - GetViewportAngleFromVector2D({ -ActorAngle.Yaw, -ActorAngle.Pitch }));
-
-			ActorAngle = { FMath::Abs(ActorAngle.Pitch), FMath::Abs(ActorAngle.Yaw), 0.f };
-			float ActorAngleSum = FMath::Abs(ActorAngle.Pitch) + FMath::Abs(ActorAngle.Yaw) + FMath::Abs(ActorAngle.Roll);
-
-
-			
-			if (ActorAngleSum < ClosestToViewportCentre)
-			{
-				ClosestToViewportCentre = ActorAngleSum;
-				// ShortestActorDistance = ActorDistance;
-
-				LockOnTargetActor = LockOnActorArray[i];
-				if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
-				{
-					ActorMeshComponent->DoesSocketExist("LockOn_MainTarget") ? TargetSocket = "LockOn_MainTarget" : TargetSocket;
-				}
-				bSwapTargetOnCooldown = true;
-
-				continue;
-
-			}
-			else if (DistanceToSearchAngle <= (SwapTargetPreciseSearchAngleRange * .5f) && DistanceToSearchAngle < ClosestToSearchAngle)
-			{
-				ClosestToSearchAngle = DistanceToSearchAngle;
-
-				LockOnTargetActor = LockOnActorArray[i];
-				if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
-				{
-					ActorMeshComponent->DoesSocketExist("LockOn_MainTarget") ? TargetSocket = "LockOn_MainTarget" : TargetSocket;
-				}
-				bSwapTargetOnCooldown = true;
-
-				continue;
-			}
-		}
-		if (bSwapTargetOnCooldown)
-		{
-			GetWorldTimerManager().SetTimer(SwapTargetCooldownTimerHandle, this, &ARPGPlayerCameraManager::ResetSwapTargetCooldown, GetWorld()->GetDeltaSeconds(), false, SwapCooldown);
-			bCanSwapTarget = false;
-		}
+		EvaluateSwapLockOnTargets();
 	}
 	else
 	{
 		GetRenderedActorsInViewportCircularSector(this, LockOnActorArray, "Targetable", SearchAngle, SwapTargetSecondSearchAngleRange, .01f);
 		if (!LockOnActorArray.IsEmpty())
 		{
-			FVector StartPoint;
+			EvaluateSwapLockOnTargets();
 
+			/*
+			FVector StartPoint;
+			 
 			if (PlayerCharacter)
 			{
 				if (UMeshComponent* PlayerCharacterMeshComponent = Cast<UMeshComponent>(PlayerCharacter->GetComponentByClass(UMeshComponent::StaticClass())))
@@ -655,7 +658,7 @@ void ARPGPlayerCameraManager::SwapLockOnTarget(float InYawValue, float InPitchVa
 			{
 				GetWorldTimerManager().SetTimer(SwapTargetCooldownTimerHandle, this, &ARPGPlayerCameraManager::ResetSwapTargetCooldown, GetWorld()->GetDeltaSeconds(), false, SwapCooldown);
 				bCanSwapTarget = false;
-			}
+			}*/
 		}
 	}
 
@@ -714,16 +717,157 @@ void ARPGPlayerCameraManager::InterpToView()
 	}
 }
 
-float ARPGPlayerCameraManager::GetViewportAngleFromVector2D(FVector2D InVector2D)
+float ARPGPlayerCameraManager::GetViewportAngleFromScreenPosition(FVector2D ScreenPosition)
 {
 	FVector2D CentreVector2D { 0.f, 1.f };
+	FVector2D ScreenCentrePoint = UWidgetLayoutLibrary::GetViewportSize(GetWorld()) * FVector2D(.5f, .5f);
+
+	ScreenPosition = ScreenPosition - ScreenCentrePoint;
+	ScreenPosition.Y = -ScreenPosition.Y;
+
 	CentreVector2D = UKismetMathLibrary::Normal2D(CentreVector2D);
-	FVector2D TargetVector2D = UKismetMathLibrary::Normal2D(InVector2D);
-	if (TargetVector2D.X < 0.f) 
+	FVector2D TargetVector2D = UKismetMathLibrary::Normal2D(ScreenPosition);
+	if (TargetVector2D.X < 0.f)
 	{
 		return (360.f - UKismetMathLibrary::DegAcos(UKismetMathLibrary::DotProduct2D(CentreVector2D, TargetVector2D) / (UKismetMathLibrary::VSize2D(CentreVector2D) * UKismetMathLibrary::VSize2D(TargetVector2D))));
 	}
 	return UKismetMathLibrary::DegAcos(UKismetMathLibrary::DotProduct2D(CentreVector2D, TargetVector2D) / (UKismetMathLibrary::VSize2D(CentreVector2D) * UKismetMathLibrary::VSize2D(TargetVector2D)));
+}
+
+float ARPGPlayerCameraManager::GetViewportAngleFromVector2D(FVector2D InVector2D)
+{
+	FVector2D CentreVector2D{ 0.f, 1.f };
+	CentreVector2D = UKismetMathLibrary::Normal2D(CentreVector2D);
+	FVector2D TargetVector2D = UKismetMathLibrary::Normal2D(InVector2D);
+	if (TargetVector2D.X < 0.f)
+	{
+		return (360.f - UKismetMathLibrary::DegAcos(UKismetMathLibrary::DotProduct2D(CentreVector2D, TargetVector2D) / (UKismetMathLibrary::VSize2D(CentreVector2D) * UKismetMathLibrary::VSize2D(TargetVector2D))));
+	}
+	return UKismetMathLibrary::DegAcos(UKismetMathLibrary::DotProduct2D(CentreVector2D, TargetVector2D) / (UKismetMathLibrary::VSize2D(CentreVector2D) * UKismetMathLibrary::VSize2D(TargetVector2D)));
+}
+
+void ARPGPlayerCameraManager::EvaluateSwapLockOnTargets()
+{
+
+	FVector2D LockOnTargetActorScreenPosition = FVector2D::ZeroVector;
+	UGameplayStatics::ProjectWorldToScreen(PC, LockOnTargetActor->GetActorLocation(), LockOnTargetActorScreenPosition, true);
+
+	float ClosestToSearchAngle = FLT_MAX;
+	//float ClosestToViewportCentre = FLT_MAX;
+
+	float ShortestActorDistance = FLT_MAX;
+	float ShortestViewportDistance = FLT_MAX;
+
+	// Remove actors that have a health component and are not alive
+	for (int i = 0; i < LockOnActorArray.Num(); i++)
+	{
+		if (UHealthComponent* HealthComponentRef = Cast<UHealthComponent>(LockOnActorArray[i]->GetComponentByClass(UHealthComponent::StaticClass())))
+		{
+			if (HealthComponentRef->IsDead()) { LockOnActorArray.RemoveAt(i); }
+		}
+	}
+
+	// Lock on to actor closest to the centre of the screen
+	for (int i = 0; i < LockOnActorArray.Num(); i++)
+	{
+		bool bReturnedViewportPosition = false;
+		FVector2D LockOnActorViewportPosition = FVector2D::ZeroVector;
+
+		UMeshComponent* LockOnActorMeshComponent = Cast<UMeshComponent>(LockOnActorArray[i]->GetComponentByClass(UMeshComponent::StaticClass()));
+		if (LockOnActorMeshComponent)
+		{
+			bReturnedViewportPosition = UGameplayStatics::ProjectWorldToScreen(PC, LockOnActorMeshComponent->GetSocketLocation("LockOn_MainTarget"), LockOnActorViewportPosition, true);
+		}
+		else
+		{
+			bReturnedViewportPosition = UGameplayStatics::ProjectWorldToScreen(PC, LockOnActorArray[i]->GetActorLocation(), LockOnActorViewportPosition, true);
+		}
+
+		if (bReturnedViewportPosition)
+		{
+			float DistanceFromCentreOfViewport = fabsf(UKismetMathLibrary::VSize2D(LockOnActorViewportPosition - LockOnTargetActorScreenPosition));
+
+			if (DistanceFromCentreOfViewport < ShortestViewportDistance)
+			{
+				ShortestViewportDistance = DistanceFromCentreOfViewport;
+				LockOnTargetActor = LockOnActorArray[i];
+				if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
+				{
+					ActorMeshComponent->DoesSocketExist("LockOn_MainTarget") ? TargetSocket = "LockOn_MainTarget" : TargetSocket;
+				}
+
+				bSwapTargetOnCooldown = true;
+			}
+		}
+		else { LockOnActorArray.RemoveAt(i); }
+	}
+	// Old method
+	/*
+	for (int i = 0; i < LockOnActorArray.Num(); i++)
+	{
+		//// Don't target dead actors
+		//if (UHealthComponent* HealthComponentRef = Cast<UHealthComponent>(LockOnActorArray[i]->GetComponentByClass(UHealthComponent::StaticClass())))
+		//{
+		//	if (HealthComponentRef->IsDead()) { continue; }
+		//}
+
+		// Get distance between current targeted actor and potential new target
+		FVector LockOnActorArrayLocation = FVector::ZeroVector;
+		if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
+		{
+			if (ActorMeshComponent->DoesSocketExist("LockOn_MainTarget")) { LockOnActorArrayLocation = ActorMeshComponent->GetSocketLocation("LockOn_MainTarget"); }
+			else { LockOnActorArrayLocation = LockOnActorArray[i]->GetActorLocation(); }
+		}
+		else
+		{
+			LockOnActorArrayLocation = LockOnActorArray[i]->GetActorLocation();
+		}
+		float ActorDistance = UKismetMathLibrary::VSize(DistanceCheckOriginPoint - LockOnActorArrayLocation);
+
+		FRotator ActorAngle = (UKismetMathLibrary::FindLookAtRotation(ViewTargetCameraRef->GetComponentLocation(), LockOnActorArrayLocation));
+		ActorAngle = UKismetMathLibrary::ComposeRotators(PC->GetControlRotation(), UKismetMathLibrary::NegateRotator(ActorAngle));
+
+		float DistanceToSearchAngle = FMath::Abs(SearchAngle - GetViewportAngleFromScreenPosition({ -ActorAngle.Yaw, -ActorAngle.Pitch }));
+
+		ActorAngle = { FMath::Abs(ActorAngle.Pitch), FMath::Abs(ActorAngle.Yaw), 0.f };
+		float ActorAngleSum = FMath::Abs(ActorAngle.Pitch) + FMath::Abs(ActorAngle.Yaw) + FMath::Abs(ActorAngle.Roll);
+
+
+		
+		if (ActorAngleSum < ClosestToViewportCentre)
+		{
+			ClosestToViewportCentre = ActorAngleSum;
+			// ShortestActorDistance = ActorDistance;
+
+			LockOnTargetActor = LockOnActorArray[i];
+			if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
+			{
+				ActorMeshComponent->DoesSocketExist("LockOn_MainTarget") ? TargetSocket = "LockOn_MainTarget" : TargetSocket;
+			}
+			bSwapTargetOnCooldown = true;
+
+			continue;
+
+		}
+		else if (DistanceToSearchAngle <= (SwapTargetPreciseSearchAngleRange * .5f) && DistanceToSearchAngle < ClosestToSearchAngle)
+		{
+			ClosestToSearchAngle = DistanceToSearchAngle;
+
+			LockOnTargetActor = LockOnActorArray[i];
+			if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
+			{
+				ActorMeshComponent->DoesSocketExist("LockOn_MainTarget") ? TargetSocket = "LockOn_MainTarget" : TargetSocket;
+			}
+			bSwapTargetOnCooldown = true;
+
+			continue;
+		}
+	}*/
+	if (bSwapTargetOnCooldown)
+	{
+		GetWorldTimerManager().SetTimer(SwapTargetCooldownTimerHandle, this, &ARPGPlayerCameraManager::ResetSwapTargetCooldown, GetWorld()->GetDeltaSeconds(), false, SwapCooldown);
+		bCanSwapTarget = false;
+	}
 }
 
 
