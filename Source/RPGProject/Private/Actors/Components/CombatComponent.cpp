@@ -736,9 +736,10 @@ void UCombatComponent::EvaluateHitResult(FHitResult InHitResult, AItemWeapon* In
 
 	// Check if attack was blocked, prevent damage if so
 	
+	bool bBlockAttack = false;
+
 	if (HitCombatComponentRef)
 	{
-		bool bBlockAttack = false;
 		const bool bIsTargetGuarding = HitCombatComponentRef->GetIsGuarding();
 		const ECollisionChannel HitComponentObjectType = InHitResult.GetComponent()->GetCollisionObjectType();
 
@@ -767,69 +768,23 @@ void UCombatComponent::EvaluateHitResult(FHitResult InHitResult, AItemWeapon* In
 
 			HitActorArray.AddUnique(InHitResult.GetActor()->GetParentActor());
 
+			if (InItemWeapon) { PlayHitFX(InHitResult, InItemWeapon, true, EPhysicalSurface::SurfaceType3); }
+			else if (InProjectileActor) { PlayHitFX(InHitResult, InProjectileActor); }
+			else { PlayHitFX(InHitResult, nullptr, true, EPhysicalSurface::SurfaceType3); }
+
 			return;
 		}
 	}
 
+	if (AItemWeapon* ItemWeaponRef = Cast<AItemWeapon>(InHitResult.GetActor()))
+	{
+		return;
+	}
+
 	// Play relevant SFX and VFX (if any)
-
-	UNiagaraSystem* HitVFXSystem = nullptr;
-	USoundCue* HitSoundCue = nullptr;
-
-	const TEnumAsByte<EPhysicalSurface> HitSurface = InHitResult.PhysMaterial.Get() ? InHitResult.PhysMaterial.Get()->SurfaceType : EPhysicalSurface::SurfaceType_Default;
-	
-	const UEnum* PhysicalSurfaceEnum = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPhysicalSurface"));
-	FString SurfaceName = PhysicalSurfaceEnum->GetNameStringByValue(HitSurface.GetValue());
-
-	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, SurfaceName);
-
-	if (IHitFXInterface* ProjecitleHitFXInterface = Cast<IHitFXInterface>(InProjectileActor))
-	{
-		if (ProjecitleHitFXInterface->GetHitFXData()->HitVFXMap.Contains(HitSurface))
-		{
-			HitVFXSystem = ProjecitleHitFXInterface->GetHitFXData()->HitVFXMap[HitSurface].NiagaraSystem;
-			HitSoundCue = ProjecitleHitFXInterface->GetHitFXData()->HitVFXMap[HitSurface].SoundCue;
-		}
-	}
-	else if (IHitFXInterface* HitFXInterface = Cast<IHitFXInterface>(InHitResult.GetActor()))
-	{
-		if (HitFXInterface->GetHitFXData()->HitVFXMap.Contains(HitSurface))
-		{
-			HitVFXSystem = HitFXInterface->GetHitFXData()->HitVFXMap[HitSurface].NiagaraSystem;
-			HitSoundCue = HitFXInterface->GetHitFXData()->HitVFXMap[HitSurface].SoundCue;
-		}
-	}
-	if (DefaultHitFXData)
-	{
-		if (!HitVFXSystem && DefaultHitFXData->HitVFXMap.Contains(HitSurface))
-		{
-			HitVFXSystem = DefaultHitFXData->HitVFXMap[HitSurface].NiagaraSystem;
-		}
-		if (!HitSoundCue && DefaultHitFXData->HitVFXMap.Contains(HitSurface))
-		{
-			HitSoundCue = DefaultHitFXData->HitVFXMap[HitSurface].SoundCue;
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UCombatComponent::EvaluateHitResult DefaultHitFXData is nullptr."));
-	}
-	
-
-	if (HitVFXSystem)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), HitVFXSystem, InHitResult.ImpactPoint, InHitResult.ImpactNormal.Rotation(), { 1.f, 1.f, 1.f }, true, true, ENCPoolMethod::None, true);
-	}
-
-	if (HitSoundCue)
-	{
-		//UE_LOG(LogTemp, Warning, TEXT("UCombatComponent::EvaluateHitResult HitSoundCue location = %s, %s, %s"), *FString::SanitizeFloat(InHitResult.ImpactPoint.X), *FString::SanitizeFloat(InHitResult.ImpactPoint.Y), *FString::SanitizeFloat(InHitResult.ImpactPoint.Z));
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSoundCue, InHitResult.ImpactPoint, 1.f, 1.f, 0.f);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UCombatComponent::EvaluateHitResult HitSoundCue is nullptr."));
-	}
+	if (InItemWeapon) { PlayHitFX(InHitResult, InItemWeapon); }
+	else if (InProjectileActor) { PlayHitFX(InHitResult, InProjectileActor); }
+	else { PlayHitFX(InHitResult, nullptr, true, EPhysicalSurface::SurfaceType3); }
 
 	// Calculate damage
 
@@ -938,13 +893,16 @@ bool UCombatComponent::IsAttackFromBlockedAngle(AActor* AttackingActor)
 		const FRotator WorldRotationToTarget = UKismetMathLibrary::FindLookAtRotation(GetOwner()->GetActorLocation(), AttackingActor->GetActorLocation());
 		const FRotator RelativeRotationToTarget = UKismetMathLibrary::ComposeRotators(WorldRotationToTarget, UKismetMathLibrary::NegateRotator(GetOwner()->GetActorRotation()));
 
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, FString::SanitizeFloat(fabs(RelativeRotationToTarget.Yaw)));
+
 		if (fabs(RelativeRotationToTarget.Yaw) <= CurrentWeaponBlockAngle)
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("True"));
 			return true;
 		}
 	}
 
-
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("False"));
 	return false;
 }
 
@@ -1055,6 +1013,67 @@ FWeaponAttackInfo UCombatComponent::GetCurrentWeaponAttackInfo(AItemWeapon* Atta
 		break;
 	}
 	return FWeaponAttackInfo();
+}
+
+void UCombatComponent::PlayHitFX(FHitResult InHitResult, AActor* AttackingActor, bool bOverrideHitSurface, TEnumAsByte<EPhysicalSurface> HitSurfaceOverride)
+{
+	UNiagaraSystem* HitVFXSystem = nullptr;
+	USoundCue* HitSoundCue = nullptr;
+
+	const TEnumAsByte<EPhysicalSurface> HitSurface = HitSurfaceOverride != EPhysicalSurface::SurfaceType_Max ? InHitResult.PhysMaterial.Get() ? InHitResult.PhysMaterial.Get()->SurfaceType : EPhysicalSurface::SurfaceType_Default : HitSurfaceOverride;
+
+	const UEnum* PhysicalSurfaceEnum = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPhysicalSurface"));
+	FString SurfaceName = PhysicalSurfaceEnum->GetNameStringByValue(HitSurface.GetValue());
+
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, SurfaceName);
+
+	if (IHitFXInterface* ProjecitleHitFXInterface = Cast<IHitFXInterface>(AttackingActor))
+	{
+		if (ProjecitleHitFXInterface->GetHitFXData()->HitVFXMap.Contains(HitSurface))
+		{
+			HitVFXSystem = ProjecitleHitFXInterface->GetHitFXData()->HitVFXMap[HitSurface].NiagaraSystem;
+			HitSoundCue = ProjecitleHitFXInterface->GetHitFXData()->HitVFXMap[HitSurface].SoundCue;
+		}
+	}
+	else if (IHitFXInterface* HitFXInterface = Cast<IHitFXInterface>(InHitResult.GetActor()))
+	{
+		if (HitFXInterface->GetHitFXData()->HitVFXMap.Contains(HitSurface))
+		{
+			HitVFXSystem = HitFXInterface->GetHitFXData()->HitVFXMap[HitSurface].NiagaraSystem;
+			HitSoundCue = HitFXInterface->GetHitFXData()->HitVFXMap[HitSurface].SoundCue;
+		}
+	}
+	if (DefaultHitFXData)
+	{
+		if (!HitVFXSystem && DefaultHitFXData->HitVFXMap.Contains(HitSurface))
+		{
+			HitVFXSystem = DefaultHitFXData->HitVFXMap[HitSurface].NiagaraSystem;
+		}
+		if (!HitSoundCue && DefaultHitFXData->HitVFXMap.Contains(HitSurface))
+		{
+			HitSoundCue = DefaultHitFXData->HitVFXMap[HitSurface].SoundCue;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UCombatComponent::EvaluateHitResult DefaultHitFXData is nullptr."));
+	}
+
+
+	if (HitVFXSystem)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), HitVFXSystem, InHitResult.ImpactPoint, InHitResult.ImpactNormal.Rotation(), { 1.f, 1.f, 1.f }, true, true, ENCPoolMethod::None, true);
+	}
+
+	if (HitSoundCue)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("UCombatComponent::EvaluateHitResult HitSoundCue location = %s, %s, %s"), *FString::SanitizeFloat(InHitResult.ImpactPoint.X), *FString::SanitizeFloat(InHitResult.ImpactPoint.Y), *FString::SanitizeFloat(InHitResult.ImpactPoint.Z));
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSoundCue, InHitResult.ImpactPoint, 1.f, 1.f, 0.f);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UCombatComponent::EvaluateHitResult HitSoundCue is nullptr."));
+	}
 }
 
 void UCombatComponent::OnSheathingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
@@ -1655,7 +1674,13 @@ void UCombatComponent::UpdateGuardState()
 {
 	if (!EquipmentComponentRef) { return; }
 
-	if (bIsGuarding )
+	bool bStaminaExhausted = false;
+	if (StaminaComponentRef)
+	{
+		bStaminaExhausted = StaminaComponentRef->IsStaminaExhausted();
+	}
+
+	if (bIsGuarding && !bStaminaExhausted)
 	{
 
 		if (MainhandWeaponRef && OffhandWeaponRef) // Weapon in both hands
@@ -1941,7 +1966,7 @@ void UCombatComponent::StaminaExhaustionUpdate()
 	if (!CharacterAnimInstance) { return; }
 	if (!StaminaComponentRef) { return; }
 	
-	if (StaminaComponentRef->GetCurrentStamina() / StaminaComponentRef->GetMaxStamina() >= .25f && CharacterAnimInstance->GetCurrentActiveMontage() == StaminaExhaustedMontage)
+	if (!StaminaComponentRef->IsStaminaExhausted() && CharacterAnimInstance->GetCurrentActiveMontage() == StaminaExhaustedMontage)
 	{
 		if (CharacterAnimInstance->Montage_GetCurrentSection(StaminaExhaustedMontage) == "Default_Loop" && StaminaExhaustedMontage->IsValidSectionName("Default_End"))
 		{

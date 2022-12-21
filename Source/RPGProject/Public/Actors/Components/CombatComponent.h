@@ -159,6 +159,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FWeaponAttackInfo GetCurrentWeaponAttackInfo(AItemWeapon* AttackingWeapon);
 
+	UFUNCTION(BlueprintCallable)
+	void PlayHitFX(FHitResult InHitResult, AActor* AttackingActor = nullptr, bool bOverrideHitSurface = false, TEnumAsByte<EPhysicalSurface> HitSurfaceOverride = EPhysicalSurface::SurfaceType_Default);
+
 	// --- VARIABLES --- // 
 
 protected:
