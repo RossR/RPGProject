@@ -10,6 +10,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
+#include "Actors/Components/CombatComponent.h"
+
 ARPGProjectPlayerController::ARPGProjectPlayerController()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -200,18 +202,21 @@ void ARPGProjectPlayerController::BeginPlay()
 
 	PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(GetCharacter());
 
+	if (PlayerCharacter)
+	{
+		CombatComponentRef = Cast<UCombatComponent>(PlayerCharacter->GetComponentByClass(UCombatComponent::StaticClass()));
+	}
+
 	RPGPlayerCameraManagerRef = Cast<ARPGPlayerCameraManager>(PlayerCameraManager);
 
 }
-
-
 
 // Called every frame
 void ARPGProjectPlayerController::Tick(float DeltaTime)
 {
 	DeltaSeconds = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
 
-	if (!bDisableRotation) { CalculateDesiredActorRotation(); }
+	if (!bDisableRotation || bOverrideActorRotation) { CalculateDesiredActorRotation(); }
 
 	if (PlayerCharacter)
 	{
@@ -226,72 +231,14 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 		}
 	}
 
-	if (RPGPlayerCameraManagerRef)
-	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
-		{
-			if ((FMath::Abs(YawValue) + FMath::Abs(PitchValue)) >= 5.f)
-			{
-				if (RPGPlayerCameraManagerRef->GetCanSwapTarget())
-				{
-					RPGPlayerCameraManagerRef->SwapLockOnTarget(YawValue, PitchValue);
-				}
-			}
-			else if ((FMath::Abs(YawRate) + FMath::Abs(PitchRate)) >= .4f)
-			{
-				if (RPGPlayerCameraManagerRef->GetCanSwapTarget())
-				{
-					RPGPlayerCameraManagerRef->SwapLockOnTarget(YawRate, PitchRate);
-				}
-			}
-			else
-			{
-				RPGPlayerCameraManagerRef->SetCanSwapTarget(true);
-			}
+	CheckInputToSwapLockOnTarget();
 
-		}
-	}
-
-	if (bJumpOrCrouchPressed && JumpOrCrouchHoldTime < JumpOrCrouchHoldTimeThreshold)
-	{
-		JumpOrCrouchHoldTime += DeltaTime;
-
-		if (JumpOrCrouchHoldTime >= JumpOrCrouchHoldTimeThreshold)
-		{
-			RequestHoldJumpOrCrouch();
-		}
-	}
-
-	if (bContextActionIsPressed && ContextActionHoldTime < ContextActionSprintThreshold)
-	{
-		ContextActionHoldTime += DeltaTime;
-
-		if (ContextActionHoldTime >= ContextActionSprintThreshold)
-		{
-			//RequestHoldContextAction();
-		}
-	}
-
-	if (bLightAttackIsPressed && LightAttackHoldTime < LightAttackHoldTimeThreshold)
-	{
-		LightAttackHoldTime += DeltaTime;
-
-		if (LightAttackHoldTime >= LightAttackHoldTimeThreshold)
-		{
-			RequestLightAttackFinisher();
-		}
-	}
-	if (bHeavyAttackIsPressed && HeavyAttackHoldTime < HeavyAttackHoldTimeThreshold)
-	{
-		HeavyAttackHoldTime += DeltaTime;
-
-		if (HeavyAttackHoldTime >= HeavyAttackHoldTimeThreshold)
-		{
-			RequestHeavyAttackFinisher();
-		}
-	}
+	CheckInputToJumpOrCrouch(DeltaTime);
+	CheckInputForAttackFinisher(DeltaTime);
 
 	InputUIUpdate();
+
+	OverrideActorRotationUpdate();
 }
 
 void ARPGProjectPlayerController::CombatModeUpdate()
@@ -317,8 +264,6 @@ void ARPGProjectPlayerController::CombatModeUpdate()
 
 void ARPGProjectPlayerController::InputUIUpdate()
 {
-	UCombatComponent* CombatComponentRef = Cast<UCombatComponent>(GetCharacter()->GetComponentByClass(UCombatComponent::StaticClass()));
-
 	for (uint8 i = 1; i < (uint8)EGamePadActionMappings::GPAM_MAX; i++)
 	{
 		EGamePadActionMappings CurrentGamePadActionMapping = (EGamePadActionMappings)i;
@@ -605,6 +550,103 @@ void ARPGProjectPlayerController::InputUIUpdate()
 	}
 }
 
+void ARPGProjectPlayerController::OverrideActorRotationUpdate()
+{
+	if (!RPGPlayerCameraManagerRef) { return; }
+	
+	if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+	{
+		SetOverrideActorRotation(true);
+	}
+	else
+	{
+		SetOverrideActorRotation(false);
+	}
+
+	if (!PlayerCharacter) { return; }
+
+	if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Sprinting ||
+		PlayerCharacter->GetPlayerActionState() == EPlayerActionState::PAS_Dodging)
+	{
+		SetOverrideActorRotation(false);
+	}
+
+	if (!CombatComponentRef) { return; }
+
+	if (CombatComponentRef->GetCombatState() == ECombatState::CS_AtEase)
+	{
+		SetOverrideActorRotation(false);
+	}
+
+	if (CombatComponentRef->GetIsInAttackSequence())
+	{
+		SetOverrideActorRotation(false);
+	}
+}
+
+void ARPGProjectPlayerController::CheckInputToSwapLockOnTarget()
+{
+	if (!RPGPlayerCameraManagerRef) { return; }
+
+	if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+	{
+		if ((FMath::Abs(YawValue) + FMath::Abs(PitchValue)) >= 5.f)
+		{
+			if (RPGPlayerCameraManagerRef->GetCanSwapTarget())
+			{
+				RPGPlayerCameraManagerRef->SwapLockOnTarget(YawValue, PitchValue);
+			}
+		}
+		else if ((FMath::Abs(YawRate) + FMath::Abs(PitchRate)) >= .4f)
+		{
+			if (RPGPlayerCameraManagerRef->GetCanSwapTarget())
+			{
+				RPGPlayerCameraManagerRef->SwapLockOnTarget(YawRate, PitchRate);
+			}
+		}
+		else
+		{
+			RPGPlayerCameraManagerRef->SetCanSwapTarget(true);
+		}
+	}
+}
+
+void ARPGProjectPlayerController::CheckInputToJumpOrCrouch(float DeltaTime)
+{
+	if (bJumpOrCrouchPressed && JumpOrCrouchHoldTime < JumpOrCrouchHoldTimeThreshold)
+	{
+		JumpOrCrouchHoldTime += DeltaTime;
+
+		if (JumpOrCrouchHoldTime >= JumpOrCrouchHoldTimeThreshold)
+		{
+			RequestHoldJumpOrCrouch();
+		}
+	}
+}
+
+void ARPGProjectPlayerController::CheckInputForAttackFinisher(float DeltaTime)
+{
+	if (bLightAttackIsPressed && LightAttackHoldTime < LightAttackHoldTimeThreshold)
+	{
+		LightAttackHoldTime += DeltaTime;
+
+		if (LightAttackHoldTime >= LightAttackHoldTimeThreshold)
+		{
+			RequestLightAttackFinisher();
+		}
+	}
+
+	if (bHeavyAttackIsPressed && HeavyAttackHoldTime < HeavyAttackHoldTimeThreshold)
+	{
+		HeavyAttackHoldTime += DeltaTime;
+
+		if (HeavyAttackHoldTime >= HeavyAttackHoldTimeThreshold)
+		{
+			RequestHeavyAttackFinisher();
+		}
+	}
+}
+
 void ARPGProjectPlayerController::CalculateDesiredActorRotation()
 {
 	
@@ -613,7 +655,7 @@ void ARPGProjectPlayerController::CalculateDesiredActorRotation()
 	if (PlayerCharacter)
 	{
 		float TurnSpeedModifier = 0.f;
-		if (UCombatComponent* CombatComponentRef = Cast<UCombatComponent>(PlayerCharacter->GetComponentByClass(UCombatComponent::StaticClass())))
+		if (CombatComponentRef)
 		{
 			TurnSpeedModifier = 1 - CombatComponentRef->GetRotationSpeedReductionScaleCurve();
 			//CharacterTurnSpeed = CombatComponentRef->GetRotationSpeedReductionScaleCurve() < 0.09f ? MaxCharacterTurnSpeed : MaxCharacterTurnSpeed * CombatComponentRef->GetRotationSpeedReductionScaleCurve();
@@ -626,7 +668,15 @@ void ARPGProjectPlayerController::CalculateDesiredActorRotation()
 
 		if (TurnSpeedModifier > 0.f)
 		{
-			DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0 }, PlayerInputRotation, DeltaSeconds, (CharacterTurnSpeed * TurnSpeedModifier));
+			if (bOverrideActorRotation)
+			{
+				DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0 }, { 0, GetControlRotation().Yaw, 0 }, DeltaSeconds, (CharacterTurnSpeed * TurnSpeedModifier));
+				PlayerCharacter->SetActorRotation(DesiredActorRotation);
+			}
+			else
+			{
+				DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0 }, PlayerInputRotation, DeltaSeconds, (CharacterTurnSpeed * TurnSpeedModifier));
+			}
 		}
 	}
 }

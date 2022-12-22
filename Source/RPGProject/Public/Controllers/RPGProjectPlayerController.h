@@ -12,6 +12,7 @@ DECLARE_MULTICAST_DELEGATE(FOnInteractionCancel);
 
 class ARPGProjectPlayerCharacter;
 class ARPGPlayerCameraManager;
+class UCombatComponent;
 
 UENUM(BlueprintType)
 enum class EGamePadActionMappings : uint8
@@ -115,6 +116,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DisableCharacterRotation(bool bActive) { bDisableRotation = bActive; }
 
+	UFUNCTION(BlueprintPure)
+	bool GetOverrideActorRotation() { return bOverrideActorRotation; }
+	UFUNCTION(BlueprintCallable)
+	void SetOverrideActorRotation(bool bActive) { bOverrideActorRotation = bActive; }
+
 
 public:
 
@@ -127,6 +133,10 @@ protected:
 
 	void CombatModeUpdate();
 	void InputUIUpdate();
+	void OverrideActorRotationUpdate();
+	void CheckInputToSwapLockOnTarget();
+	void CheckInputToJumpOrCrouch(float DeltaTime);
+	void CheckInputForAttackFinisher(float DeltaTime);
 
 	// --- INPUT FUNCTIONS --- //
 
@@ -267,6 +277,8 @@ protected:
 
 	ARPGProjectPlayerCharacter* PlayerCharacter;
 
+	UCombatComponent* CombatComponentRef;
+
 	ARPGPlayerCameraManager* RPGPlayerCameraManagerRef;
 
 	FTimerHandle SprintStaminaDrainTimerHandle;
@@ -282,5 +294,6 @@ protected:
 	TMap<EGamePadActionMappings, EInputButtonState> InputButtonStateMap;
 
 	bool bDisableRotation = false;
+	bool bOverrideActorRotation = false;
 
 };
