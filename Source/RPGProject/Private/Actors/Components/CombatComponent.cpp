@@ -242,8 +242,6 @@ void UCombatComponent::StartStanceCombatAction()
 	if (!CharacterRef) { return; }
 	if (!CharacterAnimInstance) { return; }
 
-	FCombatActionInfo CombatActionInfo;
-
 	UItemWeaponData* CombatActionWeaponData = nullptr;
 	UItemWeaponData* MainhandWeaponData = EquipmentComponentRef->GetMainhandWeaponData();
 	UItemWeaponData* OffhandWeaponData = EquipmentComponentRef->GetOffhandWeaponData();
@@ -324,7 +322,7 @@ void UCombatComponent::StopStanceCombatAction()
 	if (!CharacterRef) { return; }
 	if (!CharacterAnimInstance) { return; }
 
-	FCombatActionInfo CombatActionInfo;
+	//FCombatActionInfo CombatActionInfo;
 
 	AItemWeapon* CombatActionWeaponActor = nullptr;
 	UItemWeaponData* CombatActionWeaponData = nullptr;
@@ -969,6 +967,11 @@ FWeaponAttackInfo UCombatComponent::GetCurrentWeaponAttackInfo(AItemWeapon* Atta
 {
 	if (!AttackingWeapon) { FWeaponAttackInfo(); }
 
+	if (CharacterAnimInstance->GetCurrentActiveMontage() == CombatActionInfo.CombatActionMontage)
+	{
+		return CombatActionInfo.ActionAttackInfo;
+	}
+
 	switch (CurrentAttackType)
 	{
 	case EAttackType::AT_LightAttack:
@@ -1321,8 +1324,6 @@ void UCombatComponent::OnCombatActionEnded(UAnimMontage* Montage, bool bInterrup
 	UItemWeaponData* MainhandWeaponData = EquipmentComponentRef->GetMainhandWeaponData();
 	UItemWeaponData* OffhandWeaponData = EquipmentComponentRef->GetOffhandWeaponData();
 
-	FCombatActionInfo CombatActionInfo;
-
 	switch (CombatWeaponStance)
 	{
 	case ECombatWeaponStance::CWS_Mainhand:
@@ -1370,6 +1371,10 @@ void UCombatComponent::OnCombatActionEnded(UAnimMontage* Montage, bool bInterrup
 		default:
 			break;
 		}
+	}
+	else
+	{
+		CombatActionInfo = {};
 	}
 }
 

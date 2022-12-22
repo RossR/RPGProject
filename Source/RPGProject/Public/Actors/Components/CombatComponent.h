@@ -292,6 +292,9 @@ protected:
 	FOnMontageBlendingOutStarted  StaminaExhaustedMontageBlendingOutDelegate;
 	FOnMontageEnded  StaminaExhaustedMontageEndedDelegate;
 
+	UPROPERTY(VisibleAnywhere)
+	FCombatActionInfo CombatActionInfo;
+
 	// Store values of the curves used in the attack montages
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat Component | Curves")
 	float RotationSpeedReductionScaleCurve;
