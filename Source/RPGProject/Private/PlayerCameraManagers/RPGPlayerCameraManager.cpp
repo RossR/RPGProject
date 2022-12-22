@@ -124,48 +124,6 @@ void ARPGPlayerCameraManager::Tick(float DeltaTime)
 			DisableLockOn();
 		}
 	}
-
-	if (PlayerCharacter && CombatComponentRef)
-	{
-		if (GetCameraView() == ECameraView::CV_LockOn && PlayerCharacter->GetPlayerHorizontalMobilityState() != EPlayerHorizontalMobility::PHM_Sprinting)
-		{
-			switch (CombatComponentRef->GetCurrentWeaponStanceType())
-			{
-			case EWeaponStanceType::ST_None:
-				PlayerCharacter->bUseControllerRotationYaw = true;
-				break;
-			case EWeaponStanceType::ST_Ranged:
-				PlayerCharacter->bUseControllerRotationYaw = true;
-				break;
-			case EWeaponStanceType::ST_Guard:
-				PlayerCharacter->bUseControllerRotationYaw = true;
-				break;
-			case EWeaponStanceType::ST_MAX:
-				break;
-			default:
-				break;
-			}
-		}
-		else
-		{
-			switch (CombatComponentRef->GetCurrentWeaponStanceType())
-			{
-			case EWeaponStanceType::ST_None:
-				PlayerCharacter->bUseControllerRotationYaw = false;
-				break;
-			case EWeaponStanceType::ST_Ranged:
-				PlayerCharacter->bUseControllerRotationYaw = true;
-				break;
-			case EWeaponStanceType::ST_Guard:
-				PlayerCharacter->bUseControllerRotationYaw = false;
-				break;
-			case EWeaponStanceType::ST_MAX:
-				break;
-			default:
-				break;
-			}
-		}
-	}
 }
 
 void ARPGPlayerCameraManager::UpdateCamera(float DeltaTime)
@@ -455,6 +413,12 @@ void ARPGPlayerCameraManager::GetRenderedActorsInViewportCircularSector(AActor* 
 
 			if (bReturnedViewportPosition)//bAcceptablePitch && bAcceptableYaw && bAcceptableRoll)
 			{
+				const FVector2D ViewportSizeVector = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
+				if ((ActorViewportPosition.X < 0.f || ActorViewportPosition.X > ViewportSizeVector.X) || (ActorViewportPosition.Y < 0.f || ActorViewportPosition.Y > ViewportSizeVector.Y))
+				{
+					continue;
+				}
+
 				const float ActorsAngleFromCentre = GetViewportAngleFromScreenPosition(ActorViewportPosition);
 				// const float ActorsAngleFromCentre = GetViewportAngleFromVector2D({-LookAtAngle.Yaw, -LookAtAngle.Pitch});
 
