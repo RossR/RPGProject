@@ -240,6 +240,10 @@ public:
 	EPlayerActionState GetPlayerActionState() { return PlayerActionState; }
 
 	UFUNCTION(BlueprintCallable)
+	// Get the character's last action state
+	EPlayerActionState GetLastPlayerActionState() { return LastPlayerActionState; }
+
+	UFUNCTION(BlueprintCallable)
 	// Returns true if the Player Combat State has changed this/last frame (not sure which)
 	bool HasPlayerActionStateChanged() { return PlayerActionState != LastPlayerActionState; }
 

@@ -327,6 +327,17 @@ void ARPGProjectPlayerCharacter::SetPlayerHorizontalMobilityState(EPlayerHorizon
 {
 	LastPlayerHorizontalMobilityState = PlayerHorizontalMobilityState;
 	PlayerHorizontalMobilityState = NewState;
+	if (PC)
+	{
+		switch (NewState)
+		{
+		case EPlayerHorizontalMobility::PHM_Sprinting:
+			PC->SetOverrideActorRotation(false);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 void ARPGProjectPlayerCharacter::CheckPlayerHorizontalMobility()
