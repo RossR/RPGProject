@@ -51,11 +51,13 @@ void UCombatComponent::BeginPlay()
 
 	if (CharacterRef) 
 	{ 
+		PC = Cast<ARPGProjectPlayerController>(CharacterRef->GetController());
+
 		MeshComponentRef = CharacterRef->GetMesh(); 
 
 		if (MeshComponentRef) { CharacterAnimInstance = Cast<URPGProjectAnimInstance>(MeshComponentRef->GetAnimInstance()); }
 
-		if (ARPGProjectPlayerController* PC = Cast<ARPGProjectPlayerController>(CharacterRef->GetController()))
+		if (PC)
 		{
 			RPGPlayerCameraManagerRef = PC->GetRPGPlayerCameraManager();
 		}
@@ -606,6 +608,7 @@ bool UCombatComponent::CombatDodge()
 		if (ARPGProjectPlayerCharacter* RPGPlayerCharacterRef = Cast<ARPGProjectPlayerCharacter>(CharacterRef))
 		{
 			RPGPlayerCharacterRef->SetIsInUninterruptableAction(true);
+			RPGPlayerCharacterRef->SetPlayerActionState(EPlayerActionState::PAS_Dodging);
 		}
 
 		if (CharacterAnimInstance)
@@ -765,6 +768,9 @@ void UCombatComponent::EvaluateHitResult(FHitResult InHitResult, AItemWeapon* In
 			}
 
 			HitCombatComponentRef->AttackBlocked(WeaponAttackInfo, InItemWeapon, CurrentAttackType, InProjectileActor);
+
+			const float DurabilityCost = InItemWeapon->GetItemWeaponData()->ItemCurrentDurability - 0.5f;
+			InItemWeapon->SetDurability(DurabilityCost);
 
 			HitActorArray.AddUnique(InHitResult.GetActor()->GetParentActor());
 
@@ -1388,9 +1394,15 @@ void UCombatComponent::OnDodgeMontageBlendingOut(UAnimMontage* Montage, bool bIn
 {
 	bCanAttack = true;
 
+	if (PC)
+	{
+		PC->SetOverrideActorRotation(true);
+	}
+
 	if (ARPGProjectPlayerCharacter* RPGPlayerCharacterRef = Cast<ARPGProjectPlayerCharacter>(CharacterRef))
 	{
 		RPGPlayerCharacterRef->SetIsInUninterruptableAction(false);
+		RPGPlayerCharacterRef->SetPlayerActionState(RPGPlayerCharacterRef->GetLastPlayerActionState());
 	}
 }
 

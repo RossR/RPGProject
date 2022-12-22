@@ -13,6 +13,7 @@
 
 class ACharacter;
 class URPGProjectAnimInstance;
+class ARPGProjectPlayerController;
 class ARPGPlayerCameraManager;
 class UEquipmentComponent;
 class UHealthComponent;
@@ -59,6 +60,9 @@ public:
 	void SetAttackType(EAttackType NewAttackType) { CurrentAttackType = NewAttackType; }
 	UFUNCTION(BlueprintPure)
 	const EAttackType GetAttackType() { return CurrentAttackType; }
+
+	UFUNCTION(BlueprintPure)
+	bool GetIsInAttackSequence() { return bIsInAttackSequence; }
 
 	UFUNCTION(BlueprintPure)
 	float GetAttackCount() { return AttackCount; }
@@ -329,6 +333,8 @@ private:
 	ACharacter* CharacterRef;
 
 	ARPGProjectPlayerCharacter* RPGProjectCharacterRef;
+
+	ARPGProjectPlayerController* PC;
 
 	ARPGPlayerCameraManager* RPGPlayerCameraManagerRef;
 
