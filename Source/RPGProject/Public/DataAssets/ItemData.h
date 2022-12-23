@@ -311,10 +311,10 @@ public:
 	FName WeaponUnsheatheMontageSection;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon | Stance Info")
-	float WeaponStanceStaminaRegenMultiplier = 1.f;
+	FWeaponStanceInfo MainhandStanceInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon | Stance Info")
-	float WeaponStanceStaminaRegenDelayMultiplier = 1.f;
+	FWeaponStanceInfo OffhandStanceInfo;
 	
 };
 

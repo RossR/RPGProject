@@ -1003,15 +1003,18 @@ void ARPGProjectPlayerCharacter::SetWeaponStance(ECombatWeaponStance CombatWeapo
 	if (CombatWeaponStanceType == ECombatWeaponStance::CWS_None) { return; }
 
 	EWeaponStanceType StanceType = EWeaponStanceType::ST_None;
+	FWeaponStanceInfo InWeaponStanceInfo;
 
 	switch (CombatWeaponStanceType)
 	{
 	case ECombatWeaponStance::CWS_Mainhand:
 		StanceType = StanceWeaponData->MainhandStanceType;
+		InWeaponStanceInfo = StanceWeaponData->MainhandStanceInfo;
 		break;
 	
 	case ECombatWeaponStance::CWS_Offhand:
 		StanceType = StanceWeaponData->OffhandStanceType;
+		InWeaponStanceInfo = StanceWeaponData->OffhandStanceInfo;
 		break;
 	
 	default:
@@ -1047,8 +1050,8 @@ void ARPGProjectPlayerCharacter::SetWeaponStance(ECombatWeaponStance CombatWeapo
 
 	if (StaminaComponent && StanceType != EWeaponStanceType::ST_None)
 	{
-		StaminaComponent->SetStaminaRegenMultiplier(StanceWeaponData->WeaponStanceStaminaRegenMultiplier);
-		StaminaComponent->SetStaminaRegenDelayMultiplier(StanceWeaponData->WeaponStanceStaminaRegenDelayMultiplier);
+		StaminaComponent->SetStaminaRegenMultiplier(InWeaponStanceInfo.StaminaRegenMultiplier);
+		StaminaComponent->SetStaminaRegenDelayMultiplier(InWeaponStanceInfo.StaminaRegenDelayMultiplier);
 	}
 
 	

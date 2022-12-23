@@ -55,3 +55,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AmmoRequired = 0.f;
 };
+
+USTRUCT(BlueprintType)
+struct FWeaponStanceInfo
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StaminaRegenMultiplier = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StaminaRegenDelayMultiplier = 1.f;
+
+};
