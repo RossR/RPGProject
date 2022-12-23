@@ -1400,11 +1400,6 @@ void UCombatComponent::OnDodgeMontageBlendingOut(UAnimMontage* Montage, bool bIn
 {
 	bCanAttack = true;
 
-	if (PC)
-	{
-		PC->SetOverrideActorRotation(true);
-	}
-
 	if (ARPGProjectPlayerCharacter* RPGPlayerCharacterRef = Cast<ARPGProjectPlayerCharacter>(CharacterRef))
 	{
 		RPGPlayerCharacterRef->SetIsInUninterruptableAction(false);

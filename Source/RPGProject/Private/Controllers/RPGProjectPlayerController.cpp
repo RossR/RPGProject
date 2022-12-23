@@ -216,7 +216,7 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 {
 	DeltaSeconds = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
 
-	if (!bDisableRotation || bOverrideActorRotation) { CalculateDesiredActorRotation(); }
+	CalculateDesiredActorRotation();
 
 	if (PlayerCharacter)
 	{
@@ -556,31 +556,46 @@ void ARPGProjectPlayerController::OverrideActorRotationUpdate()
 	
 	if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
 	{
+		SetOverrideWithLockOnActorRotation(true);
+	}
+	else
+	{
+		SetOverrideWithLockOnActorRotation(false);
+	}
+
+	if (!PlayerCharacter) { return; }
+
+	if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Sprinting)
+	{
+		SetOverrideWithLockOnActorRotation(false);
+	}
+
+	if (PlayerCharacter->GetPlayerActionState() == EPlayerActionState::PAS_Dodging)
+	{
 		SetOverrideActorRotation(true);
+		SetOverrideWithLockOnActorRotation(false);
 	}
 	else
 	{
 		SetOverrideActorRotation(false);
 	}
 
-	if (!PlayerCharacter) { return; }
-
-	if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Sprinting ||
-		PlayerCharacter->GetPlayerActionState() == EPlayerActionState::PAS_Dodging)
-	{
-		SetOverrideActorRotation(false);
-	}
 
 	if (!CombatComponentRef) { return; }
 
 	if (CombatComponentRef->GetCombatState() == ECombatState::CS_AtEase)
 	{
-		SetOverrideActorRotation(false);
+		SetOverrideWithLockOnActorRotation(false);
 	}
 
 	if (CombatComponentRef->GetIsInAttackSequence())
 	{
-		SetOverrideActorRotation(false);
+		SetOverrideWithLockOnActorRotation(false);
+	}
+
+	if (CombatComponentRef->GetCurrentWeaponStanceType() == EWeaponStanceType::ST_Guard && bOverrideWithLockOnActorRotation)
+	{
+		SetOverrideActorRotation(true);
 	}
 }
 
@@ -649,7 +664,8 @@ void ARPGProjectPlayerController::CheckInputForAttackFinisher(float DeltaTime)
 
 void ARPGProjectPlayerController::CalculateDesiredActorRotation()
 {
-	
+	if (bDisableRotation && !bOverrideActorRotation) { return; }
+
 	PlayerInputRotation = { 0, (GetDesiredRotation().Yaw + UKismetMathLibrary::MakeRotFromX({ForwardValue, RightValue, 0}).Yaw), 0 };
 
 	if (PlayerCharacter)
@@ -668,7 +684,18 @@ void ARPGProjectPlayerController::CalculateDesiredActorRotation()
 
 		if (TurnSpeedModifier > 0.f)
 		{
-			if (bOverrideActorRotation)
+			/*if (RPGPlayerCameraManagerRef)
+			{
+				if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+				{
+					DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0 }, { 0, GetControlRotation().Yaw, 0 }, DeltaSeconds, (CharacterTurnSpeed * TurnSpeedModifier));
+					PlayerCharacter->SetActorRotation(DesiredActorRotation);
+
+					return;
+				}
+			}*/
+
+			if (bOverrideWithLockOnActorRotation)
 			{
 				DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0 }, { 0, GetControlRotation().Yaw, 0 }, DeltaSeconds, (CharacterTurnSpeed * TurnSpeedModifier));
 				PlayerCharacter->SetActorRotation(DesiredActorRotation);

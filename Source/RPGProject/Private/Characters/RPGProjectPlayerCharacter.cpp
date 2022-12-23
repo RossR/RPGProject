@@ -332,7 +332,7 @@ void ARPGProjectPlayerCharacter::SetPlayerHorizontalMobilityState(EPlayerHorizon
 		switch (NewState)
 		{
 		case EPlayerHorizontalMobility::PHM_Sprinting:
-			PC->SetOverrideActorRotation(false);
+			PC->SetOverrideWithLockOnActorRotation(false);
 			break;
 		default:
 			break;

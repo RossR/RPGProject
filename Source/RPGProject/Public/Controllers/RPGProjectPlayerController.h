@@ -116,10 +116,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DisableCharacterRotation(bool bActive) { bDisableRotation = bActive; }
 
+	
 	UFUNCTION(BlueprintPure)
 	bool GetOverrideActorRotation() { return bOverrideActorRotation; }
 	UFUNCTION(BlueprintCallable)
 	void SetOverrideActorRotation(bool bActive) { bOverrideActorRotation = bActive; }
+
+	UFUNCTION(BlueprintPure)
+	bool GetOverrideWithLockOnActorRotation() { return bOverrideWithLockOnActorRotation; }
+	UFUNCTION(BlueprintCallable)
+	void SetOverrideWithLockOnActorRotation(bool bActive) { bOverrideWithLockOnActorRotation = bActive; }
 
 
 public:
@@ -295,5 +301,6 @@ protected:
 
 	bool bDisableRotation = false;
 	bool bOverrideActorRotation = false;
+	bool bOverrideWithLockOnActorRotation = false;
 
 };
