@@ -147,16 +147,18 @@ void UCombatComponent::CharacterAttack(EAttackType CharacterAttackType)
 
 	WeaponAttackMontage = EquipmentComponentRef->GetMainhandWeaponData()->AttackMontage;
 
-	if (!bIsInAttackSequence)
+	if (!bIsInAttackSequence && !bIsAttackQueued)
 	{
-		StartAttackSequence(CharacterAttackType);
+		bIsAttackQueued = true;
+		NextAttackType = CharacterAttackType;
+		StartAttackSequence(NextAttackType);
 	}
 	else if (CharacterAttackType == EAttackType::AT_LightFinisher || CharacterAttackType == EAttackType::AT_HeavyFinisher)
 	{
 		bIsFinisherQueued = true;
 		FinisherType = CharacterAttackType;
 	}
-	else if (bIsInAttackWindow)
+	else if (bIsInAttackWindow && !bIsAttackQueued)
 	{
 		bIsAttackQueued = true;
 		NextAttackType = CharacterAttackType;
@@ -1203,10 +1205,6 @@ void UCombatComponent::OnUnsheatheMontageBlendingOut(UAnimMontage* Montage, bool
 {
 	//UE_LOG(LogTemp, Warning, TEXT("UCombatComponent::OnUnsheathingMontageBlendingOut called."));
 
-	if (!bInterrupted)
-	{
-		bCanAttack = true;
-	}
 }
 
 void UCombatComponent::OnUnsheatheMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -1215,8 +1213,11 @@ void UCombatComponent::OnUnsheatheMontageEnded(UAnimMontage* Montage, bool bInte
 
 	UnbindSheatheMontage();
 
-	bCanAttack = true;
-	if (bIsInAttackSequence) { EndAttackSequence(); }
+	if (!bInterrupted)
+	{
+		bCanAttack = true;
+		if (bIsInAttackSequence) { EndAttackSequence(); }
+	}
 }
 
 void UCombatComponent::OnUnsheatheWeaponNotifyReceived(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointNotifyPayload, EWeaponToUse WeaponToUnsheathe)
@@ -1789,7 +1790,6 @@ void UCombatComponent::UpdateGuardState()
 
 void UCombatComponent::SetupNextAttack()
 {
-	//if (!StaminaComponentRef) { return; }
 	if (!EquipmentComponentRef) { return; }
 	if (!CharacterAnimInstance) { return; }
 
@@ -1802,7 +1802,6 @@ void UCombatComponent::SetupNextAttack()
 			if (AttackCount <= WeaponData->LightAttackComboLimit)
 			{
 				NextSectionInMontage = (FName)("Light_Attack_Finisher");
-				//StaminaComponentRef->ReduceCurrentStamina(50.f);
 				CharacterAnimInstance->Montage_JumpToSection(NextSectionInMontage, WeaponAttackMontage);
 				CurrentSectionInMontage = NextSectionInMontage;
 				AttackCount = UINT8_MAX;
@@ -1814,7 +1813,6 @@ void UCombatComponent::SetupNextAttack()
 			if (AttackCount <= WeaponData->HeavyAttackComboLimit)
 			{
 				NextSectionInMontage = (FName)("Heavy_Attack_Finisher");
-				//StaminaComponentRef->ReduceCurrentStamina(50.f);
 				CharacterAnimInstance->Montage_JumpToSection(NextSectionInMontage, WeaponAttackMontage);
 				CurrentSectionInMontage = NextSectionInMontage;
 				AttackCount = UINT8_MAX;
@@ -1836,7 +1834,6 @@ void UCombatComponent::SetupNextAttack()
 			if (AttackCount < WeaponData->LightAttackComboLimit)
 			{
 				NextSectionInMontage = (FName)("Light_Attack_" + FString::FromInt(AttackCount + 1));
-				//StaminaComponentRef->ReduceCurrentStamina(20.f);
 				CharacterAnimInstance->Montage_JumpToSection(NextSectionInMontage, WeaponAttackMontage);
 				CurrentSectionInMontage = NextSectionInMontage;
 				AttackCount++;
@@ -1848,13 +1845,11 @@ void UCombatComponent::SetupNextAttack()
 			if (AttackCount < WeaponData->HeavyAttackComboLimit)
 			{
 				NextSectionInMontage = (FName)("Heavy_Attack_" + FString::FromInt(AttackCount + 1));
-				//StaminaComponentRef->ReduceCurrentStamina(40.f);
 				CharacterAnimInstance->Montage_JumpToSection(NextSectionInMontage, WeaponAttackMontage);
 				CurrentSectionInMontage = NextSectionInMontage;
 				AttackCount++;
 				bIsInAttackWindUp = true;
 			}
-			else
 			break;
 
 		default:

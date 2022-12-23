@@ -292,7 +292,6 @@ protected:
 	FOnMontageBlendingOutStarted  StaminaExhaustedMontageBlendingOutDelegate;
 	FOnMontageEnded  StaminaExhaustedMontageEndedDelegate;
 
-	UPROPERTY(VisibleAnywhere)
 	FCombatActionInfo CombatActionInfo;
 
 	// Store values of the curves used in the attack montages

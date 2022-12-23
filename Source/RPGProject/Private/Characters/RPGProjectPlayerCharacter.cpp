@@ -1167,6 +1167,7 @@ float ARPGProjectPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageE
 	if (!CombatComponent->GetIsDodging())
 	{
 		float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+		
 		UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerCharacter::TakeDamage Damage %.2f"), Damage);
 		if (HealthComponent && !HealthComponent->IsDead())
 		{
