@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "StaminaComponent.generated.h"
 
+class URPGProjectAnimInstance;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPGPROJECT_API UStaminaComponent : public UActorComponent
@@ -87,5 +88,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float ExhaustionRecoveryPercentage = 0.25f;
+
+	URPGProjectAnimInstance* OwnerAnimInstance;
 		
 };

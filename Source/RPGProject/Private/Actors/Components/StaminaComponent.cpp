@@ -3,6 +3,7 @@
 
 #include "Actors/Components/StaminaComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Animation/AnimInstances/RPGProjectAnimInstance.h"
 
 // Sets default values for this component's properties
 UStaminaComponent::UStaminaComponent()
@@ -22,6 +23,11 @@ void UStaminaComponent::BeginPlay()
 
 	CurrentStamina = MaxStamina;
 
+	if (USkeletalMeshComponent* MeshComponentRef = Cast<USkeletalMeshComponent>(GetOwner()->GetComponentByClass(USkeletalMeshComponent::StaticClass())))
+	{
+		OwnerAnimInstance = Cast<URPGProjectAnimInstance>(MeshComponentRef->GetAnimInstance());
+	}
+
 	// ...
 	
 }
@@ -36,6 +42,11 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 	StaminaRegenPerFrame = (MaxStamina / TimeToFullyRegenStamina) * DeltaTime;
 
+	if (OwnerAnimInstance)
+	{
+		if (OwnerAnimInstance->GetCurveValue("DisableStaminaRegen") >= 1.f) { ResetStaminaRegenDelay(); }
+	}
+
 	if (CurrentStamina == MaxStamina)
 	{
 		IsRegeneratingStamina = false;
@@ -48,9 +59,6 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 		{
 			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &UStaminaComponent::RegenerateStamina, DeltaTime, true, StaminaRegenDelay * StaminaRegenDelayMultiplier);
 		}
-
-		
-		
 	}
 }
 
