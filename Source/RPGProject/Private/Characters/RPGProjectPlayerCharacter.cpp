@@ -216,10 +216,8 @@ void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 	CombatStanceUpdate();
 
 	InteractionTrace();
-	
+
 }
-
-
 
 // Called to bind functionality to 
 void ARPGProjectPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
