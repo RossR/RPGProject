@@ -111,8 +111,12 @@ void AItemWeapon::BeginPlay()
 
 	SetItemData(ItemDataDefault);
 
-	IgnoredActorArray.Add(this);
-	if (GetParentActor()) { IgnoredActorArray.Add(GetParentActor()); }
+	/*IgnoredActorArray.Add(this);
+	if (GetParentActor()) 
+	{ 
+		GetParentActor()->GetAllChildActors(IgnoredActorArray, false);
+		IgnoredActorArray.Add(GetParentActor()); 
+	}*/
 
 	if (bAutoSetMeleeTrailVFXWidth)
 	{
@@ -125,6 +129,12 @@ void AItemWeapon::BeginPlay()
 void AItemWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (AActor* ParentActor = GetParentActor())
+	{
+		ParentActor->GetAllChildActors(IgnoredActorArray, false);
+		IgnoredActorArray.Add(ParentActor);
+	}
 
 }
 
