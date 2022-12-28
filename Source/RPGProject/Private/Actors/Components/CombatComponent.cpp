@@ -197,6 +197,7 @@ void UCombatComponent::StartAttackSequence(EAttackType SequenceAttackType)
 
 	if (bPlayedSuccessfully)
 	{
+		bIsAttackQueued = false;
 		bIsInAttackSequence = true;
 		bIsInAttackWindUp = true;
 		AttackCount = 1;
