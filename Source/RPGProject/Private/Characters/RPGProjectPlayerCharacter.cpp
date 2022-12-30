@@ -768,8 +768,7 @@ void ARPGProjectPlayerCharacter::RequestInteraction()
 void ARPGProjectPlayerCharacter::RequestDodge()
 {
 	if (PlayerActionState == EPlayerActionState::PAS_Incapacitated || bIsInUninterruptableAction || GetCharacterMovement()->IsFalling()) { return; }
-	if (!CombatComponent) { return; }
-	if (CombatComponent->GetIsInAttackRecovery()) { return; }
+	if (!CombatComponent) { if (CombatComponent->GetIsInAttackRecovery()) { return; } }
 	if (StaminaComponent) { if (StaminaComponent->IsStaminaExhausted()) { return; } }
 
 	CombatComponent->CombatDodge();

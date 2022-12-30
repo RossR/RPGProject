@@ -909,7 +909,9 @@ void ARPGProjectPlayerController::RequestContextAction()
 	if (bIsInMenu) { return; }
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->RequestContextAction();
+		if (abs(ForwardValue) + abs(RightValue) > 0.33f) { PlayerCharacter->RequestDodge(); }
+		else { PlayerCharacter->RequestInteraction(); }
+		//PlayerCharacter->RequestContextAction();
 	}
 	bContextActionIsPressed = true;
 }
