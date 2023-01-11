@@ -69,6 +69,7 @@ enum class EInputButtonState : uint8
 	IBD_MAX							UMETA(Hidden)
 };
 
+// -------------------------------- CLEAN [UP] | MESSY [DOWN] -------------------------------- \\
 
 UCLASS()
 class RPGPROJECT_API ARPGProjectPlayerController : public APlayerController
@@ -137,7 +138,6 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	void CombatModeUpdate();
 	void InputUIUpdate();
 	void OverrideActorRotationUpdate();
 	void CheckInputToSwapLockOnTarget();

@@ -8,6 +8,14 @@
 
 class URPGProjectAnimInstance;
 
+UENUM(BlueprintType)
+enum class EStaminaDrainType : uint8
+{
+	None		UMETA(DisplayName = "None"),
+	Sprint		UMETA(DisplayName = "Sprint"),
+	MAX			UMETA(Hidden)
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPGPROJECT_API UStaminaComponent : public UActorComponent
 {
@@ -28,6 +36,7 @@ public:
 public:
 
 	void ReduceCurrentStamina(float Damage);
+	void DrainStaminaPerSecond(EStaminaDrainType StaminaDrainType);
 
 	UFUNCTION(BlueprintPure)
 	bool IsStaminaExhausted(); //{ return CurrentStamina <= FLT_EPSILON; }
@@ -79,6 +88,9 @@ protected:
 	bool IsRegeneratingStamina = true;
 
 	FTimerHandle StaminaRegenTimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)//, Category = "[Character Movement] Stamina Damage")
+	TMap<EStaminaDrainType, float> StaminaDrainTypeMap;
 
 	UPROPERTY(VisibleAnywhere)
 	float StaminaRegenPerFrame = 0.f;

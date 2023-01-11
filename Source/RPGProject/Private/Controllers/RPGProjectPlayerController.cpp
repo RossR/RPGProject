@@ -11,6 +11,8 @@
 #include "Kismet/KismetMathLibrary.h"
 
 #include "Actors/Components/CombatComponent.h"
+#include "Actors/Components/StaminaComponent.h"
+#include "Actors/Components/HealthComponent.h"
 
 ARPGProjectPlayerController::ARPGProjectPlayerController()
 {
@@ -220,14 +222,14 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 
 	if (PlayerCharacter)
 	{
-		if (!PlayerCharacter->IsAlive())
+		if (UHealthComponent* CharacterHealthComponentRef = Cast<UHealthComponent>(PlayerCharacter->GetComponentByClass(UHealthComponent::StaticClass())))
 		{
-			bIsMovementStopped = true;
+			if (CharacterHealthComponentRef->IsDead()) { bIsMovementStopped = true; }
 		}
 
-		if (PlayerCharacter->GetCurrentStamina() <= 0)
+		if (UStaminaComponent* CharacterStaminaComponentRef = Cast<UStaminaComponent>(PlayerCharacter->GetComponentByClass(UStaminaComponent::StaticClass())))
 		{
-			RequestStopSprinting();
+			if (CharacterStaminaComponentRef->IsStaminaExhausted()) { RequestStopSprinting(); }
 		}
 	}
 
@@ -239,27 +241,6 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 	InputUIUpdate();
 
 	OverrideActorRotationUpdate();
-}
-
-void ARPGProjectPlayerController::CombatModeUpdate()
-{
-	if (PlayerCharacter)
-	{
-		switch (PlayerCharacter->GetPlayerCombatState())
-		{
-		case ECombatState::CS_AtEase:
-			{
-				//RelaxedMovementUpdate();
-				break;
-			}
-			case ECombatState::CS_CombatReady:
-			{
-				//CombatMovementUpdate();
-				//RequestStopAiming();
-				break;
-			}
-		}
-	}
 }
 
 void ARPGProjectPlayerController::InputUIUpdate()
@@ -565,12 +546,12 @@ void ARPGProjectPlayerController::OverrideActorRotationUpdate()
 
 	if (!PlayerCharacter) { return; }
 
-	if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Sprinting)
+	if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::Sprinting)
 	{
 		SetOverrideWithLockOnActorRotation(false);
 	}
 
-	if (PlayerCharacter->GetPlayerActionState() == EPlayerActionState::PAS_Dodging)
+	if (PlayerCharacter->GetPlayerActionState() == EPlayerActionState::Dodging)
 	{
 		SetOverrideActorRotation(true);
 		SetOverrideWithLockOnActorRotation(false);
@@ -779,7 +760,7 @@ void ARPGProjectPlayerController::RequestToggleSprint()
 {
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Sprinting)
+		if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::Sprinting)
 		{
 			RequestStopSprinting();
 		}
@@ -883,11 +864,9 @@ void ARPGProjectPlayerController::RequestSheatheUnsheatheWeapon()
 
 void ARPGProjectPlayerController::RequestWalkMode()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::Walking called"));
-
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Walking);
+		PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::Walking);
 	}
 }
 
@@ -897,9 +876,9 @@ void ARPGProjectPlayerController::RequestStopWalkMode()
 
 	if (PlayerCharacter)
 	{
-		if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::PHM_Walking)
+		if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::Walking)
 		{
-			PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::PHM_Jogging);
+			PlayerCharacter->SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility::Jogging);
 		}
 	}
 }
@@ -911,7 +890,6 @@ void ARPGProjectPlayerController::RequestContextAction()
 	{
 		if (abs(ForwardValue) + abs(RightValue) > 0.33f) { PlayerCharacter->RequestDodge(); }
 		else { PlayerCharacter->RequestInteraction(); }
-		//PlayerCharacter->RequestContextAction();
 	}
 	bContextActionIsPressed = true;
 }
@@ -1077,7 +1055,7 @@ void ARPGProjectPlayerController::StartInteraction()
 {
 	//if (PlayerCharacter)
 	//{
-	//	PlayerCharacter->SetPlayerActionState(EPlayerActionState::PAS_Interacting);
+	//	PlayerCharacter->SetPlayerActionState(EPlayerActionState::Interacting);
 	//}
 	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StartInteraction called"));
 	OnInteractionStart.Broadcast();

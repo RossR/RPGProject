@@ -12,7 +12,7 @@ UStaminaComponent::UStaminaComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	StaminaDrainTypeMap.Add(EStaminaDrainType::Sprint, 1.f);
 }
 
 
@@ -67,6 +67,16 @@ void UStaminaComponent::ReduceCurrentStamina(float Damage)
 	CurrentStamina -= Damage;
 	if (true)//IsRegeneratingStamina)
 	{
+		IsRegeneratingStamina = false;
+		ResetStaminaRegenDelay();
+	}
+}
+
+void UStaminaComponent::DrainStaminaPerSecond(EStaminaDrainType StaminaDrainType)
+{
+	if (StaminaDrainTypeMap.Contains(StaminaDrainType))
+	{
+		CurrentStamina -= StaminaDrainTypeMap[StaminaDrainType];
 		IsRegeneratingStamina = false;
 		ResetStaminaRegenDelay();
 	}

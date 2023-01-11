@@ -35,8 +35,10 @@ void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	BodyPartUpdate();
 }
 
-void UHealthComponent::TakeDamage(float Damage, FName InBodyPartName, bool bUseDamageModifier)
+void UHealthComponent::ReduceHealth(float Damage, FName InBodyPartName, bool bUseDamageModifier)
 {
+	if (IsDead()) { return; }
+
 	if (!BodyPartMap.IsEmpty())
 	{
 		if (InBodyPartName == "All")
@@ -61,7 +63,7 @@ void UHealthComponent::TakeDamage(float Damage, FName InBodyPartName, bool bUseD
 				if (BodyPartMap[BodyPartName].BodyPartCurrentHP > 0.f)
 				{
 					float DamagePortion = Damage * (BodyPartMap[BodyPartName].MaxHPPercentage / FunctioningBodyPartHPPercentage);
-					TakeDamage(DamagePortion, BodyPartName, false);
+					ReduceHealth(DamagePortion, BodyPartName, false);
 					//BodyPartMap[BodyPartName].BodyPartCurrentHP -= SplitDamage;
 				}
 			}
@@ -77,7 +79,7 @@ void UHealthComponent::TakeDamage(float Damage, FName InBodyPartName, bool bUseD
 			}
 			else
 			{
-				TakeDamage(ModifiedDamage, "All", false);
+				ReduceHealth(ModifiedDamage, "All", false);
 			}
 		}
 	}

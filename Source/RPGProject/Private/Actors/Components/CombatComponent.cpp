@@ -20,7 +20,7 @@
 #include "Sound/SoundCue.h"
 #include "Animation/AnimInstances/RPGProjectAnimInstance.h"
 #include "Actors/ProjectileActor.h"
-
+#include "Structs/RPGDamageStructs.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -609,7 +609,7 @@ bool UCombatComponent::CombatDodge()
 		if (ARPGProjectPlayerCharacter* RPGPlayerCharacterRef = Cast<ARPGProjectPlayerCharacter>(CharacterRef))
 		{
 			RPGPlayerCharacterRef->SetIsInUninterruptableAction(true);
-			RPGPlayerCharacterRef->SetPlayerActionState(EPlayerActionState::PAS_Dodging);
+			RPGPlayerCharacterRef->SetPlayerActionState(EPlayerActionState::Dodging);
 		}
 
 		if (CharacterAnimInstance)
@@ -831,7 +831,8 @@ void UCombatComponent::EvaluateHitResult(FHitResult InHitResult, AItemWeapon* In
 	// Deal damage to hit actor
 
 	TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
-	FDamageEvent DamageEvent(ValidDamageTypeClass);
+	FBodyPartDamageEvent DamageEvent;
+	DamageEvent.DamageTypeClass = ValidDamageTypeClass;
 
 	if (HitActorHealthComponent)
 	{
@@ -857,7 +858,7 @@ void UCombatComponent::EvaluateHitResult(FHitResult InHitResult, AItemWeapon* In
 				}
 				if (ARPGProjectPlayerCharacter* HitPlayerCharacter = Cast<ARPGProjectPlayerCharacter>(InHitResult.GetActor()))
 				{
-					HitPlayerCharacter->SetBodyPartHit(BodyPartToDamage);
+					DamageEvent.BodyPartHit = BodyPartToDamage;
 				}
 				InHitResult.GetActor()->TakeDamage(AttackDamage, DamageEvent, nullptr, GetOwner());
 			}

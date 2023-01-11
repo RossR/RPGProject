@@ -105,7 +105,7 @@ void UDoorInteractionComponent::InteractionRequested()
 		ARPGProjectPlayerCharacter* PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(InteractingActor);
 		if (PlayerCharacter)
 		{
-			PlayerCharacter->DoorOpenInteractionStarted(GetOwner());
+			PlayerCharacter->InteractionStarted(GetOwner());
 		}
 
 		// This will be called from the owner to be in sync with animation

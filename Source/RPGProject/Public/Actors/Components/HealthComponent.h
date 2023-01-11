@@ -36,7 +36,6 @@ struct FBodyPartInfo
 
 };
 
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPGPROJECT_API UHealthComponent : public UActorComponent
 {
@@ -55,16 +54,16 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	void TakeDamage(float Damage, FName InBodyPartName = "All", bool bUseDamageModifier = true); //{ CurrentHealthPoints -= Damage; }
+	void ReduceHealth(float Damage, FName InBodyPartName = "All", bool bUseDamageModifier = true); //{ CurrentHealthPoints -= Damage; }
 	UFUNCTION(BlueprintCallable)
 	void HealDamage(float HealAmount, FName InBodyPartName = "All"); //{ CurrentHealthPoints += HealAmount; }
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	bool IsDead() { return CurrentHealthPoints <= FLT_EPSILON; }
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	float GetMaxHealthPoints() { return MaxHealthPoints; }
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	float GetCurrentHealthPoints() { return CurrentHealthPoints; }
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentHealthPoints(float NewHealth) { CurrentHealthPoints = NewHealth; }
@@ -80,7 +79,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool RemoveFromBodyPartMap(FName BoneName);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	FName GetBodyPartFromBone(FName BoneName);
 
 protected:
