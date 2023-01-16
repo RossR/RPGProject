@@ -18,8 +18,8 @@ ADEPRECATEDRPGProjectCharacter::ADEPRECATEDRPGProjectCharacter()
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	// set our turn rates for input
-	BaseTurnRate = 45.f;
-	BaseLookUpRate = 45.f;
+	GamepadBaseTurnRate = 45.f;
+	GamepadBaseLookUpRate = 45.f;
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -101,13 +101,13 @@ void ADEPRECATEDRPGProjectCharacter::TouchStopped(ETouchIndex::Type FingerIndex,
 void ADEPRECATEDRPGProjectCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	AddControllerYawInput(Rate * GamepadBaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
 void ADEPRECATEDRPGProjectCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	AddControllerPitchInput(Rate * GamepadBaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
 void ADEPRECATEDRPGProjectCharacter::MoveForward(float Value)
