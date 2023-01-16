@@ -49,8 +49,8 @@ void UAbstractionInteractionComponent::BeginPlay()
 	if (PlayerController)
 	{
 		// Bind to player input
-		PlayerController->OnInteractionStart.AddUObject(this, &UAbstractionInteractionComponent::InteractionStart);
-		PlayerController->OnInteractionCancel.AddUObject(this, &UAbstractionInteractionComponent::InteractionCancel);
+		//PlayerController->OnInteractionStart.AddUObject(this, &UAbstractionInteractionComponent::InteractionStart);
+		//PlayerController->OnInteractionCancel.AddUObject(this, &UAbstractionInteractionComponent::InteractionCancel);
 	}
 	
 }

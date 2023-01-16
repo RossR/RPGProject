@@ -18,33 +18,46 @@ ARPGProjectPlayerController::ARPGProjectPlayerController()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// set our turn rates for input
-	BaseTurnRate = 70.0f;
-	BaseLookUpRate = 70.0f;
-	
-	MaxCharacterTurnSpeed = 10.0f;
-	CharacterTurnSpeed = MaxCharacterTurnSpeed;
 	bIsMovementStopped = false;
-	bIsInMenu = false;
+	bIsPlayerInMenu = false;
 
-	CapsuleCrouchHeight = 68.0f;
-
-	for (uint8 i = 1; i < (uint8)EGamePadActionMappings::GPAM_MAX; i++)
+	for (uint8 i = 1; i < (uint8)EGamePadActionMappings::MAX; i++)
 	{
-		InputButtonStateMap.Add((EGamePadActionMappings)i);
+		MappedActionStates.Add((EGamePadActionMappings)i);
 	}
-	
+
+	InputAxisProperties.Add(EKeys::Mouse2D.GetFName());
+	InputAxisProperties.Add(EKeys::Gamepad_RightX.GetFName());
+	InputAxisProperties.Add(EKeys::Gamepad_RightY.GetFName());
+
+	PlayerCameraManagerClass = ARPGPlayerCameraManager::StaticClass();
 }
 
 void ARPGProjectPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-	
-	// --- BIND ACTIONS --- //
 
-	UpdateGamepadInputActionBindingsMap();
+	UpdateInputActionGamepadMappings();
 
-	// Gamepad
+	//------------------
+	// General Bindings
+	//------------------
+
+	InputComponent->BindAxis("MoveForward", this, &ARPGProjectPlayerController::RequestMoveForward);
+	InputComponent->BindAxis("MoveRight", this, &ARPGProjectPlayerController::RequestMoveRight);
+
+	//------------------
+	// Gamepad Bindings
+	//------------------
+
+	// Axis
+	//------------------
+
+	InputComponent->BindAxis("TurnRate", this, &ARPGProjectPlayerController::RequestTurnRate);
+	InputComponent->BindAxis("LookUpRate", this, &ARPGProjectPlayerController::RequestLookUpRate);
+
+	// Action
+	//------------------
 
 	InputComponent->BindAction("Gamepad_LightAttack", IE_Pressed, this, &ARPGProjectPlayerController::RequestLightAttack);
 	InputComponent->BindAction("Gamepad_LightAttack", IE_Released, this, &ARPGProjectPlayerController::RequestStopLightAttack);
@@ -85,8 +98,18 @@ void ARPGProjectPlayerController::SetupInputComponent()
 
 	//InputComponent->BindAction("Gamepad_SpecialLeft", IE_Pressed, this, &ARPGProjectPlayerController::);
 
+	//------------------
+	// Keyboard Bindings
+	//------------------
 
-	// Keyboard
+	// Axis
+	//------------------
+
+	InputComponent->BindAxis("Turn", this, &ARPGProjectPlayerController::RequestAddControllerYawInput);
+	InputComponent->BindAxis("LookUp", this, &ARPGProjectPlayerController::RequestAddControllerPitchInput);
+
+	// Action
+	//------------------
 
 	InputComponent->BindAction("Jump", IE_Pressed, this, &ARPGProjectPlayerController::RequestJump);
 	InputComponent->BindAction("Jump", IE_Released, this, &ARPGProjectPlayerController::RequestStopJumping);
@@ -124,78 +147,12 @@ void ARPGProjectPlayerController::SetupInputComponent()
 	InputComponent->BindAction("CombatAction", IE_Pressed, this, &ARPGProjectPlayerController::RequestCombatAction);
 	InputComponent->BindAction("CombatAction", IE_Released, this, &ARPGProjectPlayerController::RequestStopCombatAction);
 
-	InputComponent->BindAction("RadialMenu", IE_Pressed, this, &ARPGProjectPlayerController::RequestRadialMenu);
-	InputComponent->BindAction("RadialMenu", IE_Released, this, &ARPGProjectPlayerController::RequestStopRadialMenu);
+	//InputComponent->BindAction("RadialMenu", IE_Pressed, this, &ARPGProjectPlayerController::RequestRadialMenu);
+	//InputComponent->BindAction("RadialMenu", IE_Released, this, &ARPGProjectPlayerController::RequestStopRadialMenu);
 
 	InputComponent->BindAction("SwapWeaponLoadout", IE_Pressed, this, &ARPGProjectPlayerController::RequestSwapWeaponLoadout);
 
 	InputComponent->BindAction("ToggleLockOn", IE_Pressed, this, &ARPGProjectPlayerController::RequestToggleLockOn);
-
-	InputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &ARPGProjectPlayerController::StartInteraction);
-	InputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &ARPGProjectPlayerController::StopInteraction);
-
-	// --- BIND AXIS --- //
-
-	InputComponent->BindAxis("MoveForward", this, &ARPGProjectPlayerController::RequestMoveForward);
-	InputComponent->BindAxis("MoveRight", this, &ARPGProjectPlayerController::RequestMoveRight);
-
-	InputComponent->BindAxis("TurnRate", this, &ARPGProjectPlayerController::RequestTurnRate);
-	InputComponent->BindAxis("Turn", this, &ARPGProjectPlayerController::RequestAddControllerYawInput);
-
-	InputComponent->BindAxis("LookUpRate", this, &ARPGProjectPlayerController::RequestLookUpRate);
-	InputComponent->BindAxis("LookUp", this, &ARPGProjectPlayerController::RequestAddControllerPitchInput);
-
-	// Prevent dodge & interacting from consuming the input
-	//InputComponent->GetActionBinding(0).bConsumeInput = false; // 9 or 11 (Dodge)
-	//InputComponent->GetActionBinding(14).bConsumeInput = false;
-
-	// GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Emerald, TEXT("InputComponent Set up successfully!"));
-}
-
-ARPGPlayerCameraManager* ARPGProjectPlayerController::GetRPGPlayerCameraManager()
-{
-	if (ARPGPlayerCameraManager* RPGPlayerCameraManager = Cast<ARPGPlayerCameraManager>(PlayerCameraManager))
-	{
-		return RPGPlayerCameraManager;
-	}
-	return nullptr;
-}
-
-void ARPGProjectPlayerController::UpdateGamepadInputActionBindingsMap()
-{
-	TArray<struct FInputActionKeyMapping> ActionMappingsArray = PlayerInput.Get()->ActionMappings;
-	for (uint8 i = 1; i < (uint8)EGamePadActionMappings::GPAM_MAX; i++)
-	{
-		if (ActionMappingsArray.IsValidIndex(i - 1))
-		{
-			TEnumAsByte<EGamePadActionMappings> GamePadActionMappings = (EGamePadActionMappings)i;
-			if (GamepadInputActionBindingsMap.Contains(GamePadActionMappings))
-			{
-				GamepadInputActionBindingsMap[GamePadActionMappings] = ActionMappingsArray[i - 1];
-			}
-			else
-			{
-				GamepadInputActionBindingsMap.Emplace((EGamePadActionMappings)i, ActionMappingsArray[i - 1]);
-			}
-		}
-	}
-}
-
-EInputButtonState ARPGProjectPlayerController::GetInputButtonState(TEnumAsByte<EGamePadActionMappings> ActionMapping)
-{
-	if (InputButtonStateMap.Contains(ActionMapping))
-	{
-		return InputButtonStateMap[ActionMapping];
-	}
-	return EInputButtonState::IBD_None;
-}
-
-void ARPGProjectPlayerController::SetInputButtonState(TEnumAsByte<EGamePadActionMappings> ActionMapping, EInputButtonState NewInputState)
-{
-	if (InputButtonStateMap.Contains(ActionMapping))
-	{
-		InputButtonStateMap[ActionMapping] = NewInputState;
-	}
 }
 
 void ARPGProjectPlayerController::BeginPlay()
@@ -204,10 +161,7 @@ void ARPGProjectPlayerController::BeginPlay()
 
 	PlayerCharacter = Cast<ARPGProjectPlayerCharacter>(GetCharacter());
 
-	if (PlayerCharacter)
-	{
-		CombatComponentRef = Cast<UCombatComponent>(PlayerCharacter->GetComponentByClass(UCombatComponent::StaticClass()));
-	}
+	CombatComponentRef = Cast<UCombatComponent>(GetPawn()->GetComponentByClass(UCombatComponent::StaticClass()));
 
 	RPGPlayerCameraManagerRef = Cast<ARPGPlayerCameraManager>(PlayerCameraManager);
 
@@ -216,9 +170,8 @@ void ARPGProjectPlayerController::BeginPlay()
 // Called every frame
 void ARPGProjectPlayerController::Tick(float DeltaTime)
 {
-	DeltaSeconds = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
 
-	CalculateDesiredActorRotation();
+	CalculateDesiredPawnRotation();
 
 	if (PlayerCharacter)
 	{
@@ -238,23 +191,80 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 	CheckInputToJumpOrCrouch(DeltaTime);
 	CheckInputForAttackFinisher(DeltaTime);
 
-	InputUIUpdate();
+	InputButtonStateUpdate();
 
-	OverrideActorRotationUpdate();
+	UpdatePawnRotationBooleans();
 }
 
-void ARPGProjectPlayerController::InputUIUpdate()
+ARPGPlayerCameraManager* ARPGProjectPlayerController::GetRPGPlayerCameraManager()
 {
-	for (uint8 i = 1; i < (uint8)EGamePadActionMappings::GPAM_MAX; i++)
+	if (ARPGPlayerCameraManager* RPGPlayerCameraManager = Cast<ARPGPlayerCameraManager>(PlayerCameraManager))
 	{
+		return RPGPlayerCameraManager;
+	}
+	return nullptr;
+}
+
+void ARPGProjectPlayerController::UpdateInputActionGamepadMappings()
+{
+	// Update InputActionGamepadMappings
+	TArray<struct FInputActionKeyMapping> ActionMappingsArray = PlayerInput.Get()->ActionMappings;
+	for (uint8 i = 1; i < (uint8)EGamePadActionMappings::MAX; i++)
+	{
+		if (ActionMappingsArray.IsValidIndex(i - 1))
+		{
+			TEnumAsByte<EGamePadActionMappings> GamePadActionMappings = (EGamePadActionMappings)i;
+			if (InputActionGamepadMappings.Contains(GamePadActionMappings))
+			{
+				InputActionGamepadMappings[GamePadActionMappings] = ActionMappingsArray[i - 1];
+			}
+			else
+			{
+				InputActionGamepadMappings.Emplace((EGamePadActionMappings)i, ActionMappingsArray[i - 1]);
+			}
+		}
+	}
+
+	// Update InputAxisProperties
+	TArray<FName> InputAxisPropertiesKeyArray;
+	InputAxisProperties.GenerateKeyArray(InputAxisPropertiesKeyArray);
+	for (size_t i = 0; i < InputAxisPropertiesKeyArray.Num(); i++)
+	{
+		PlayerInput->GetAxisProperties(InputAxisPropertiesKeyArray[i], InputAxisProperties[InputAxisPropertiesKeyArray[i]]);
+	}
+}
+
+EInputButtonState ARPGProjectPlayerController::GetMappedActionState(TEnumAsByte<EGamePadActionMappings> ActionMapping)
+{
+	if (MappedActionStates.Contains(ActionMapping))
+	{
+		return MappedActionStates[ActionMapping];
+	}
+	return EInputButtonState::None;
+}
+
+void ARPGProjectPlayerController::SetMappedActionState(TEnumAsByte<EGamePadActionMappings> ActionMapping, EInputButtonState NewInputState)
+{
+	if (MappedActionStates.Contains(ActionMapping))
+	{
+		MappedActionStates[ActionMapping] = NewInputState;
+	}
+}
+
+void ARPGProjectPlayerController::InputButtonStateUpdate()
+{
+	for (uint8 i = 1; i < (uint8)EGamePadActionMappings::MAX; i++)
+	{
+		if (!MappedActionStates.Contains((EGamePadActionMappings)i)) { continue; }
+
 		EGamePadActionMappings CurrentGamePadActionMapping = (EGamePadActionMappings)i;
 
 		switch (CurrentGamePadActionMapping)
 		{
-		case EGamePadActionMappings::GPAM_None:
+		case EGamePadActionMappings::None:
 			break;
 
-		case EGamePadActionMappings::GPAM_LightAttack:
+		case EGamePadActionMappings::LightAttack:
 			if (CombatComponentRef)
 			{
 				if (CombatComponentRef->GetCombatState() == ECombatState::CS_CombatReady)
@@ -262,30 +272,30 @@ void ARPGProjectPlayerController::InputUIUpdate()
 					switch (CombatComponentRef->GetCombatWeaponStance())
 					{
 					case ECombatWeaponStance::CWS_None:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_LightAttack;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::LightAttack;
 						break;
 
 					case ECombatWeaponStance::CWS_Mainhand:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_MainhandSkillOne;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::MainhandSkillOne;
 						break;
 
 					case ECombatWeaponStance::CWS_Offhand:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_OffhandSkillOne;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::OffhandSkillOne;
 						break;
 					}
 				}
 				else
 				{
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 				}
 			}
 			else
 			{
-				InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+				MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			}
 			break;
 
-		case EGamePadActionMappings::GPAM_HeavyAttack:
+		case EGamePadActionMappings::HeavyAttack:
 			if (CombatComponentRef)
 			{
 				if (CombatComponentRef->GetCombatState() == ECombatState::CS_CombatReady)
@@ -293,57 +303,57 @@ void ARPGProjectPlayerController::InputUIUpdate()
 					switch (CombatComponentRef->GetCombatWeaponStance())
 					{
 					case ECombatWeaponStance::CWS_None:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_HeavyAttack;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::HeavyAttack;
 						break;
 
 					case ECombatWeaponStance::CWS_Mainhand:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_MainhandSkillTwo;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::MainhandSkillTwo;
 						break;
 
 					case ECombatWeaponStance::CWS_Offhand:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_OffhandSkillTwo;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::OffhandSkillTwo;
 						break;
 					}
 				}
 				else
 				{
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 				}
 			}
 			else
 			{
-				InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+				MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			}
 			break;
 
-		case EGamePadActionMappings::GPAM_ContextAction:
+		case EGamePadActionMappings::ContextAction:
 			if (PlayerCharacter)
 			{
 				if (PlayerCharacter->GetVelocity().Length() > 151.f)
 				{
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Dodge;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Dodge;
 				}
 				else if (PlayerCharacter->GetIsInteractionAvailable())
 				{
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Interact;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Interact;
 				}
 				else
 				{
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Dodge;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Dodge;
 				}
 			}
 			else
 			{
-				InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+				MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			}
 			break;
 
-		case EGamePadActionMappings::GPAM_JumpAndCrouch:
+		case EGamePadActionMappings::JumpAndCrouch:
 			if (CombatComponentRef)
 			{
 				if (CombatComponentRef->GetCombatState() == ECombatState::CS_CombatReady)
 				{
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Jump;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Jump;
 				}
 				else
 				{
@@ -353,27 +363,27 @@ void ARPGProjectPlayerController::InputUIUpdate()
 						{
 							if (!PlayerCharacter->GetCharacterMovement()->bWantsToCrouch)
 							{
-								InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Crouch;
+								MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Crouch;
 							}
 							else
 							{
-								InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Uncrouch;
+								MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Uncrouch;
 							}
 						}
 						else
 						{
-							InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Jump;
+							MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Jump;
 						}
 					}
 				}
 			}
 			else
 			{
-				InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+				MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			}
 			break;
 
-		case EGamePadActionMappings::GPAM_OffhandStance:
+		case EGamePadActionMappings::OffhandStance:
 			if (CombatComponentRef)
 			{
 				switch (CombatComponentRef->GetCombatWeaponStance())
@@ -382,32 +392,32 @@ void ARPGProjectPlayerController::InputUIUpdate()
 					switch (CombatComponentRef->GetCombatState())
 					{
 					case ECombatState::CS_AtEase:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 						break;
 
 					case ECombatState::CS_CombatReady:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_OffhandStance;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::OffhandStance;
 						break;
 					}
 					break;
 
 				case ECombatWeaponStance::CWS_Mainhand:
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
 
 				case ECombatWeaponStance::CWS_Offhand:
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
 
 				}
 			}
 			else
 			{
-				InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+				MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			}
 			break;
 
-		case EGamePadActionMappings::GPAM_MainhandStance:
+		case EGamePadActionMappings::MainhandStance:
 			if (CombatComponentRef)
 			{
 				switch (CombatComponentRef->GetCombatWeaponStance())
@@ -416,52 +426,52 @@ void ARPGProjectPlayerController::InputUIUpdate()
 					switch (CombatComponentRef->GetCombatState())
 					{
 					case ECombatState::CS_AtEase:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 						break;
 
 					case ECombatState::CS_CombatReady:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_MainhandStance;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::MainhandStance;
 						break;
 					}
 					break;
 
 				case ECombatWeaponStance::CWS_Mainhand:
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
 
 				case ECombatWeaponStance::CWS_Offhand:
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
 				}
 			}
 			else
 			{
-				InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+				MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			}
 			break;
 
-		case EGamePadActionMappings::GPAM_SheatheAndUnsheathe:
+		case EGamePadActionMappings::SheatheAndUnsheathe:
 			if (CombatComponentRef)
 			{
 				switch (CombatComponentRef->GetCombatState())
 				{
 				case ECombatState::CS_AtEase:
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Unsheathe;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Unsheathe;
 					break;
 
 				case ECombatState::CS_CombatReady:
 					switch (CombatComponentRef->GetCombatWeaponStance())
 					{
 					case ECombatWeaponStance::CWS_None:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Sheathe;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Sheathe;
 						break;
 
 					case ECombatWeaponStance::CWS_Mainhand:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_SecondaryCombatAction;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::SecondaryCombatAction;
 						break;
 
 					case ECombatWeaponStance::CWS_Offhand:
-						InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_SecondaryCombatAction;
+						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::SecondaryCombatAction;
 						break;
 					}
 					break;
@@ -469,114 +479,153 @@ void ARPGProjectPlayerController::InputUIUpdate()
 			}
 			else
 			{
-				InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+				MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			}
 			break;
 
-		case EGamePadActionMappings::GPAM_CombatAction:
+		case EGamePadActionMappings::CombatAction:
 			if (CombatComponentRef)
 			{
 				switch (CombatComponentRef->GetCombatState())
 				{
 				case ECombatState::CS_AtEase:
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
 				case ECombatState::CS_CombatReady:
-					InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_CombatAction;
+					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::CombatAction;
 					break;
 				}
 			}
 			else
 			{
-				InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+				MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			}
 			break;
 
-		case EGamePadActionMappings::GPAM_SwitchWeaponLoadout:
-			InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_SwitchWeaponLoadout;
+			// Currently not used in the UI
+		case EGamePadActionMappings::SwitchWeaponLoadout:
+			MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::SwitchWeaponLoadout;
 			break;
 
-		case EGamePadActionMappings::GPAM_PadLeft:
-			InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+			// Currently not used in the UI
+		case EGamePadActionMappings::PadLeft:
+			MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			break;
 
-		case EGamePadActionMappings::GPAM_PadRight:
-			InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+			// Currently not used in the UI
+		case EGamePadActionMappings::PadRight:
+			MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			break;
 
-		case EGamePadActionMappings::GPAM_PadDown:
-			InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+			// Currently not used in the UI
+		case EGamePadActionMappings::PadDown:
+			MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			break;
 
-		case EGamePadActionMappings::GPAM_Sprint:
-			InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_Sprint;
+			// Currently not used in the UI
+		case EGamePadActionMappings::Sprint:
+			MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Sprint;
 			break;
 
-		case EGamePadActionMappings::GPAM_LockOn:
-			InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+			// Currently not used in the UI
+		case EGamePadActionMappings::LockOn:
+			MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			break;
 
-		case EGamePadActionMappings::GPAM_Menu:
-			InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+			// Currently not used in the UI
+		case EGamePadActionMappings::Menu:
+			MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			break;
 
-		case EGamePadActionMappings::GPAM_SpecialLeft:
-			InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+			// Currently not used in the UI
+		case EGamePadActionMappings::SpecialLeft:
+			MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			break;
 
 		default:
-			InputButtonStateMap[CurrentGamePadActionMapping] = EInputButtonState::IBD_None;
+			MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 			break;
 		}
 	}
 }
 
-void ARPGProjectPlayerController::OverrideActorRotationUpdate()
+void ARPGProjectPlayerController::UpdatePawnRotationBooleans()
 {
-	if (!RPGPlayerCameraManagerRef) { return; }
-	
-	if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+	if (!RPGPlayerCameraManagerRef)
 	{
-		SetOverrideWithLockOnActorRotation(true);
-	}
-	else
-	{
-		SetOverrideWithLockOnActorRotation(false);
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		{
+			OverridePawnRotationForLockOn(true);
+		}
+		else { OverridePawnRotationForLockOn(false); }
 	}
 
-	if (!PlayerCharacter) { return; }
-
-	if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::Sprinting)
+	if (!PlayerCharacter)
 	{
-		SetOverrideWithLockOnActorRotation(false);
+		if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::Sprinting)
+		{
+			OverridePawnRotationForLockOn(false);
+		}
+
+		if (PlayerCharacter->GetPlayerActionState() == EPlayerActionState::Dodging)
+		{
+			OverridePawnRotation(true);
+			OverridePawnRotationForLockOn(false);
+		}
+		else { OverridePawnRotation(false); }
 	}
 
-	if (PlayerCharacter->GetPlayerActionState() == EPlayerActionState::Dodging)
+	if (!CombatComponentRef)
 	{
-		SetOverrideActorRotation(true);
-		SetOverrideWithLockOnActorRotation(false);
+		if (CombatComponentRef->GetCombatState() == ECombatState::CS_AtEase ||
+			CombatComponentRef->GetIsInAttackSequence())
+		{
+			OverridePawnRotationForLockOn(false);
+		}
+
+		if (CombatComponentRef->GetCurrentWeaponStanceType() == EWeaponStanceType::ST_Guard && GetOverridePawnRotationForLockOn())
+		{
+			OverridePawnRotation(true);
+		}
 	}
-	else
+}
+
+void ARPGProjectPlayerController::CalculateDesiredPawnRotation()
+{
+	if (IsPawnRotationDisabled() && !GetOverridePawnRotation()) { return; }
+
+	// Get the direction that the player wants the possessed pawn to move towards
+	PlayerInputRotation = { 0, (GetDesiredRotation().Yaw + UKismetMathLibrary::MakeRotFromX({MoveForwardValue, MoveRightValue, 0}).Yaw), 0 };
+
+	if (GetPawn())
 	{
-		SetOverrideActorRotation(false);
-	}
+		// Get the possessed pawn's rotation speed (determined by the anim curve RotationSpeedReductionScale)
 
+		float TurnSpeedModifier = 0.f;
+		if (CombatComponentRef)
+		{
+			TurnSpeedModifier = 1 - CombatComponentRef->GetRotationSpeedReductionScaleCurve();
+		}
+		else
+		{
+			TurnSpeedModifier = 1.f;
+		}
 
-	if (!CombatComponentRef) { return; }
-
-	if (CombatComponentRef->GetCombatState() == ECombatState::CS_AtEase)
-	{
-		SetOverrideWithLockOnActorRotation(false);
-	}
-
-	if (CombatComponentRef->GetIsInAttackSequence())
-	{
-		SetOverrideWithLockOnActorRotation(false);
-	}
-
-	if (CombatComponentRef->GetCurrentWeaponStanceType() == EWeaponStanceType::ST_Guard && bOverrideWithLockOnActorRotation)
-	{
-		SetOverrideActorRotation(true);
+		// Do not rotate the possessed pawn if they are unable to rotate currently
+		if (TurnSpeedModifier > 0.f)
+		{
+			// Make the possessed pawn look towards the lock-on target
+			if (bOverridePawnRotationForLockOn)
+			{
+				DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, GetPawn()->GetActorRotation().Yaw, 0 }, { 0, GetControlRotation().Yaw, 0 }, GetWorld()->GetDeltaSeconds(), (PawnTurnSpeed * TurnSpeedModifier));
+				GetPawn()->SetActorRotation(DesiredActorRotation);
+			}
+			// Make the possessed pawn look in the direction of the player's input
+			else
+			{
+				DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, GetPawn()->GetActorRotation().Yaw, 0 }, PlayerInputRotation, GetWorld()->GetDeltaSeconds(), (PawnTurnSpeed * TurnSpeedModifier));
+			}
+		}
 	}
 }
 
@@ -584,20 +633,27 @@ void ARPGProjectPlayerController::CheckInputToSwapLockOnTarget()
 {
 	if (!RPGPlayerCameraManagerRef) { return; }
 
+	float SensitivityModifier = 1.f;
+
+	// Get the sensitivity of the mouse input
+	if (InputAxisProperties.Find(EKeys::Mouse2D.GetFName())) { SensitivityModifier = InputAxisProperties[EKeys::Mouse2D.GetFName()].Sensitivity; }
+
 	if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
 	{
-		if ((FMath::Abs(YawValue) + FMath::Abs(PitchValue)) >= 5.f)
+		// Swap Lock-on target if the mouse input is greater than the mouse input threshold
+		if ((FMath::Abs(MouseYawValue) + FMath::Abs(MousePitchValue)) >= (SwapLockOnTargetMouseThreshold / SensitivityModifier))
 		{
 			if (RPGPlayerCameraManagerRef->GetCanSwapTarget())
 			{
-				RPGPlayerCameraManagerRef->SwapLockOnTarget(YawValue, PitchValue);
+				RPGPlayerCameraManagerRef->SwapLockOnTarget(MouseYawValue, MousePitchValue);
 			}
 		}
-		else if ((FMath::Abs(YawRate) + FMath::Abs(PitchRate)) >= .4f)
+		// Swap Lock-on target if the gamepade input is greater than the gamepade input threshold
+		else if ((FMath::Abs(NormalisedGamepadYawRate) + FMath::Abs(NormalisedGamepadPitchRate)) >= SwapLockOnTargetGamepadThreshold)
 		{
 			if (RPGPlayerCameraManagerRef->GetCanSwapTarget())
 			{
-				RPGPlayerCameraManagerRef->SwapLockOnTarget(YawRate, PitchRate);
+				RPGPlayerCameraManagerRef->SwapLockOnTarget(NormalisedGamepadYawRate, NormalisedGamepadPitchRate);
 			}
 		}
 		else
@@ -615,7 +671,7 @@ void ARPGProjectPlayerController::CheckInputToJumpOrCrouch(float DeltaTime)
 
 		if (JumpOrCrouchHoldTime >= JumpOrCrouchHoldTimeThreshold)
 		{
-			RequestHoldJumpOrCrouch();
+			RequestToggleCrouch();
 		}
 	}
 }
@@ -643,55 +699,125 @@ void ARPGProjectPlayerController::CheckInputForAttackFinisher(float DeltaTime)
 	}
 }
 
-void ARPGProjectPlayerController::CalculateDesiredActorRotation()
+void ARPGProjectPlayerController::RequestMoveForward(float Value)
 {
-	if (bDisableRotation && !bOverrideActorRotation) { return; }
+	MoveForwardValue = Value;
 
-	PlayerInputRotation = { 0, (GetDesiredRotation().Yaw + UKismetMathLibrary::MakeRotFromX({ForwardValue, RightValue, 0}).Yaw), 0 };
-
-	if (PlayerCharacter)
+	if (Value != 0 && GetPawn() && !bIsMovementStopped)
 	{
-		float TurnSpeedModifier = 0.f;
-		if (CombatComponentRef)
-		{
-			TurnSpeedModifier = 1 - CombatComponentRef->GetRotationSpeedReductionScaleCurve();
-			//CharacterTurnSpeed = CombatComponentRef->GetRotationSpeedReductionScaleCurve() < 0.09f ? MaxCharacterTurnSpeed : MaxCharacterTurnSpeed * CombatComponentRef->GetRotationSpeedReductionScaleCurve();
-			//CharacterTurnSpeed = TurnSpeedModifier >= 1.f ? MaxCharacterTurnSpeed * -1 : MaxCharacterTurnSpeed * TurnSpeedModifier;
-		}
-		else
-		{
-			TurnSpeedModifier = 1.f;
-		}
+		const FRotator Rotation = GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		if (TurnSpeedModifier > 0.f)
-		{
-			/*if (RPGPlayerCameraManagerRef)
-			{
-				if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
-				{
-					DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0 }, { 0, GetControlRotation().Yaw, 0 }, DeltaSeconds, (CharacterTurnSpeed * TurnSpeedModifier));
-					PlayerCharacter->SetActorRotation(DesiredActorRotation);
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-					return;
-				}
-			}*/
+		GetPawn()->AddMovementInput(Direction, Value);
 
-			if (bOverrideWithLockOnActorRotation)
-			{
-				DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0 }, { 0, GetControlRotation().Yaw, 0 }, DeltaSeconds, (CharacterTurnSpeed * TurnSpeedModifier));
-				PlayerCharacter->SetActorRotation(DesiredActorRotation);
-			}
-			else
-			{
-				DesiredActorRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0 }, PlayerInputRotation, DeltaSeconds, (CharacterTurnSpeed * TurnSpeedModifier));
-			}
-		}
+		GetPawn()->SetActorRotation(DesiredActorRotation);
+	}
+	else if ((MoveForwardValue + MoveRightValue) == 0.f)
+	{
+		RequestStopSprinting();
 	}
 }
 
-//--------------------------------------------------------------
-// Action Mappings
-//--------------------------------------------------------------
+void ARPGProjectPlayerController::RequestMoveRight(float Value)
+{
+	MoveRightValue = Value;
+
+	if (Value != 0 && GetPawn() && !bIsMovementStopped)
+	{
+		const FRotator Rotation = GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		GetPawn()->AddMovementInput(Direction, Value);
+
+		GetPawn()->SetActorRotation(DesiredActorRotation);
+	}
+}
+
+void ARPGProjectPlayerController::RequestTurnRate(float Rate)
+{
+	if (IsPlayerInMenu()) { return; }
+
+	GamepadYawRate = Rate;
+
+	if (InputAxisProperties.Find(EKeys::Gamepad_RightX.GetFName()))
+	{
+		NormalisedGamepadYawRate = Rate / InputAxisProperties[EKeys::Gamepad_RightX.GetFName()].Sensitivity;;
+	}
+	else { NormalisedGamepadYawRate = Rate; }
+
+
+	if (RPGPlayerCameraManagerRef)
+	{
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		{
+			return;
+		}
+	}
+
+
+	AddYawInput(Rate * GamepadBaseTurnRate * GetWorld()->GetDeltaSeconds());
+}
+
+void ARPGProjectPlayerController::RequestAddControllerYawInput(float Value)
+{
+	if (IsPlayerInMenu()) { return; }
+
+	MouseYawValue = Value;
+
+	if (RPGPlayerCameraManagerRef)
+	{
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		{
+			return;
+		}
+	}
+
+	AddYawInput(Value);
+}
+
+void ARPGProjectPlayerController::RequestLookUpRate(float Rate)
+{
+	if (IsPlayerInMenu()) { return; }
+
+	GamepadPitchRate = Rate;
+
+	if (InputAxisProperties.Find(EKeys::Gamepad_RightY.GetFName()))
+	{
+		NormalisedGamepadPitchRate = Rate / InputAxisProperties[EKeys::Gamepad_RightY.GetFName()].Sensitivity;
+	}
+	else { NormalisedGamepadPitchRate = Rate; }
+
+	if (RPGPlayerCameraManagerRef)
+	{
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		{
+			return;
+		}
+	}
+
+	AddPitchInput(Rate * GamepadBaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void ARPGProjectPlayerController::RequestAddControllerPitchInput(float Value)
+{
+	if (IsPlayerInMenu()) { return; }
+
+	MousePitchValue = Value;
+
+	if (RPGPlayerCameraManagerRef)
+	{
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		{
+			return;
+		}
+	}
+
+	AddPitchInput(Value);
+}
 
 void ARPGProjectPlayerController::RequestJumpOrCrouch()
 {
@@ -709,14 +835,17 @@ void ARPGProjectPlayerController::RequestJumpOrCrouch()
 	}
 }
 
-void ARPGProjectPlayerController::RequestHoldJumpOrCrouch()
-{
-	RequestToggleCrouch();
-}
-
 void ARPGProjectPlayerController::RequestStopJumpOrCrouch()
 {
 	if (!bJumpOrCrouchPressed) { return; }
+
+	if (PlayerCharacter)
+	{
+		if (!PlayerCharacter->GetCharacterMovement()->IsMovingOnGround())
+		{
+			PlayerCharacter->RequestStopJumping();
+		}
+	}
 
 	if (JumpOrCrouchHoldTime < (JumpOrCrouchHoldTimeThreshold * .5f))
 	{
@@ -773,29 +902,18 @@ void ARPGProjectPlayerController::RequestToggleSprint()
 
 void ARPGProjectPlayerController::RequestSprint()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::Sprint called"));
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->RequestSprint();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ARPGProjectPlayerController::Sprint GetCharacter() is nullptr."));
 	}
 }
 
 void ARPGProjectPlayerController::RequestStopSprinting()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopSprinting called"));
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->RequestStopSprinting();
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ARPGProjectPlayerController::StopSprinting PlayerCharacter is nullptr."));
-	}
-
 }
 
 void ARPGProjectPlayerController::RequestHoldCrouch()
@@ -872,8 +990,6 @@ void ARPGProjectPlayerController::RequestWalkMode()
 
 void ARPGProjectPlayerController::RequestStopWalkMode()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopWalking called"));
-
 	if (PlayerCharacter)
 	{
 		if (PlayerCharacter->GetPlayerHorizontalMobilityState() == EPlayerHorizontalMobility::Walking)
@@ -885,10 +1001,12 @@ void ARPGProjectPlayerController::RequestStopWalkMode()
 
 void ARPGProjectPlayerController::RequestContextAction()
 {
-	if (bIsInMenu) { return; }
+	if (IsPlayerInMenu()) { return; }
 	if (PlayerCharacter)
 	{
-		if (abs(ForwardValue) + abs(RightValue) > 0.33f) { PlayerCharacter->RequestDodge(); }
+		// Request for the possessed character to dodge if the player's movement input goes above the dodge threshold
+		if (abs(MoveForwardValue) + abs(MoveRightValue) > ContextActionDodgeThreshold) { PlayerCharacter->RequestDodge(); }
+		// Otherwise request to interact
 		else { PlayerCharacter->RequestInteraction(); }
 	}
 	bContextActionIsPressed = true;
@@ -896,7 +1014,7 @@ void ARPGProjectPlayerController::RequestContextAction()
 
 void ARPGProjectPlayerController::RequestHoldContextAction()
 {
-	if (bIsInMenu) { return; }
+	if (IsPlayerInMenu()) { return; }
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->RequestHoldContextAction();
@@ -905,10 +1023,10 @@ void ARPGProjectPlayerController::RequestHoldContextAction()
 
 void ARPGProjectPlayerController::RequestStopContextAction()
 {
-	if (bIsInMenu) { return; }
+	if (IsPlayerInMenu()) { return; }
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->RequestStopContextAction(ContextActionHoldTime >= ContextActionSprintThreshold);
+		PlayerCharacter->RequestStopContextAction();
 	}
 	ContextActionHoldTime = 0.f;
 	bContextActionIsPressed = false;
@@ -916,7 +1034,7 @@ void ARPGProjectPlayerController::RequestStopContextAction()
 
 void ARPGProjectPlayerController::RequestInteraction()
 {
-	if (bIsInMenu) { return; }
+	if (IsPlayerInMenu()) { return; }
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->RequestInteraction();
@@ -925,7 +1043,7 @@ void ARPGProjectPlayerController::RequestInteraction()
 
 void ARPGProjectPlayerController::RequestDodge()
 {
-	if (bIsInMenu) { return; }
+	if (IsPlayerInMenu()) { return; }
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->RequestDodge();
@@ -989,10 +1107,6 @@ void ARPGProjectPlayerController::RequestLightAttackFinisher()
 
 void ARPGProjectPlayerController::RequestHeavyAttackFinisher()
 {
-	/*bLightAttackIsPressed = false;
-	LightAttackHoldTime = 0.f;
-	bHeavyAttackIsPressed = false;
-	HeavyAttackHoldTime = 0.f;*/
 	RequestStopLightAttack();
 	RequestStopHeavyAttack();
 
@@ -1018,16 +1132,6 @@ void ARPGProjectPlayerController::RequestStopCombatAction()
 	}
 }
 
-void ARPGProjectPlayerController::RequestRadialMenu()
-{
-
-}
-
-void ARPGProjectPlayerController::RequestStopRadialMenu()
-{
-
-}
-
 void ARPGProjectPlayerController::RequestSwapWeaponLoadout()
 {
 	if (PlayerCharacter)
@@ -1049,149 +1153,4 @@ void ARPGProjectPlayerController::RequestToggleLockOn()
 			RPGPlayerCameraManager->EnableLockOn();
 		}
 	}
-}
-
-void ARPGProjectPlayerController::StartInteraction()
-{
-	//if (PlayerCharacter)
-	//{
-	//	PlayerCharacter->SetPlayerActionState(EPlayerActionState::Interacting);
-	//}
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StartInteraction called"));
-	OnInteractionStart.Broadcast();
-}
-
-void ARPGProjectPlayerController::StopInteraction()
-{
-	UE_LOG(LogTemp, Warning, TEXT("ARPGProjectPlayerController::StopInteraction called"));
-	OnInteractionCancel.Broadcast();
-}
-
-//--------------------------------------------------------------
-// Axis Mappings
-//--------------------------------------------------------------
-
-void ARPGProjectPlayerController::RequestMoveForward(float Value)
-{
-	ForwardValue = Value;
-
-	if (Value != 0 && PlayerCharacter && !bIsMovementStopped)
-	{
-		// PlayerMoveState = EPlayerMoveState::PMS_Walking;
-
-		const FRotator Rotation = GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-		PlayerCharacter->AddMovementInput(Direction, Value);
-
-		// FRotator TargetRotation = UKismetMathLibrary::RInterpTo({ 0, PlayerCharacter->GetActorRotation().Yaw, 0}, { 0, GetDesiredRotation().Yaw, 0 }, DeltaSeconds, 5.0f);
-
-		PlayerCharacter->SetActorRotation(DesiredActorRotation);
-
-		//FString DString = "MoveForward: " + Direction.ToString();
-		//GEngine->AddOnScreenDebugMessage(-1, DeltaSeconds, FColor::Yellow, DString);
-		//FString DisplayValue = "MoveForward: " + FString::SanitizeFloat(Value);
-		//GEngine->AddOnScreenDebugMessage(1, 0.5, FColor::Emerald, DisplayValue);
-
-	}
-	else if ((ForwardValue + RightValue) == 0.f)
-	{
-		RequestStopSprinting();
-	}
-}
-
-void ARPGProjectPlayerController::RequestMoveRight(float Value)
-{
-	RightValue = Value;
-
-	if (Value != 0 && PlayerCharacter && !bIsMovementStopped)
-	{
-		// PlayerMoveState = EPlayerMoveState::PMS_Walking;
-		
-		const FRotator Rotation = GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		PlayerCharacter->AddMovementInput(Direction, Value);
-
-		PlayerCharacter->SetActorRotation(DesiredActorRotation);
-
-		//FString DString = "MoveRight: " + Direction.ToString();
-		//GEngine->AddOnScreenDebugMessage(-1, GetWorld()->GetDeltaSeconds(), FColor::Yellow, DString);
-		//FString DisplayValue = "MoveRight: " + FString::SanitizeFloat(Value);
-		//GEngine->AddOnScreenDebugMessage(2, 0.5, FColor::Emerald, DisplayValue);
-
-	}
-}
-
-void ARPGProjectPlayerController::RequestTurnRate(float Rate)
-{
-	if (bIsInMenu) { return; }
-
-	YawRate = Rate;
-
-	if (RPGPlayerCameraManagerRef)
-	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
-		{
-			return; 
-		}
-	}
-
-
-	AddYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
-}
-
-void ARPGProjectPlayerController::RequestAddControllerYawInput(float Value)
-{
-	if (bIsInMenu) { return; }
-
-	YawValue = Value;
-
-	if (RPGPlayerCameraManagerRef)
-	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
-		{
-			return;
-		}
-	}
-
-	AddYawInput(Value);
-}
-
-void ARPGProjectPlayerController::RequestLookUpRate(float Rate)
-{
-	if (bIsInMenu) { return; }
-
-	PitchRate = Rate;
-
-	if (RPGPlayerCameraManagerRef)
-	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
-		{
-			return;
-		}
-	}
-
-	AddPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
-}
-
-void ARPGProjectPlayerController::RequestAddControllerPitchInput(float Value)
-{
-	if (bIsInMenu) { return; }
-
-	PitchValue = Value;
-
-	if (RPGPlayerCameraManagerRef)
-	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
-		{
-			return;
-		}
-	}
-
-	AddPitchInput(Value);
 }
