@@ -164,16 +164,11 @@ void ARPGProjectPlayerCharacter::BeginPlay()
 		StaminaComponent->SetMaxStamina(CharacterStatistics.StaminaPoints);
 		StaminaComponent->SetCurrentStamina(CharacterStatistics.StaminaPoints);
 	}
-
-	//GetComponents<UArrowComponent>(ArrowArray);
 }
 
 // Called every frame
 void ARPGProjectPlayerCharacter::Tick(float DeltaTime)
 {
-	// Normalise before tick
-	// ControlInputVector;
-
 	Super::Tick(DeltaTime);
 
 	UpdateCurves();
@@ -294,7 +289,7 @@ void ARPGProjectPlayerCharacter::ResetWeaponStance()
 		break;
 
 	case EWeaponStanceType::ST_Guard:
-		PC->DisableCharacterRotation(false);
+		PC->DisablePawnRotation(false);
 		break;
 
 	case EWeaponStanceType::ST_MAX:
@@ -353,7 +348,7 @@ void ARPGProjectPlayerCharacter::SetWeaponStance(ECombatWeaponStance CombatWeapo
 	case EWeaponStanceType::ST_Guard:
 		if (PC)
 		{
-			PC->DisableCharacterRotation(true);
+			PC->DisablePawnRotation(true);
 		}
 		break;
 	}
