@@ -9,14 +9,14 @@
 UENUM(BlueprintType)
 enum class ECameraView : uint8
 {
-	CV_None			UMETA(DisplayName = "None"),
-	CV_Exploration	UMETA(DisplayName = "Exploration"),
-	CV_Action		UMETA(DisplayName = "Action"),
-	CV_Aim			UMETA(DisplayName = "Aim"),
-	CV_LockOn		UMETA(DisplayName = "Lock-On"),
-	CV_Skill		UMETA(DisplayName = "Skill"),
+	None			UMETA(DisplayName = "None"),
+	Exploration		UMETA(DisplayName = "Exploration"),
+	Action			UMETA(DisplayName = "Action"),
+	Aim				UMETA(DisplayName = "Aim"),
+	LockOn			UMETA(DisplayName = "Lock-On"),
+	Skill			UMETA(DisplayName = "Skill"),
 
-	CV_MAX			UMETA(Hidden),
+	MAX				UMETA(Hidden),
 };
 
 class ARPGProjectPlayerController;
@@ -26,9 +26,6 @@ class UArrowComponent;
 class UCameraComponent;
 class UCombatComponent;
 
-/**
- * 
- */
 UCLASS()
 class RPGPROJECT_API ARPGPlayerCameraManager : public APlayerCameraManager
 {
@@ -50,52 +47,103 @@ public:
 
 public:		// --- FUNCTIONS --- \\
 
-	UFUNCTION(BlueprintCallable)
-	bool SetCameraView(ECameraView NewCameraView, bool bOverrideLockOn = false);
-	UFUNCTION(BlueprintPure)
-	ECameraView GetCameraView() const { return CurrentCameraView; } 
-	UFUNCTION(BlueprintPure)
+	//------------------
+	// Aiming
+	//------------------
+
+	/**
+	 * Executes a trace from the camera to the centre of the screen, returns true if the trace was blocked
+	 * @param CrosshairHitResult Properties of the trace hit
+	 */
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Aiming")
+	bool GetCrosshairTarget(FHitResult& CrosshairHitResult);
+
+	//------------------
+	// Camera View
+	//------------------
+
+	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Camera View")
+	ECameraView GetCameraView() const { return CurrentCameraView; }
+	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Camera View")
 	ECameraView GetLastCameraView() const { return LastCameraView; }
+	/**
+	 * Sets the value of CameraView, returns true if the camera view was successfully changed
+	 * @param NewCameraView	The new state of CameraView
+	 * @param bOverrideLockOn If true, will set the value of CameraView even if the current value is "Lock-On"
+	 */
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Camera View")
+	bool SetCameraView(ECameraView NewCameraView, bool bOverrideLockOn = false);	
 
-	UFUNCTION(BlueprintCallable)
-	bool SetCameraSpringArmMap(ECameraView CameraViewIndex, USpringArmComponent* SpringArmComp);
-	UFUNCTION(BlueprintCallable)
-	USpringArmComponent* GetValueFromCameraSpringArmMap(ECameraView CameraViewIndex);
+	// Camera Arrows
+	//------------------
 
-	UFUNCTION(BlueprintCallable)
-	bool SetCameraArrowMap(ECameraView CameraViewIndex, UArrowComponent* ArrowComp);
-	UFUNCTION(BlueprintCallable)
-	UArrowComponent* GetValueFromCameraArrowMap(ECameraView CameraViewIndex);
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Camera View|Camera Arrows")
+	UArrowComponent* GetArrowFromCameraView(ECameraView CameraViewIndex);
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Camera View|Camera Arrows")
+	bool SetArrowForCameraView(ECameraView CameraViewIndex, UArrowComponent* ArrowComp);
 
-	UFUNCTION(BlueprintCallable)
-	void SetLockOnTargetActor(AActor* NewTargetActor) { LockOnTargetActor = NewTargetActor; }
-	UFUNCTION(BlueprintPure)
+	// Spring Arms
+	//------------------
+
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Camera View|Spring Arms")
+	USpringArmComponent* GetSpringArmFromCameraView(ECameraView CameraViewIndex);
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Camera View|Spring Arms")
+	bool SetSpringArmForCameraView(ECameraView CameraViewIndex, USpringArmComponent* SpringArmComp);
+
+	//------------------
+	// Lock-On
+	//------------------
+
+
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Lock-On")
+	void DisableLockOn();
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Lock-On")
+	void EnableLockOn();
+
+	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Lock-On")
 	AActor* GetLockOnTargetActor() { return LockOnTargetActor; }
-
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Lock-On")
+	void SetLockOnTargetActor(AActor* NewTargetActor) { LockOnTargetActor = NewTargetActor; }
+	
+	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Lock-On")
 	FRotator GetTargetActorAngle() { return TargetActorAngle; }
 
-	UFUNCTION(BlueprintPure)
-	FVector GetLockOnTargetActorsMainTargetLocation();
+	// Used by the HUD widget to place the lock-on crosshair over the lock-on target's "LockOn_MainTarget" socket
+	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Lock-On")
+	FVector GetLocationOfLockOnTargetActorsMainTarget();
 
-	UFUNCTION(BlueprintPure)
+	/**
+	 * Gets all the actors in the world that are within the view of the viewing actor
+	 * @param ViewingActor The actor that is viewing the rendered actors, typically the camera manager
+	 * @param CurrentlyRenderedActors The array of actors that are within the view of the viewing actor
+	 * @param ActorTag Actors without this tag will be ignored
+	 * @param MinRecentTime Actors that were last rendered before this period of time will be ignored
+	 */
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Lock-On")
+	void GetRenderedActorsInView(AActor* ViewingActor, TArray<AActor*>& CurrentlyRenderedActors, FName ActorTag, float MinRecentTime = 0.01f);
+
+	/**
+	 * Gets all the actors in the world that are within a sector the viewing actor's view
+	 * @param ViewingActor The actor that is viewing the rendered actors, typically the camera manager
+	 * @param CurrentlyRenderedActors The array of actors that are within the view of the viewing actor
+	 * @param ActorTag Actors without this tag will be ignored
+	 * @param TargetAngle The direction of the viewport to search for actors (0° = Up, 90° = Right, 180° = Down, 270° = Left)
+	 * @param SearchSectorSize The width of the search sector 
+	 * @param MinRecentTime Actors that were last rendered before this period of time will be ignored
+	 */
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Lock-On")
+	void GetRenderedActorsInViewportCircularSector(AActor* ViewingActor, TArray<AActor*>& CurrentlyRenderedActors, FName ActorTag, float TargetAngle, float SearchSectorSize, float MinRecentTime = 0.01f);
+	
+	// Swapping Target
+	//------------------
+	
+	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Lock-On|Swapping Target")
 	bool GetCanSwapTarget() { return bCanSwapTarget; }
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Lock-On|Swapping Target")
 	void SetCanSwapTarget(bool bIsActive) { bCanSwapTarget = bIsActive; }
 
-	UFUNCTION(BlueprintCallable)
-	void GetRenderedActorsInView(AActor* ViewingActor, TArray<AActor*>& CurrentlyRenderedActors, FName ActorTag, float MinRecentTime = 0.01f, FRotator MinAllowedViewAngle = FRotator(0.f, 0.f, 0.f), FRotator MaxAllowedViewAngle = FRotator(0.f, 0.f, 0.f));
-
-	UFUNCTION(BlueprintCallable)
-	void GetRenderedActorsInViewportCircularSector(AActor* ViewingActor, TArray<AActor*>& CurrentlyRenderedActors, FName ActorTag, float TargetAngle , float SearchAngleRange, float MinRecentTime = 0.01f);
-
-	void EnableLockOn();
-	void DisableLockOn();
-
+	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Lock-On|Swapping Target")
 	void SwapLockOnTarget(float InYawValue, float InPitchValue);
-
-	UFUNCTION(BlueprintCallable)
-	bool GetCrosshairTarget(FHitResult& CrosshairHitResult);
 
 public:		// --- VARIABLES --- \\
 
@@ -103,106 +151,143 @@ public:		// --- VARIABLES --- \\
 
 protected:	// --- FUNCTIONS --- \\
 
+	// If the camera is not in position, interpolate it to the current camera view
 	void InterpToView();
 
+	// Returns the dot product of the screen position from the centre of the viewport
 	UFUNCTION(BlueprintPure)
 	float GetViewportAngleFromScreenPosition(FVector2D ScreenPosition);
+	
+	//Returns the dot product of the 2D vector from the centre of the viewport.
 	UFUNCTION(BlueprintPure)
 	float GetViewportAngleFromVector2D(FVector2D InVector2D);
 
 	void ResetSwapTargetCooldown() { bSwapTargetOnCooldown = false; }
 
+	// Checks all potential lock-on targets and sets the actor closest to the centre of the viewport as the lock-on target
 	void EvaluateSwapLockOnTargets();
+
+	// Updates the rotation of the camera if the current camera view is "Lock-On" and disables lock-on if certain conditions are met
+	void LockOnUpdate();
 
 protected:	// --- VARIABLES --- \\
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "References")
-	ARPGProjectPlayerController* PC;
+	//------------------
+	// Camera Views
+	//------------------
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "References")
-	ARPGProjectPlayerCharacter* PlayerCharacter;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|Camera Views")
+	ECameraView CurrentCameraView = ECameraView::None;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "References")
-	UCombatComponent* CombatComponentRef;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera View State")
-	ECameraView CurrentCameraView = ECameraView::CV_None;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera View State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|Camera Views")
 	ECameraView LastCameraView = CurrentCameraView;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera Views - Spring Arms")
-	TMap<ECameraView, USpringArmComponent*> CameraSpringArmMap;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera Views - Arrows")
-	TMap<ECameraView, UArrowComponent*> CameraArrowMap;
-
-	UPROPERTY(EditAnywhere, Category = "Interaction Trace Settings")
-	TEnumAsByte<ETraceTypeQuery> ActorInViewTraceCollisionChannel;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera Interp Speeds")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "RPG Player Camera Manager|Camera Views|Interp Speeds")
 	TMap<ECameraView, float> InterpSpeedMap;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Lock-On - Allowed Angles")
-	FRotator FirstLockAllowedViewAngle {5.f, 5.f, 5.f};
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|Camera Views|Arrows")
+	TMap<ECameraView, UArrowComponent*> CameraArrowMap;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lock-On - Swap Targets")
-	float SwapCooldown = 0.5f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|Camera Views|Spring Arms")
+	TMap<ECameraView, USpringArmComponent*> CameraSpringArmMap;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Lock-On - Swap Targets")
-	bool bSwapTargetOnCooldown = false;
+	//------------------
+	// Lock-On
+	//------------------
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lock-On - Swap Targets")
-	float SwapTargetSearchRange = 30.f;
+	// Trace Settings
+	//------------------
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lock-On - Swap Targets")
-	float SwapTargetSearchAngleRange = 20.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lock-On - Swap Targets")
-	float SwapTargetSecondSearchAngleRange = 90.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lock-On - Swap Targets")
-	float SwapTargetPreciseSearchAngleRange = 2.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lock-On - Swap Targets")
-	float ClosestTargetPriorityDistance = 150.f;
-
-	UPROPERTY(EditAnywhere, Category = "Crosshair Target Settings")
+	UPROPERTY(EditAnywhere, Category = "RPG Player Camera Manager|Lock-On|Trace Settings")
 	bool bShowTrace = false;
 
-	UPROPERTY(EditAnywhere, Category = "Crosshair Target Settings")
+	UPROPERTY(EditAnywhere, Category = "RPG Player Camera Manager|Lock-On|Trace Settings")
+	TEnumAsByte<ETraceTypeQuery> ActorInViewTraceCollisionChannel;
+
+	UPROPERTY(EditAnywhere, Category = "RPG Player Camera Manager|Lock-On|Trace Settings")
 	bool bUseSphereTrace = false;
 
-	UPROPERTY(EditAnywhere, Category = "Crosshair Target Settings")
+	UPROPERTY(EditAnywhere, Category = "RPG Player Camera Manager|Lock-On|Trace Settings", meta = (EditCondition = "bUseSphereTrace", DisplayAfter = "bUseSphereTrace", EditConditionHides))
 	float TargetTraceRadius = 2.5f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "RPG Player Camera Manager|Lock-On|Trace Settings")
+	FRotator FirstLockAllowedViewAngle = { 5.f, 5.f, 5.f };
+
+	// Swap Targets
+	//------------------
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|Lock-On|Swap Targets")
+	float SwapCooldown = 0.5f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|Lock-On|Swap Targets")
+	bool bSwapTargetOnCooldown = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|Lock-On|Swap Targets")
+	float SwapTargetSearchSectorSize = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|Lock-On|Swap Targets")
+	float SwapTargetPreciseSearchAngleRange = 2.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|Lock-On|Swap Targets")
+	float SwapTargetSecondSearchSectorSize = 90.f;
+
+	//------------------
+	// References
+	//------------------
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|References")
+	ARPGProjectPlayerController* PC;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|References")
+	ARPGProjectPlayerCharacter* PlayerCharacter;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RPG Player Camera Manager|References")
+	UCombatComponent* CombatComponentRef;
+	
 private:	// --- FUNCTIONS --- \\
 
 
 
 private:	// --- VARIABLES --- \\
 
-	UPROPERTY(VisibleAnywhere, Category = "View Target - Camera")
-	UCameraComponent* ViewTargetCameraRef;
+	ECameraView CameraViewOnLastUpdate = ECameraView::None;
 
-	UPROPERTY(VisibleAnywhere, Category = "Lock-On Targets")
-	TArray<AActor*> LockOnActorArray;
-	UPROPERTY(VisibleAnywhere, Category = "Lock-On Targets")
-	AActor* LockOnTargetActor = nullptr;
-	UPROPERTY(VisibleAnywhere, Category = "Lock-On Targets")
-	FName TargetSocket = "";
-	UPROPERTY(VisibleAnywhere, Category = "Lock-On Targets")
-	FRotator TargetActorAngle = FRotator::ZeroRotator;
-
-	ECameraView CameraViewLastUpdate = ECameraView::CV_None;
-	
 	UArrowComponent* CurrentCameraArrow;
 
 	FTimerHandle InterpToViewTimerHandle;
 	FTimerHandle SwapTargetCooldownTimerHandle;
 	FTimerHandle NoLineOfSightOnTargetTimerHandle;
 
-	UPROPERTY(VisibleAnywhere, Category = "Lock-On - Swap Targets")
+	//------------------
+	// Lock-On
+	//------------------
+
+	// Current Target
+	//------------------
+
+	UPROPERTY(VisibleAnywhere, Category = "RPG Player Camera Manager|Lock-On|Current Target")
+	AActor* LockOnTargetActor = nullptr;
+
+	UPROPERTY(VisibleAnywhere, Category = "RPG Player Camera Manager|Lock-On|Current Target")
+	FName TargetSocket = "";
+
+	UPROPERTY(VisibleAnywhere, Category = "RPG Player Camera Manager|Lock-On|Current Target")
+	FRotator TargetActorAngle = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, Category = "RPG Player Camera Manager|Lock-On|Current Target")
+	TArray<AActor*> LockOnActorArray;
+
+	// Swap Targets
+	//------------------
+
+	UPROPERTY(VisibleAnywhere, Category = "RPG Player Camera Manager|Lock-On|Swap Targets")
 	bool bCanSwapTarget = true;
+
+	//------------------
+	// References
+	//------------------
+
+	UPROPERTY(VisibleAnywhere, Category = "RPG Player Camera Manager|References")
+	UCameraComponent* ViewTargetCameraRef;
 
 };

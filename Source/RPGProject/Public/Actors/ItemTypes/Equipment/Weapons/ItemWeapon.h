@@ -113,7 +113,7 @@ public:
 	void SetAttackBlockerCollisionEnabled(ECollisionEnabled::Type NewType);
 
 	UFUNCTION(BlueprintCallable)
-	void AttackBlocked(FWeaponAttackInfo& BlockedAttackInfo, AItemWeapon* InItemWeapon = nullptr, EAttackType BlockedAttackType = EAttackType::AT_None, AProjectileActor* InProjectileActor = nullptr);
+	void AttackBlocked(FWeaponAttackInfo& BlockedAttackInfo, AItemWeapon* InItemWeapon = nullptr, EAttackType BlockedAttackType = EAttackType::None, AProjectileActor* InProjectileActor = nullptr);
 
 protected:
 

@@ -49,7 +49,7 @@ void UAbstractionInteractionComponent::BeginPlay()
 	if (PlayerController)
 	{
 		// Bind to player input
-		//PlayerController->OnInteractionStart.AddUObject(this, &UAbstractionInteractionComponent::InteractionStart);
+		//PlayerController->OnInteractionStart.AddUObject(this, &UAbstractionInteractionComponent::StartInteraction);
 		//PlayerController->OnInteractionCancel.AddUObject(this, &UAbstractionInteractionComponent::InteractionCancel);
 	}
 	
@@ -107,7 +107,7 @@ void UAbstractionInteractionComponent::OnOverlapEnd(class UPrimitiveComponent* O
 // BeginPlay bind
 // EndPlay unbind 
 // Broadcast
-void UAbstractionInteractionComponent::InteractionStart()
+void UAbstractionInteractionComponent::StartInteraction()
 {
 	UE_LOG(LogTemp, Warning, TEXT("UInteractionComponent::InteractionStart called"));
 }

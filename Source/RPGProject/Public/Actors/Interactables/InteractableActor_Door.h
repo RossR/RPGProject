@@ -22,15 +22,15 @@ public:
 
 	void InteractionRequested(AActor* InteractingActor = nullptr) override;
 
-	void InteractionStart(AActor* InteractingActor = nullptr) override;
+	void StartInteraction(AActor* InteractingActor = nullptr) override;
 
 	void ActivateInteractable() override;
 
 	void DeactivateInteractable() override;
 
-	void InteractableActivated() override;
+	void InteractableHasActivated() override;
 
-	void InteractableDeactivated() override;
+	void InteractableHasDeactivated() override;
 
 	bool GetIsInInteractableRange(AActor* InteractingActor) override;
 

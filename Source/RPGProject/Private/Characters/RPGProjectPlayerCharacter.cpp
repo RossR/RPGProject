@@ -64,25 +64,13 @@ ARPGProjectPlayerCharacter::ARPGProjectPlayerCharacter()
 	
 	JumpMaxHoldTime = 0.2f;
 
-	// Create the camera arm
-	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
-	CameraArm->SetupAttachment(RootComponent);
-	CameraArm->SetRelativeLocation(FVector(0, 0, 40.0f));
-	CameraArm->TargetArmLength = 400.0f;
-	CameraArm->bUsePawnControlRotation = true;
-	CameraArm->bInheritPitch = true;
-	CameraArm->bInheritYaw = true;
-	CameraArm->bInheritRoll = false;
-	CameraArm->bEnableCameraLag = true;
-	CameraArm->CameraLagSpeed = 10.0f;
-
 	PopulateCameraSpringArmMap();
 	PopulateCameraArrowMap();
 
 	// Create the follow camera
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
-	PlayerCamera->SetupAttachment(CameraSpringArmMap[ECameraView::CV_Exploration], USpringArmComponent::SocketName);
-	PlayerCamera->SetRelativeLocation(CameraArrowMap[ECameraView::CV_Exploration]->GetRelativeLocation());
+	PlayerCamera->SetupAttachment(CameraSpringArmMap[ECameraView::Exploration], USpringArmComponent::SocketName);
+	PlayerCamera->SetRelativeLocation(CameraArrowMap[ECameraView::Exploration]->GetRelativeLocation());
 	PlayerCamera->bUsePawnControlRotation = false;
 	
 	HitFXOverride = CreateDefaultSubobject<UHitFXData>(TEXT("Hit FX Override"));
@@ -137,17 +125,17 @@ void ARPGProjectPlayerCharacter::BeginPlay()
 		RPGPlayerCameraManager = PC->GetRPGPlayerCameraManager();
 		if (RPGPlayerCameraManager)
 		{
-			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_Exploration, CameraSpringArmMap[ECameraView::CV_Exploration]);
-			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_Action, CameraSpringArmMap[ECameraView::CV_Action]);
-			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_Aim, CameraSpringArmMap[ECameraView::CV_Aim]);
-			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_LockOn, CameraSpringArmMap[ECameraView::CV_LockOn]);
-			RPGPlayerCameraManager->SetCameraSpringArmMap(ECameraView::CV_Skill, CameraSpringArmMap[ECameraView::CV_Skill]);
+			RPGPlayerCameraManager->SetSpringArmForCameraView(ECameraView::Exploration, CameraSpringArmMap[ECameraView::Exploration]);
+			RPGPlayerCameraManager->SetSpringArmForCameraView(ECameraView::Action, CameraSpringArmMap[ECameraView::Action]);
+			RPGPlayerCameraManager->SetSpringArmForCameraView(ECameraView::Aim, CameraSpringArmMap[ECameraView::Aim]);
+			RPGPlayerCameraManager->SetSpringArmForCameraView(ECameraView::LockOn, CameraSpringArmMap[ECameraView::LockOn]);
+			RPGPlayerCameraManager->SetSpringArmForCameraView(ECameraView::Skill, CameraSpringArmMap[ECameraView::Skill]);
 
-			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_Exploration, CameraArrowMap[ECameraView::CV_Exploration]);
-			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_Action, CameraArrowMap[ECameraView::CV_Action]);
-			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_Aim, CameraArrowMap[ECameraView::CV_Aim]);
-			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_LockOn, CameraArrowMap[ECameraView::CV_LockOn]);
-			RPGPlayerCameraManager->SetCameraArrowMap(ECameraView::CV_Skill, CameraArrowMap[ECameraView::CV_Skill]);
+			RPGPlayerCameraManager->SetArrowForCameraView(ECameraView::Exploration, CameraArrowMap[ECameraView::Exploration]);
+			RPGPlayerCameraManager->SetArrowForCameraView(ECameraView::Action, CameraArrowMap[ECameraView::Action]);
+			RPGPlayerCameraManager->SetArrowForCameraView(ECameraView::Aim, CameraArrowMap[ECameraView::Aim]);
+			RPGPlayerCameraManager->SetArrowForCameraView(ECameraView::LockOn, CameraArrowMap[ECameraView::LockOn]);
+			RPGPlayerCameraManager->SetArrowForCameraView(ECameraView::Skill, CameraArrowMap[ECameraView::Skill]);
 		}
 	}
 
@@ -280,9 +268,9 @@ void ARPGProjectPlayerCharacter::ResetWeaponStance()
 		break;
 
 	case EWeaponStanceType::ST_Ranged:
-		if (RPGPlayerCameraManager->GetCameraView() != ECameraView::CV_Action)
+		if (RPGPlayerCameraManager->GetCameraView() != ECameraView::Action)
 		{
-			RPGPlayerCameraManager->SetCameraView(ECameraView::CV_Action);
+			RPGPlayerCameraManager->SetCameraView(ECameraView::Action);
 			bUseControllerRotationYaw = false;
 			CombatComponent->SetAimAtCrosshair(false);
 		}
@@ -305,19 +293,19 @@ void ARPGProjectPlayerCharacter::ResetWeaponStance()
 void ARPGProjectPlayerCharacter::SetWeaponStance(ECombatWeaponStance CombatWeaponStanceType, UItemWeaponData* StanceWeaponData)
 {
 	if (!CombatComponent) { return; }
-	if (CombatWeaponStanceType == ECombatWeaponStance::CWS_None) { return; }
+	if (CombatWeaponStanceType == ECombatWeaponStance::None) { return; }
 
 	EWeaponStanceType StanceType = EWeaponStanceType::ST_None;
 	FWeaponStanceInfo InWeaponStanceInfo;
 
 	switch (CombatWeaponStanceType)
 	{
-	case ECombatWeaponStance::CWS_Mainhand:
+	case ECombatWeaponStance::Mainhand:
 		StanceType = StanceWeaponData->MainhandStanceType;
 		InWeaponStanceInfo = StanceWeaponData->MainhandStanceInfo;
 		break;
 
-	case ECombatWeaponStance::CWS_Offhand:
+	case ECombatWeaponStance::Offhand:
 		StanceType = StanceWeaponData->OffhandStanceType;
 		InWeaponStanceInfo = StanceWeaponData->OffhandStanceInfo;
 		break;
@@ -339,7 +327,7 @@ void ARPGProjectPlayerCharacter::SetWeaponStance(ECombatWeaponStance CombatWeapo
 	case EWeaponStanceType::ST_Ranged:
 		if (RPGPlayerCameraManager)
 		{
-			RPGPlayerCameraManager->SetCameraView(ECameraView::CV_Aim);
+			RPGPlayerCameraManager->SetCameraView(ECameraView::Aim);
 		}
 		bUseControllerRotationYaw = true;
 		CombatComponent->SetAimAtCrosshair(true);
@@ -414,15 +402,15 @@ void ARPGProjectPlayerCharacter::RequestCombatAction()
 
 	switch (CombatComponent->GetCombatWeaponStance())
 	{
-	case ECombatWeaponStance::CWS_None:
+	case ECombatWeaponStance::None:
 		CombatComponent->StartNeutralCombatAction();
 		break;
 
-	case ECombatWeaponStance::CWS_Mainhand:
+	case ECombatWeaponStance::Mainhand:
 		CombatComponent->StartStanceCombatAction();
 		break;
 
-	case ECombatWeaponStance::CWS_Offhand:
+	case ECombatWeaponStance::Offhand:
 		CombatComponent->StartStanceCombatAction();
 		break;
 
@@ -440,15 +428,15 @@ void ARPGProjectPlayerCharacter::RequestStopCombatAction()
 
 	switch (CombatComponent->GetCombatWeaponStance())
 	{
-	case ECombatWeaponStance::CWS_None:
+	case ECombatWeaponStance::None:
 		CombatComponent->StopNeutralCombatAction();
 		break;
 
-	case ECombatWeaponStance::CWS_Mainhand:
+	case ECombatWeaponStance::Mainhand:
 		CombatComponent->StopStanceCombatAction();
 		break;
 
-	case ECombatWeaponStance::CWS_Offhand:
+	case ECombatWeaponStance::Offhand:
 		CombatComponent->StopStanceCombatAction();
 		break;
 
@@ -477,15 +465,15 @@ void ARPGProjectPlayerCharacter::RequestHeavyAttack()
 
 	switch (CombatComponent->GetCombatWeaponStance())
 	{
-	case ECombatWeaponStance::CWS_None:
-		CombatComponent->CharacterAttack(EAttackType::AT_HeavyAttack);
+	case ECombatWeaponStance::None:
+		CombatComponent->CharacterAttack(EAttackType::HeavyAttack);
 		break;
 
-	case ECombatWeaponStance::CWS_Mainhand:
+	case ECombatWeaponStance::Mainhand:
 		// Mainhand Skill #2
 		break;
 
-	case ECombatWeaponStance::CWS_Offhand:
+	case ECombatWeaponStance::Offhand:
 		// Offhand Skill #2
 		break;
 	}
@@ -503,7 +491,7 @@ void ARPGProjectPlayerCharacter::RequestHeavyAttackFinisher()
 	if (StaminaComponent) { if (StaminaComponent->IsStaminaExhausted()) { return; } }
 	if (GetIsInUninterruptableAction()) { return; }
 
-	CombatComponent->CharacterAttack(EAttackType::AT_HeavyFinisher);
+	CombatComponent->CharacterAttack(EAttackType::HeavyFinisher);
 }
 
 void ARPGProjectPlayerCharacter::RequestHoldCrouch()
@@ -515,9 +503,9 @@ void ARPGProjectPlayerCharacter::RequestHoldCrouch()
 
 	if (RPGPlayerCameraManager)
 	{
-		if (RPGPlayerCameraManager->GetCameraView() == ECameraView::CV_Exploration)
+		if (RPGPlayerCameraManager->GetCameraView() == ECameraView::Exploration)
 		{
-			CameraSpringArmMap[ECameraView::CV_Exploration]->SetRelativeLocation({ CameraSpringArmMap[ECameraView::CV_Exploration]->GetRelativeLocation().X, CameraSpringArmMap[ECameraView::CV_Exploration]->GetRelativeLocation().Y, 5.f });
+			CameraSpringArmMap[ECameraView::Exploration]->SetRelativeLocation({ CameraSpringArmMap[ECameraView::Exploration]->GetRelativeLocation().X, CameraSpringArmMap[ECameraView::Exploration]->GetRelativeLocation().Y, 5.f });
 		}
 	}
 
@@ -532,9 +520,9 @@ void ARPGProjectPlayerCharacter::RequestStopCrouching()
 
 	if (RPGPlayerCameraManager)
 	{
-		if (RPGPlayerCameraManager->GetCameraView() == ECameraView::CV_Exploration)
+		if (RPGPlayerCameraManager->GetCameraView() == ECameraView::Exploration)
 		{
-			CameraSpringArmMap[ECameraView::CV_Exploration]->SetRelativeLocation({ CameraSpringArmMap[ECameraView::CV_Exploration]->GetRelativeLocation().X, CameraSpringArmMap[ECameraView::CV_Exploration]->GetRelativeLocation().Y, 45.f });
+			CameraSpringArmMap[ECameraView::Exploration]->SetRelativeLocation({ CameraSpringArmMap[ECameraView::Exploration]->GetRelativeLocation().X, CameraSpringArmMap[ECameraView::Exploration]->GetRelativeLocation().Y, 45.f });
 		}
 	}
 
@@ -603,15 +591,15 @@ void ARPGProjectPlayerCharacter::RequestLightAttack()
 
 	switch (CombatComponent->GetCombatWeaponStance())
 	{
-	case ECombatWeaponStance::CWS_None:
-		CombatComponent->CharacterAttack(EAttackType::AT_LightAttack);
+	case ECombatWeaponStance::None:
+		CombatComponent->CharacterAttack(EAttackType::LightAttack);
 		break;
 
-	case ECombatWeaponStance::CWS_Mainhand:
+	case ECombatWeaponStance::Mainhand:
 		// Mainhand Skill #1
 		break;
 
-	case ECombatWeaponStance::CWS_Offhand:
+	case ECombatWeaponStance::Offhand:
 		// Offhand Skill #1
 		break;
 	}
@@ -629,37 +617,37 @@ void ARPGProjectPlayerCharacter::RequestLightAttackFinisher()
 	if (StaminaComponent) { if (StaminaComponent->IsStaminaExhausted()) { return; } }
 	if (GetIsInUninterruptableAction()) { return; }
 
-	CombatComponent->CharacterAttack(EAttackType::AT_LightFinisher);
+	CombatComponent->CharacterAttack(EAttackType::LightFinisher);
 }
 
 void ARPGProjectPlayerCharacter::RequestMainhandStance()
 {
-	if (RequestedCombatWeaponStance != ECombatWeaponStance::CWS_None) { return; }
+	if (RequestedCombatWeaponStance != ECombatWeaponStance::None) { return; }
 
-	RequestedCombatWeaponStance = ECombatWeaponStance::CWS_Mainhand;
+	RequestedCombatWeaponStance = ECombatWeaponStance::Mainhand;
 }
 
 void ARPGProjectPlayerCharacter::RequestStopMainhandStance()
 {
-	if (RequestedCombatWeaponStance == ECombatWeaponStance::CWS_Mainhand)
+	if (RequestedCombatWeaponStance == ECombatWeaponStance::Mainhand)
 	{
-		RequestedCombatWeaponStance = ECombatWeaponStance::CWS_None;
+		RequestedCombatWeaponStance = ECombatWeaponStance::None;
 	}
 }
 
 void ARPGProjectPlayerCharacter::RequestOffhandStance()
 {
-	if (RequestedCombatWeaponStance != ECombatWeaponStance::CWS_None) { return; }
+	if (RequestedCombatWeaponStance != ECombatWeaponStance::None) { return; }
 
-	RequestedCombatWeaponStance = ECombatWeaponStance::CWS_Offhand;
+	RequestedCombatWeaponStance = ECombatWeaponStance::Offhand;
 
 }
 
 void ARPGProjectPlayerCharacter::RequestStopOffhandStance()
 {
-	if (RequestedCombatWeaponStance == ECombatWeaponStance::CWS_Offhand)
+	if (RequestedCombatWeaponStance == ECombatWeaponStance::Offhand)
 	{
-		RequestedCombatWeaponStance = ECombatWeaponStance::CWS_None;
+		RequestedCombatWeaponStance = ECombatWeaponStance::None;
 	}
 }
 
@@ -821,7 +809,7 @@ void ARPGProjectPlayerCharacter::InteractionTrace()
 							{
 								bool bWillHightlight = InteractionInterface->GetIsInInteractableRange(this);
 
-								if (InteractionInterface->CanBeInteractedWith())
+								if (InteractionInterface->CanActorBeInteractedWith())
 								{
 									InteractionInterface->EnableHighlight(bWillHightlight);
 									SetIsInteractionAvailable(bWillHightlight);
@@ -997,14 +985,14 @@ void ARPGProjectPlayerCharacter::CombatStanceUpdate()
 	if (!CombatComponent) { return; }
 	if (!EquipmentComponent) { return; }
 
-	if (CombatComponent->GetCombatState() == ECombatState::CS_CombatReady)
+	if (CombatComponent->GetCombatState() == ECombatState::CombatReady)
 	{
 		// Set the character's weapons stance if they are not in their requested stance
 		if (CombatComponent->GetCombatWeaponStance() != RequestedCombatWeaponStance)
 		{
-			if (RequestedCombatWeaponStance == ECombatWeaponStance::CWS_None)
+			if (RequestedCombatWeaponStance == ECombatWeaponStance::None)
 			{
-				CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::CWS_None);
+				CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::None);
 				ResetWeaponStance();
 
 				return;
@@ -1016,14 +1004,14 @@ void ARPGProjectPlayerCharacter::CombatStanceUpdate()
 
 			switch (RequestedCombatWeaponStance)
 			{
-			case ECombatWeaponStance::CWS_Mainhand:
+			case ECombatWeaponStance::Mainhand:
 				if (EquipmentComponent->GetMainhandWeaponData())
 				{
 					StanceWeaponData = EquipmentComponent->GetMainhandWeaponData();
 				}
 				break;
 
-			case ECombatWeaponStance::CWS_Offhand:
+			case ECombatWeaponStance::Offhand:
 				if (EquipmentComponent->GetOffhandWeaponData())
 				{
 					StanceWeaponData = EquipmentComponent->GetOffhandWeaponData();
@@ -1044,9 +1032,9 @@ void ARPGProjectPlayerCharacter::CombatStanceUpdate()
 	else
 	{
 		// Exit any weapon stance the character is currently in
-		if (CombatComponent->GetCombatWeaponStance() != ECombatWeaponStance::CWS_None)
+		if (CombatComponent->GetCombatWeaponStance() != ECombatWeaponStance::None)
 		{
-			CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::CWS_None);
+			CombatComponent->SetCombatWeaponStance(ECombatWeaponStance::None);
 			ResetWeaponStance();
 		}
 	}
@@ -1083,13 +1071,13 @@ void ARPGProjectPlayerCharacter::PopulateHealthComponentHitboxMap()
 
 void ARPGProjectPlayerCharacter::PopulateCameraSpringArmMap()
 {
-	CameraSpringArmMap.Emplace(ECameraView::CV_Exploration, CreateDefaultSubobject<USpringArmComponent>(TEXT("Exploration_SpringArm")));
-	CameraSpringArmMap.Emplace(ECameraView::CV_Action, CreateDefaultSubobject<USpringArmComponent>(TEXT("Action_SpringArm")));
-	CameraSpringArmMap.Emplace(ECameraView::CV_Aim, CreateDefaultSubobject<USpringArmComponent>(TEXT("Aim_SpringArm")));
-	CameraSpringArmMap.Emplace(ECameraView::CV_LockOn, CreateDefaultSubobject<USpringArmComponent>(TEXT("LockOn_SpringArm")));
-	CameraSpringArmMap.Emplace(ECameraView::CV_Skill, CameraSpringArmMap[ECameraView::CV_Action]);
+	CameraSpringArmMap.Emplace(ECameraView::Exploration, CreateDefaultSubobject<USpringArmComponent>(TEXT("Exploration_SpringArm")));
+	CameraSpringArmMap.Emplace(ECameraView::Action, CreateDefaultSubobject<USpringArmComponent>(TEXT("Action_SpringArm")));
+	CameraSpringArmMap.Emplace(ECameraView::Aim, CreateDefaultSubobject<USpringArmComponent>(TEXT("Aim_SpringArm")));
+	CameraSpringArmMap.Emplace(ECameraView::LockOn, CreateDefaultSubobject<USpringArmComponent>(TEXT("LockOn_SpringArm")));
+	CameraSpringArmMap.Emplace(ECameraView::Skill, CameraSpringArmMap[ECameraView::Action]);
 
-	for (uint8 i = 1; i < (uint8)ECameraView::CV_MAX; i++)
+	for (uint8 i = 1; i < (uint8)ECameraView::MAX; i++)
 	{
 
 		if (CameraSpringArmMap.Contains((ECameraView)i))
@@ -1100,46 +1088,47 @@ void ARPGProjectPlayerCharacter::PopulateCameraSpringArmMap()
 		}
 	}
 
-	CameraSpringArmMap[ECameraView::CV_Exploration]->SetRelativeLocation({ 0.f, 0.f, 45.f });
-	CameraSpringArmMap[ECameraView::CV_Exploration]->TargetArmLength = 300.f;
-	CameraSpringArmMap[ECameraView::CV_Exploration]->bEnableCameraLag = true;
+	CameraSpringArmMap[ECameraView::Exploration]->SetRelativeLocation({ 0.f, 0.f, 45.f });
+	CameraSpringArmMap[ECameraView::Exploration]->TargetArmLength = 300.f;
+	CameraSpringArmMap[ECameraView::Exploration]->bEnableCameraLag = true;
 
-	CameraSpringArmMap[ECameraView::CV_Action]->SetRelativeLocation({ 0.f, 0.f, 40.f });
-	CameraSpringArmMap[ECameraView::CV_Action]->TargetArmLength = 450.f;
-	CameraSpringArmMap[ECameraView::CV_Action]->bEnableCameraLag = false;
+	CameraSpringArmMap[ECameraView::Action]->SetRelativeLocation({ 0.f, 0.f, 40.f });
+	CameraSpringArmMap[ECameraView::Action]->TargetArmLength = 450.f;
+	CameraSpringArmMap[ECameraView::Action]->bEnableCameraLag = false;
 
-	CameraSpringArmMap[ECameraView::CV_Aim]->SetRelativeLocation({ 0.f, 80.f, 75.f });
-	CameraSpringArmMap[ECameraView::CV_Aim]->TargetArmLength = 200.f;
-	CameraSpringArmMap[ECameraView::CV_Aim]->bEnableCameraLag = false;
+	CameraSpringArmMap[ECameraView::Aim]->SetRelativeLocation({ 0.f, 80.f, 75.f });
+	CameraSpringArmMap[ECameraView::Aim]->TargetArmLength = 200.f;
+	CameraSpringArmMap[ECameraView::Aim]->bEnableCameraLag = false;
 
-	CameraSpringArmMap[ECameraView::CV_LockOn]->SetRelativeLocation({ 0.f, 0.f, 95.f });
-	CameraSpringArmMap[ECameraView::CV_LockOn]->TargetArmLength = 500.f;
-	CameraSpringArmMap[ECameraView::CV_LockOn]->bEnableCameraLag = false;
-	CameraSpringArmMap[ECameraView::CV_LockOn]->bEnableCameraRotationLag = true;
-	CameraSpringArmMap[ECameraView::CV_LockOn]->CameraRotationLagSpeed = 10.f;
+	CameraSpringArmMap[ECameraView::LockOn]->SetRelativeLocation({ 0.f, 0.f, 95.f });
+	CameraSpringArmMap[ECameraView::LockOn]->TargetArmLength = 500.f;
+	CameraSpringArmMap[ECameraView::LockOn]->bEnableCameraLag = false;
+	CameraSpringArmMap[ECameraView::LockOn]->bEnableCameraRotationLag = true;
+	CameraSpringArmMap[ECameraView::LockOn]->CameraRotationLagSpeed = 10.f;
 }
 
 void ARPGProjectPlayerCharacter::PopulateCameraArrowMap()
 {
-	CameraArrowMap.Emplace(ECameraView::CV_Exploration, CreateDefaultSubobject<UArrowComponent>(TEXT("Exploration_Arrow")));
-	CameraArrowMap.Emplace(ECameraView::CV_Action, CreateDefaultSubobject<UArrowComponent>(TEXT("Action_Arrow")));
-	CameraArrowMap.Emplace(ECameraView::CV_Aim, CreateDefaultSubobject<UArrowComponent>(TEXT("Aim_Arrow")));
-	CameraArrowMap.Emplace(ECameraView::CV_LockOn, CreateDefaultSubobject<UArrowComponent>(TEXT("LockOn_Arrow")));
-	CameraArrowMap.Emplace(ECameraView::CV_Skill, CreateDefaultSubobject<UArrowComponent>(TEXT("Skill_Arrow")));
+	CameraArrowMap.Emplace(ECameraView::Exploration, CreateDefaultSubobject<UArrowComponent>(TEXT("Exploration_Arrow")));
+	CameraArrowMap.Emplace(ECameraView::Action, CreateDefaultSubobject<UArrowComponent>(TEXT("Action_Arrow")));
+	CameraArrowMap.Emplace(ECameraView::Aim, CreateDefaultSubobject<UArrowComponent>(TEXT("Aim_Arrow")));
+	CameraArrowMap.Emplace(ECameraView::LockOn, CreateDefaultSubobject<UArrowComponent>(TEXT("LockOn_Arrow")));
+	CameraArrowMap.Emplace(ECameraView::Skill, CreateDefaultSubobject<UArrowComponent>(TEXT("Skill_Arrow")));
 
-	for (uint8 i = 1; i < (uint8)ECameraView::CV_MAX; i++)
+	for (uint8 i = 1; i < (uint8)ECameraView::MAX; i++)
 	{
 		if (CameraArrowMap.Contains((ECameraView)i))
 		{
-			if (i != (uint8)ECameraView::CV_Skill)
+
+			if (i != (uint8)ECameraView::Skill)
 			{
 				CameraArrowMap[(ECameraView)i]->SetupAttachment(CameraSpringArmMap[(ECameraView)i], USpringArmComponent::SocketName);
 			}
 			else
 			{
-				CameraArrowMap[(ECameraView)i]->SetupAttachment(CameraSpringArmMap[ECameraView::CV_Action], USpringArmComponent::SocketName);
+				CameraArrowMap[(ECameraView)i]->SetupAttachment(CameraSpringArmMap[ECameraView::Action], USpringArmComponent::SocketName);
 			}
-			CameraSpringArmMap[ECameraView::CV_Exploration]->SetRelativeLocation({ 0.f, 0.f, 0.f });
+			CameraSpringArmMap[ECameraView::Exploration]->SetRelativeLocation({ 0.f, 0.f, 0.f });
 			CameraArrowMap[(ECameraView)i]->ArrowLength = 40.f;
 		}
 	}

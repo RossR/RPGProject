@@ -29,7 +29,7 @@ void AInteractableActor_Button::Tick(float DeltaTime)
 		ButtonMesh->SetRelativeLocation(CurrentLocation);
 		if (TimeRatio >= 1.0f)
 		{
-			InteractableActivated();
+			InteractableHasActivated();
 		}
 	}
 	else if (InteractableState == EInteractableState::Deactivating)
@@ -41,7 +41,7 @@ void AInteractableActor_Button::Tick(float DeltaTime)
 		ButtonMesh->SetRelativeLocation(CurrentLocation);
 		if (TimeRatio <= 0.0f)
 		{
-			InteractableDeactivated();
+			InteractableHasDeactivated();
 		}
 	}
 }
@@ -62,11 +62,11 @@ void AInteractableActor_Button::InteractionRequested(AActor* InteractingActor)
 
 }
 
-void AInteractableActor_Button::InteractionStart(AActor* InteractingActor)
+void AInteractableActor_Button::StartInteraction(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AInteractableActor_Button::InteractionStart called."));
 
-	Super::InteractionStart(InteractingActor);
+	Super::StartInteraction(InteractingActor);
 
 }
 
@@ -91,18 +91,18 @@ void AInteractableActor_Button::DeactivateInteractable()
 	InteractableState = EInteractableState::Deactivating;
 }
 
-void AInteractableActor_Button::InteractableActivated()
+void AInteractableActor_Button::InteractableHasActivated()
 {
 	UE_LOG(LogTemp, Warning, TEXT("AInteractableActor_Button::InteractableActivated called."));
 
-	Super::InteractableActivated();
+	Super::InteractableHasActivated();
 
 }
 
-void AInteractableActor_Button::InteractableDeactivated()
+void AInteractableActor_Button::InteractableHasDeactivated()
 {
 	UE_LOG(LogTemp, Warning, TEXT("AInteractableActor_Button::InteractableDeactivated called."));
 
-	Super::InteractableDeactivated();
+	Super::InteractableHasDeactivated();
 
 }

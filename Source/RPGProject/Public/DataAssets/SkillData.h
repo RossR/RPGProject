@@ -7,9 +7,7 @@
 #include "Animation/AnimMontage.h"
 #include "SkillData.generated.h"
 
-/**
- * 
- */
+
 UCLASS(BlueprintType)
 class RPGPROJECT_API USkillData : public UDataAsset
 {
@@ -25,7 +23,5 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill Data")
 	UAnimMontage* SkillMontage;
-
-
 
 };

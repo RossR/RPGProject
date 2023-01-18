@@ -267,19 +267,19 @@ void ARPGProjectPlayerController::InputButtonStateUpdate()
 		case EGamePadActionMappings::LightAttack:
 			if (CombatComponentRef)
 			{
-				if (CombatComponentRef->GetCombatState() == ECombatState::CS_CombatReady)
+				if (CombatComponentRef->GetCombatState() == ECombatState::CombatReady)
 				{
 					switch (CombatComponentRef->GetCombatWeaponStance())
 					{
-					case ECombatWeaponStance::CWS_None:
+					case ECombatWeaponStance::None:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::LightAttack;
 						break;
 
-					case ECombatWeaponStance::CWS_Mainhand:
+					case ECombatWeaponStance::Mainhand:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::MainhandSkillOne;
 						break;
 
-					case ECombatWeaponStance::CWS_Offhand:
+					case ECombatWeaponStance::Offhand:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::OffhandSkillOne;
 						break;
 					}
@@ -298,19 +298,19 @@ void ARPGProjectPlayerController::InputButtonStateUpdate()
 		case EGamePadActionMappings::HeavyAttack:
 			if (CombatComponentRef)
 			{
-				if (CombatComponentRef->GetCombatState() == ECombatState::CS_CombatReady)
+				if (CombatComponentRef->GetCombatState() == ECombatState::CombatReady)
 				{
 					switch (CombatComponentRef->GetCombatWeaponStance())
 					{
-					case ECombatWeaponStance::CWS_None:
+					case ECombatWeaponStance::None:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::HeavyAttack;
 						break;
 
-					case ECombatWeaponStance::CWS_Mainhand:
+					case ECombatWeaponStance::Mainhand:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::MainhandSkillTwo;
 						break;
 
-					case ECombatWeaponStance::CWS_Offhand:
+					case ECombatWeaponStance::Offhand:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::OffhandSkillTwo;
 						break;
 					}
@@ -351,7 +351,7 @@ void ARPGProjectPlayerController::InputButtonStateUpdate()
 		case EGamePadActionMappings::JumpAndCrouch:
 			if (CombatComponentRef)
 			{
-				if (CombatComponentRef->GetCombatState() == ECombatState::CS_CombatReady)
+				if (CombatComponentRef->GetCombatState() == ECombatState::CombatReady)
 				{
 					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Jump;
 				}
@@ -388,24 +388,24 @@ void ARPGProjectPlayerController::InputButtonStateUpdate()
 			{
 				switch (CombatComponentRef->GetCombatWeaponStance())
 				{
-				case ECombatWeaponStance::CWS_None:
+				case ECombatWeaponStance::None:
 					switch (CombatComponentRef->GetCombatState())
 					{
-					case ECombatState::CS_AtEase:
+					case ECombatState::AtEase:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 						break;
 
-					case ECombatState::CS_CombatReady:
+					case ECombatState::CombatReady:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::OffhandStance;
 						break;
 					}
 					break;
 
-				case ECombatWeaponStance::CWS_Mainhand:
+				case ECombatWeaponStance::Mainhand:
 					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
 
-				case ECombatWeaponStance::CWS_Offhand:
+				case ECombatWeaponStance::Offhand:
 					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
 
@@ -422,24 +422,24 @@ void ARPGProjectPlayerController::InputButtonStateUpdate()
 			{
 				switch (CombatComponentRef->GetCombatWeaponStance())
 				{
-				case ECombatWeaponStance::CWS_None:
+				case ECombatWeaponStance::None:
 					switch (CombatComponentRef->GetCombatState())
 					{
-					case ECombatState::CS_AtEase:
+					case ECombatState::AtEase:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 						break;
 
-					case ECombatState::CS_CombatReady:
+					case ECombatState::CombatReady:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::MainhandStance;
 						break;
 					}
 					break;
 
-				case ECombatWeaponStance::CWS_Mainhand:
+				case ECombatWeaponStance::Mainhand:
 					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
 
-				case ECombatWeaponStance::CWS_Offhand:
+				case ECombatWeaponStance::Offhand:
 					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
 				}
@@ -455,22 +455,22 @@ void ARPGProjectPlayerController::InputButtonStateUpdate()
 			{
 				switch (CombatComponentRef->GetCombatState())
 				{
-				case ECombatState::CS_AtEase:
+				case ECombatState::AtEase:
 					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Unsheathe;
 					break;
 
-				case ECombatState::CS_CombatReady:
+				case ECombatState::CombatReady:
 					switch (CombatComponentRef->GetCombatWeaponStance())
 					{
-					case ECombatWeaponStance::CWS_None:
+					case ECombatWeaponStance::None:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::Sheathe;
 						break;
 
-					case ECombatWeaponStance::CWS_Mainhand:
+					case ECombatWeaponStance::Mainhand:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::SecondaryCombatAction;
 						break;
 
-					case ECombatWeaponStance::CWS_Offhand:
+					case ECombatWeaponStance::Offhand:
 						MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::SecondaryCombatAction;
 						break;
 					}
@@ -488,10 +488,10 @@ void ARPGProjectPlayerController::InputButtonStateUpdate()
 			{
 				switch (CombatComponentRef->GetCombatState())
 				{
-				case ECombatState::CS_AtEase:
+				case ECombatState::AtEase:
 					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::None;
 					break;
-				case ECombatState::CS_CombatReady:
+				case ECombatState::CombatReady:
 					MappedActionStates[CurrentGamePadActionMapping] = EInputButtonState::CombatAction;
 					break;
 				}
@@ -553,7 +553,7 @@ void ARPGProjectPlayerController::UpdatePawnRotationBooleans()
 {
 	if (!RPGPlayerCameraManagerRef)
 	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::LockOn)
 		{
 			OverridePawnRotationForLockOn(true);
 		}
@@ -577,7 +577,7 @@ void ARPGProjectPlayerController::UpdatePawnRotationBooleans()
 
 	if (!CombatComponentRef)
 	{
-		if (CombatComponentRef->GetCombatState() == ECombatState::CS_AtEase ||
+		if (CombatComponentRef->GetCombatState() == ECombatState::AtEase ||
 			CombatComponentRef->GetIsInAttackSequence())
 		{
 			OverridePawnRotationForLockOn(false);
@@ -638,7 +638,7 @@ void ARPGProjectPlayerController::CheckInputToSwapLockOnTarget()
 	// Get the sensitivity of the mouse input
 	if (InputAxisProperties.Find(EKeys::Mouse2D.GetFName())) { SensitivityModifier = InputAxisProperties[EKeys::Mouse2D.GetFName()].Sensitivity; }
 
-	if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+	if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::LockOn)
 	{
 		// Swap Lock-on target if the mouse input is greater than the mouse input threshold
 		if ((FMath::Abs(MouseYawValue) + FMath::Abs(MousePitchValue)) >= (SwapLockOnTargetMouseThreshold / SensitivityModifier))
@@ -752,7 +752,7 @@ void ARPGProjectPlayerController::RequestTurnRate(float Rate)
 
 	if (RPGPlayerCameraManagerRef)
 	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::LockOn)
 		{
 			return;
 		}
@@ -770,7 +770,7 @@ void ARPGProjectPlayerController::RequestAddControllerYawInput(float Value)
 
 	if (RPGPlayerCameraManagerRef)
 	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::LockOn)
 		{
 			return;
 		}
@@ -793,7 +793,7 @@ void ARPGProjectPlayerController::RequestLookUpRate(float Rate)
 
 	if (RPGPlayerCameraManagerRef)
 	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::LockOn)
 		{
 			return;
 		}
@@ -810,7 +810,7 @@ void ARPGProjectPlayerController::RequestAddControllerPitchInput(float Value)
 
 	if (RPGPlayerCameraManagerRef)
 	{
-		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::CV_LockOn)
+		if (RPGPlayerCameraManagerRef->GetCameraView() == ECameraView::LockOn)
 		{
 			return;
 		}
@@ -1144,7 +1144,7 @@ void ARPGProjectPlayerController::RequestToggleLockOn()
 {
 	if (ARPGPlayerCameraManager* RPGPlayerCameraManager = Cast<ARPGPlayerCameraManager>(PlayerCameraManager))
 	{
-		if (RPGPlayerCameraManager->GetCameraView() == ECameraView::CV_LockOn)
+		if (RPGPlayerCameraManager->GetCameraView() == ECameraView::LockOn)
 		{
 			RPGPlayerCameraManager->DisableLockOn();
 		}

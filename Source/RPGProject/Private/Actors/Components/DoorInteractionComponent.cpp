@@ -59,15 +59,15 @@ void UDoorInteractionComponent::BeginPlay()
 	TextRenderComponent = GetOwner()->FindComponentByClass<UTextRenderComponent>();
 }
 
-void UDoorInteractionComponent::InteractionStart()
+void UDoorInteractionComponent::StartInteraction()
 {
-	Super::InteractionStart();
+	Super::StartInteraction();
 
 	UE_LOG(LogTemp, Warning, TEXT("UDoorInterationComponent::InteractionStart called"));
 	
 	if (InteractingActor)
 	{
-		// UE_LOG(LogTemp, Warning, TEXT("UDoorInterationComponent::InteractionStart OpenDoor called"));
+		// UE_LOG(LogTemp, Warning, TEXT("UDoorInterationComponent::StartInteraction OpenDoor called"));
 		// OpenDoor();
 
 		InteractionRequested();

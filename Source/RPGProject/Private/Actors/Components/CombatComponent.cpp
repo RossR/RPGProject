@@ -31,9 +31,9 @@ UCombatComponent::UCombatComponent()
 
 	AttackCount;
 	
-	CurrentAttackType = EAttackType::AT_None;
-	DodgeType = EDodgeType::DT_None;
-	CombatState = ECombatState::CS_AtEase;
+	CurrentAttackType = EAttackType::None;
+	DodgeType = EDodgeType::None;
+	CombatState = ECombatState::AtEase;
 
 	QueueAttackWindowCurve = 0.0f;
 	EnableHitCurve = 0.0f;
@@ -122,15 +122,15 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UCombatComponent::CharacterAttack(EAttackType CharacterAttackType)
 {
-	if (CombatState != ECombatState::CS_CombatReady) { return; }
+	if (CombatState != ECombatState::CombatReady) { return; }
 	if (!bCanAttack) { return; }
-	if (bIsAttackQueued && (CharacterAttackType != EAttackType::AT_LightFinisher && CharacterAttackType != EAttackType::AT_HeavyFinisher)) { return; }
+	if (bIsAttackQueued && (CharacterAttackType != EAttackType::LightFinisher && CharacterAttackType != EAttackType::HeavyFinisher)) { return; }
 
 	if (!EquipmentComponentRef) { return; }
 	if (EquipmentComponentRef) { if (!EquipmentComponentRef->GetMainhandWeaponData()) { return; } }
 
-	if (CharacterAttackType == EAttackType::AT_LightAttack && EquipmentComponentRef->GetMainhandWeaponData()->LightAttackComboLimit <= 0) { return; }
-	if (CharacterAttackType == EAttackType::AT_HeavyAttack && EquipmentComponentRef->GetMainhandWeaponData()->HeavyAttackComboLimit <= 0) { return; }
+	if (CharacterAttackType == EAttackType::LightAttack && EquipmentComponentRef->GetMainhandWeaponData()->LightAttackComboLimit <= 0) { return; }
+	if (CharacterAttackType == EAttackType::HeavyAttack && EquipmentComponentRef->GetMainhandWeaponData()->HeavyAttackComboLimit <= 0) { return; }
 
 	if (DoesAttackNeedAmmunition(EWeaponToUse::Mainhand, CharacterAttackType))
 	{
@@ -153,7 +153,7 @@ void UCombatComponent::CharacterAttack(EAttackType CharacterAttackType)
 		NextAttackType = CharacterAttackType;
 		StartAttackSequence(NextAttackType);
 	}
-	else if (CharacterAttackType == EAttackType::AT_LightFinisher || CharacterAttackType == EAttackType::AT_HeavyFinisher)
+	else if (CharacterAttackType == EAttackType::LightFinisher || CharacterAttackType == EAttackType::HeavyFinisher)
 	{
 		bIsFinisherQueued = true;
 		FinisherType = CharacterAttackType;
@@ -167,7 +167,7 @@ void UCombatComponent::CharacterAttack(EAttackType CharacterAttackType)
 
 void UCombatComponent::StartAttackSequence(EAttackType SequenceAttackType)
 {
-	if (CombatState != ECombatState::CS_CombatReady) { return; }
+	if (CombatState != ECombatState::CombatReady) { return; }
 	if (bIsInAttackSequence) { return; }
 
 	if (!CharacterRef) { return; }
@@ -180,11 +180,11 @@ void UCombatComponent::StartAttackSequence(EAttackType SequenceAttackType)
 
 	switch (SequenceAttackType)
 	{
-	case EAttackType::AT_LightAttack:
+	case EAttackType::LightAttack:
 		CurrentSectionInMontage = (FName)("Light_Attack_" + FString::FromInt(AttackCount + 1));
 		//StaminaComponentRef->ReduceCurrentStamina(20.f);
 		break;
-	case EAttackType::AT_HeavyAttack:
+	case EAttackType::HeavyAttack:
 		CurrentSectionInMontage = (FName)("Heavy_Attack_" + FString::FromInt(AttackCount + 1));
 		//StaminaComponentRef->ReduceCurrentStamina(40.f);
 		break;
@@ -239,7 +239,7 @@ void UCombatComponent::StopNeutralCombatAction()
 void UCombatComponent::StartStanceCombatAction()
 {
 	if (!EquipmentComponentRef) { return; }
-	if (CombatState != ECombatState::CS_CombatReady) { return; }
+	if (CombatState != ECombatState::CombatReady) { return; }
 	if (bIsInAttackSequence) { return; }
 
 	if (!CharacterRef) { return; }
@@ -253,7 +253,7 @@ void UCombatComponent::StartStanceCombatAction()
 
 	switch (CombatWeaponStance)
 	{
-	case ECombatWeaponStance::CWS_Mainhand:
+	case ECombatWeaponStance::Mainhand:
 		if (MainhandWeaponData)
 		{
 			CombatActionWeaponData = MainhandWeaponData;
@@ -266,7 +266,7 @@ void UCombatComponent::StartStanceCombatAction()
 		}
 		break;
 	
-	case ECombatWeaponStance::CWS_Offhand:
+	case ECombatWeaponStance::Offhand:
 		if (OffhandWeaponData)
 		{
 			CombatActionWeaponData = OffhandWeaponData;
@@ -320,7 +320,7 @@ void UCombatComponent::StartStanceCombatAction()
 void UCombatComponent::StopStanceCombatAction()
 {
 	if (!EquipmentComponentRef) { return; }
-	//if (CombatState != ECombatState::CS_CombatReady) { return; }
+	//if (CombatState != ECombatState::CombatReady) { return; }
 	//if (bIsInAttackSequence) { return; }
 	if (!CharacterRef) { return; }
 	if (!CharacterAnimInstance) { return; }
@@ -338,7 +338,7 @@ void UCombatComponent::StopStanceCombatAction()
 
 	switch (CombatWeaponStance)
 	{
-	case ECombatWeaponStance::CWS_Mainhand:
+	case ECombatWeaponStance::Mainhand:
 		if (MainhandWeaponData && MainhandWeaponActor)
 		{
 			CombatActionWeaponActor = MainhandWeaponActor;
@@ -353,7 +353,7 @@ void UCombatComponent::StopStanceCombatAction()
 		}
 		break;
 
-	case ECombatWeaponStance::CWS_Offhand:
+	case ECombatWeaponStance::Offhand:
 		if (OffhandWeaponData && OffhandWeaponActor)
 		{
 			CombatActionWeaponActor = OffhandWeaponActor;
@@ -446,10 +446,10 @@ void UCombatComponent::ToggleCombatState()
 	if (CharacterAnimInstance->GetCurrentActiveMontage() == SheatheMontage || CharacterAnimInstance->GetCurrentActiveMontage() == UnsheatheMontage) { return ; }
 	switch (CombatState)
 	{
-	case ECombatState::CS_AtEase:
+	case ECombatState::AtEase:
 		UnsheatheWeapon();
 		break;
-	case ECombatState::CS_CombatReady:
+	case ECombatState::CombatReady:
 		SheatheWeapon();
 		break;
 	default:
@@ -693,7 +693,7 @@ void UCombatComponent::SwapWeaponLoadout()
 {
 	if (!EquipmentComponentRef) { return; }
 
-	if (GetCombatState() == ECombatState::CS_CombatReady)
+	if (GetCombatState() == ECombatState::CombatReady)
 	{
 		// Queue weapon swap at end of sheath montage
 		//bSwapWeaponLoadout = true;
@@ -978,7 +978,7 @@ FWeaponAttackInfo UCombatComponent::GetCurrentWeaponAttackInfo(AItemWeapon* Atta
 
 	switch (CurrentAttackType)
 	{
-	case EAttackType::AT_LightAttack:
+	case EAttackType::LightAttack:
 		if (AttackingWeapon->GetLightAttackInfo().Contains(AttackCount))
 		{
 			return AttackingWeapon->GetLightAttackInfoAtIndex(AttackCount);
@@ -989,7 +989,7 @@ FWeaponAttackInfo UCombatComponent::GetCurrentWeaponAttackInfo(AItemWeapon* Atta
 		}
 		break;
 
-	case EAttackType::AT_HeavyAttack:
+	case EAttackType::HeavyAttack:
 		if (AttackingWeapon->GetHeavyAttackInfo().Contains(AttackCount))
 		{
 			return AttackingWeapon->GetHeavyAttackInfoAtIndex(AttackCount);
@@ -1000,7 +1000,7 @@ FWeaponAttackInfo UCombatComponent::GetCurrentWeaponAttackInfo(AItemWeapon* Atta
 		}
 		break;
 
-	case EAttackType::AT_LightFinisher:
+	case EAttackType::LightFinisher:
 		if (AttackingWeapon->GetLightAttackInfo().Contains(AttackCount))
 		{
 			return AttackingWeapon->GetLightAttackInfoAtIndex(AttackCount);
@@ -1011,7 +1011,7 @@ FWeaponAttackInfo UCombatComponent::GetCurrentWeaponAttackInfo(AItemWeapon* Atta
 		}
 		break;
 
-	case EAttackType::AT_HeavyFinisher:
+	case EAttackType::HeavyFinisher:
 		if (AttackingWeapon->GetHeavyAttackInfo().Contains(AttackCount))
 		{
 			return AttackingWeapon->GetHeavyAttackInfoAtIndex(AttackCount);
@@ -1129,9 +1129,9 @@ void UCombatComponent::OnSheatheWeaponNotifyReceived(FName NotifyName, const FBr
 		break;
 	}
 
-	CombatState = ECombatState::CS_AtEase;
+	CombatState = ECombatState::AtEase;
 
-	SetCombatWeaponStance(ECombatWeaponStance::CWS_None);
+	SetCombatWeaponStance(ECombatWeaponStance::None);
 	if (ARPGProjectPlayerCharacter* RPGPlayerCharacterRef = Cast<ARPGProjectPlayerCharacter>(CharacterRef))
 	{
 		RPGPlayerCharacterRef->ResetWeaponStance();
@@ -1139,7 +1139,7 @@ void UCombatComponent::OnSheatheWeaponNotifyReceived(FName NotifyName, const FBr
 
 	if (RPGPlayerCameraManagerRef)
 	{
-		RPGPlayerCameraManagerRef->SetCameraView(ECameraView::CV_Exploration);
+		RPGPlayerCameraManagerRef->SetCameraView(ECameraView::Exploration);
 	}
 
 	if (bSwapWeaponLoadout && (bMainHandSheathed && bOffHandSheathed))
@@ -1247,11 +1247,11 @@ void UCombatComponent::OnUnsheatheWeaponNotifyReceived(FName NotifyName, const F
 		break;
 	}
 
-	CombatState = ECombatState::CS_CombatReady;
+	CombatState = ECombatState::CombatReady;
 
 	if (RPGPlayerCameraManagerRef)
 	{
-		RPGPlayerCameraManagerRef->SetCameraView(ECameraView::CV_Action);
+		RPGPlayerCameraManagerRef->SetCameraView(ECameraView::Action);
 	}
 }
 
@@ -1329,7 +1329,7 @@ void UCombatComponent::OnCombatActionEnded(UAnimMontage* Montage, bool bInterrup
 
 	switch (CombatWeaponStance)
 	{
-	case ECombatWeaponStance::CWS_Mainhand:
+	case ECombatWeaponStance::Mainhand:
 		if (MainhandWeaponData)
 		{
 			CombatActionInfo = MainhandWeaponData->MainhandStanceCombatActionInfo;
@@ -1340,7 +1340,7 @@ void UCombatComponent::OnCombatActionEnded(UAnimMontage* Montage, bool bInterrup
 		}
 		break;
 
-	case ECombatWeaponStance::CWS_Offhand:
+	case ECombatWeaponStance::Offhand:
 		if (OffhandWeaponData)
 		{
 			CombatActionInfo = OffhandWeaponData->OffhandStanceCombatActionInfo;
@@ -1359,15 +1359,15 @@ void UCombatComponent::OnCombatActionEnded(UAnimMontage* Montage, bool bInterrup
 	{
 		switch (GetCombatWeaponStance())
 		{
-		case ECombatWeaponStance::CWS_None:
+		case ECombatWeaponStance::None:
 			StartNeutralCombatAction();
 			break;
 
-		case ECombatWeaponStance::CWS_Mainhand:
+		case ECombatWeaponStance::Mainhand:
 			StartStanceCombatAction();
 			break;
 
-		case ECombatWeaponStance::CWS_Offhand:
+		case ECombatWeaponStance::Offhand:
 			StartStanceCombatAction();
 			break;
 
@@ -1532,8 +1532,8 @@ bool UCombatComponent::DoesAttackNeedAmmunition(EWeaponToUse AttackingWeapon, EA
 	{
 		switch (InAttackType)
 		{
-		case EAttackType::AT_LightFinisher:
-		case EAttackType::AT_LightAttack:
+		case EAttackType::LightFinisher:
+		case EAttackType::LightAttack:
 			if (MainhandWeaponRanged->GetLightAttackInfo().Contains(AttackCount))
 			{
 				if (MainhandWeaponRanged->GetLightAttackInfoAtIndex(AttackCount).bUsesAmmunition && MainhandWeaponRangedData->AmmoInMagazine <= 0.f)
@@ -1543,8 +1543,8 @@ bool UCombatComponent::DoesAttackNeedAmmunition(EWeaponToUse AttackingWeapon, EA
 			}
 			break;
 
-		case EAttackType::AT_HeavyFinisher:
-		case EAttackType::AT_HeavyAttack:
+		case EAttackType::HeavyFinisher:
+		case EAttackType::HeavyAttack:
 			if (MainhandWeaponRanged->GetHeavyAttackInfo().Contains(AttackCount))
 			{
 				if (MainhandWeaponRanged->GetHeavyAttackInfoAtIndex(AttackCount).bUsesAmmunition && MainhandWeaponRangedData->AmmoInMagazine <= 0.f)
@@ -1563,8 +1563,8 @@ bool UCombatComponent::DoesAttackNeedAmmunition(EWeaponToUse AttackingWeapon, EA
 	{
 		switch (InAttackType)
 		{
-		case EAttackType::AT_LightFinisher:
-		case EAttackType::AT_LightAttack:
+		case EAttackType::LightFinisher:
+		case EAttackType::LightAttack:
 			if (OffhandWeaponRanged->GetLightAttackInfo().Contains(AttackCount))
 			{
 				if (OffhandWeaponRanged->GetLightAttackInfoAtIndex(AttackCount).bUsesAmmunition && OffhandWeaponRangedData->AmmoInMagazine <= 0.f)
@@ -1574,8 +1574,8 @@ bool UCombatComponent::DoesAttackNeedAmmunition(EWeaponToUse AttackingWeapon, EA
 			}
 			break;
 
-		case EAttackType::AT_HeavyFinisher:
-		case EAttackType::AT_HeavyAttack:
+		case EAttackType::HeavyFinisher:
+		case EAttackType::HeavyAttack:
 			if (OffhandWeaponRanged->GetHeavyAttackInfo().Contains(AttackCount))
 			{
 				if (OffhandWeaponRanged->GetHeavyAttackInfoAtIndex(AttackCount).bUsesAmmunition && OffhandWeaponRangedData->AmmoInMagazine <= 0.f)
@@ -1795,7 +1795,7 @@ void UCombatComponent::SetupNextAttack()
 	{
 		switch (FinisherType)
 		{
-		case EAttackType::AT_LightFinisher:
+		case EAttackType::LightFinisher:
 			if (AttackCount <= WeaponData->LightAttackComboLimit)
 			{
 				NextSectionInMontage = (FName)("Light_Attack_Finisher");
@@ -1806,7 +1806,7 @@ void UCombatComponent::SetupNextAttack()
 			}
 			break;
 		
-		case EAttackType::AT_HeavyFinisher:
+		case EAttackType::HeavyFinisher:
 			if (AttackCount <= WeaponData->HeavyAttackComboLimit)
 			{
 				NextSectionInMontage = (FName)("Heavy_Attack_Finisher");
@@ -1821,13 +1821,13 @@ void UCombatComponent::SetupNextAttack()
 			break;
 		}
 		bIsFinisherQueued = false;
-		FinisherType = EAttackType::AT_None;
+		FinisherType = EAttackType::None;
 	}
 	else if (bIsAttackQueued)
 	{
 		switch (NextAttackType)
 		{
-		case EAttackType::AT_LightAttack:
+		case EAttackType::LightAttack:
 			if (AttackCount < WeaponData->LightAttackComboLimit)
 			{
 				NextSectionInMontage = (FName)("Light_Attack_" + FString::FromInt(AttackCount + 1));
@@ -1838,7 +1838,7 @@ void UCombatComponent::SetupNextAttack()
 			}
 			break;
 
-		case EAttackType::AT_HeavyAttack:
+		case EAttackType::HeavyAttack:
 			if (AttackCount < WeaponData->HeavyAttackComboLimit)
 			{
 				NextSectionInMontage = (FName)("Heavy_Attack_" + FString::FromInt(AttackCount + 1));
@@ -1854,7 +1854,7 @@ void UCombatComponent::SetupNextAttack()
 		}
 		bIsAttackQueued = false;
 		CurrentAttackType = NextAttackType;
-		NextAttackType = EAttackType::AT_None;
+		NextAttackType = EAttackType::None;
 	}
 }
 
@@ -1866,7 +1866,7 @@ void UCombatComponent::EndAttackSequence()
 	bIsInAttackWindUp = false;
 	bIsAttackQueued = false;
 	bIsFinisherQueued = false;
-	CurrentAttackType = EAttackType::AT_None;
+	CurrentAttackType = EAttackType::None;
 	CurrentSectionInMontage = "";
 }
 
@@ -1886,8 +1886,8 @@ void UCombatComponent::AttackTracing()
 
 		switch (CurrentAttackType)
 		{
-		case EAttackType::AT_LightFinisher:
-		case EAttackType::AT_LightAttack:
+		case EAttackType::LightFinisher:
+		case EAttackType::LightAttack:
 			if (EquippedWeapon->GetLightAttackInfo().Contains(AttackCount))
 			{
 				WeaponAttackInfo = EquippedWeapon->GetLightAttackInfoAtIndex(AttackCount);
@@ -1898,8 +1898,8 @@ void UCombatComponent::AttackTracing()
 			}
 			break;
 
-		case EAttackType::AT_HeavyFinisher:
-		case EAttackType::AT_HeavyAttack:
+		case EAttackType::HeavyFinisher:
+		case EAttackType::HeavyAttack:
 			if (EquippedWeapon->GetHeavyAttackInfo().Contains(AttackCount))
 			{
 				WeaponAttackInfo = EquippedWeapon->GetHeavyAttackInfoAtIndex(AttackCount);

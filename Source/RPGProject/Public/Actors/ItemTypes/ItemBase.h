@@ -49,21 +49,21 @@ public:
 
 	void InteractionRequested(AActor* InteractingActor) override;
 
-	void InteractionStart(AActor* InteractingActor) override;
+	void StartInteraction(AActor* InteractingActor) override;
 
 	void ActivateInteractable() override;
 
 	void DeactivateInteractable() override;
 
-	void InteractableActivated() override;
+	void InteractableHasActivated() override;
 
-	void InteractableDeactivated() override;
+	void InteractableHasDeactivated() override;
 
 	bool GetIsInInteractableRange(AActor* InteractingActor) override;
 
 	EInteractableState GetInteractableState() override { return EInteractableState::MAX; };
 
-	bool CanBeInteractedWith() { return true; }
+	bool CanActorBeInteractedWith() { return true; }
 
 	virtual void ItemPickupEvent() { OnItemPickup.ExecuteIfBound(ItemData); }
 

@@ -125,12 +125,12 @@ void AProjectileActor::OnProjectileCollisionVolumeHit(UPrimitiveComponent* HitCo
 
 					if (ParentEquipmentComponentRef && ParentCombatComponentRef)
 					{
-						if (ParentCombatComponentRef->GetCombatState() == ECombatState::CS_CombatReady && ParentCombatComponentRef->GetIsGuarding() && (ParentEquipmentComponentRef->GetMainhandWeaponActor() == ItemWeaponRef || ParentEquipmentComponentRef->GetOffhandWeaponActor() == ItemWeaponRef))
+						if (ParentCombatComponentRef->GetCombatState() == ECombatState::CombatReady && ParentCombatComponentRef->GetIsGuarding() && (ParentEquipmentComponentRef->GetMainhandWeaponActor() == ItemWeaponRef || ParentEquipmentComponentRef->GetOffhandWeaponActor() == ItemWeaponRef))
 						{
 							FWeaponAttackInfo WeaponAttackInfo;
 
-							ParentCombatComponentRef->AttackBlocked(WeaponAttackInfo, nullptr, EAttackType::AT_None, this);
-							//ItemWeaponRef->AttackBlocked(WeaponAttackInfo, nullptr, EAttackType::AT_None, this);
+							ParentCombatComponentRef->AttackBlocked(WeaponAttackInfo, nullptr, EAttackType::None, this);
+							//ItemWeaponRef->AttackBlocked(WeaponAttackInfo, nullptr, EAttackType::None, this);
 						}
 					}
 				}

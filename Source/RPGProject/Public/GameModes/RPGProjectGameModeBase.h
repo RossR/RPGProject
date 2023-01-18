@@ -18,20 +18,29 @@ public:
 
 	void StartPlay() override;
 
-	UFUNCTION(BlueprintCallable)
-	UUserWidget* GetPlayerHudWidget() { return PlayerHUDWidget; }
 
-public:
+public:		// --- FUNCTIONS --- \\
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UUserWidget> ObjectiveWidgetClass;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UUserWidget> ObjectivesCompleteWidgetClass;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UUserWidget> PlayerHUDWidgetClass;
+public:		// --- VARIABLES--- \\
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UUserWidget* PlayerHUDWidget;
+
+
+protected:	// --- FUNCTIONS --- \\
+
+
+
+protected:	// --- VARIABLES --- \\
+
+
+
+private:	// --- FUNCTIONS --- \\
+
+
+
+private:	// --- VARIABLES --- \\
+
+
+
 };

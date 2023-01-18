@@ -48,22 +48,22 @@ public:
 
 	void InteractionRequested(AActor* InteractingActor = nullptr) override;
 
-	void InteractionStart(AActor* InteractingActor = nullptr) override;
+	void StartInteraction(AActor* InteractingActor = nullptr) override;
 
 	void ActivateInteractable() override;
 
 	void DeactivateInteractable() override;
 
-	void InteractableActivated() override;
+	void InteractableHasActivated() override;
 
-	void InteractableDeactivated() override;
+	void InteractableHasDeactivated() override;
 
 	bool GetIsInInteractableRange(AActor* InteractingActor) override;
 
 	UFUNCTION(BlueprintPure)
 	EInteractableState GetInteractableState() override { return InteractableState; };
 
-	bool CanBeInteractedWith() { return bCanInteract; }
+	bool CanActorBeInteractedWith() { return bCanInteract; }
 
 
 protected:

@@ -4,19 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Actors/Interactables/InteractableActor_Base.h"
-#include "MyInteractableActor_Skeleton.generated.h"
+#include "InteractableActor_Skeleton.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class RPGPROJECT_API AMyInteractableActor_Skeleton : public AInteractableActor_Base
+class RPGPROJECT_API AInteractableActor_Skeleton : public AInteractableActor_Base
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	AMyInteractableActor_Skeleton();
+	AInteractableActor_Skeleton();
 
 protected:
 	// Called when the game starts or when spawned
@@ -30,15 +30,15 @@ public:
 
 	void InteractionRequested(AActor* InteractingActor = nullptr) override;
 
-	void InteractionStart(AActor* InteractingActor = nullptr) override;
+	void StartInteraction(AActor* InteractingActor = nullptr) override;
 
 	void ActivateInteractable() override;
 
 	void DeactivateInteractable() override;
 
-	void InteractableActivated() override;
+	void InteractableHasActivated() override;
 
-	void InteractableDeactivated() override;
+	void InteractableHasDeactivated() override;
 
 	bool GetIsInInteractableRange(AActor* InteractingActor) override;
 

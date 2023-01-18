@@ -43,7 +43,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Bound to interaction input from playercontroller
-	void InteractionStart() override;
+	void StartInteraction() override;
 
 	// Bound to interaction input from playercontroller
 	void InteractionCancel() override;

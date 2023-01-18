@@ -103,7 +103,7 @@ void AInteractableActor_Base::InteractionRequested(AActor* InteractingActor)
 	}
 }
 
-void AInteractableActor_Base::InteractionStart(AActor* InteractingActor)
+void AInteractableActor_Base::StartInteraction(AActor* InteractingActor)
 {
 	if (bActivateSelf)
 	{
@@ -156,7 +156,7 @@ void AInteractableActor_Base::DeactivateInteractable()
 	BPDeactivateInteractable();
 }
 
-void AInteractableActor_Base::InteractableActivated()
+void AInteractableActor_Base::InteractableHasActivated()
 {
 	switch (InteractionType)
 	{
@@ -197,7 +197,7 @@ void AInteractableActor_Base::InteractableActivated()
 	
 }
 
-void AInteractableActor_Base::InteractableDeactivated()
+void AInteractableActor_Base::InteractableHasDeactivated()
 {
 	switch (InteractionType)
 	{
@@ -249,5 +249,5 @@ bool AInteractableActor_Base::GetIsInInteractableRange(AActor* InteractingActor)
 
 void AInteractableActor_Base::InteractTimer()
 {
-	InteractionStart();
+	StartInteraction();
 }

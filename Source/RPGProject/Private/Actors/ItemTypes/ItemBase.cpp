@@ -92,7 +92,7 @@ void AItemBase::InteractionRequested(AActor* InteractingActor)
 	
 }
 
-void AItemBase::InteractionStart(AActor* InteractingActor)
+void AItemBase::StartInteraction(AActor* InteractingActor)
 {
 	if (UInventoryComponent* InventoryComponentRef = Cast<UInventoryComponent>(InteractingActor->GetComponentByClass(UInventoryComponent::StaticClass())))
 	{
@@ -116,12 +116,12 @@ void AItemBase::DeactivateInteractable()
 
 }
 
-void AItemBase::InteractableActivated()
+void AItemBase::InteractableHasActivated()
 {
 
 }
 
-void AItemBase::InteractableDeactivated()
+void AItemBase::InteractableHasDeactivated()
 {
 
 }

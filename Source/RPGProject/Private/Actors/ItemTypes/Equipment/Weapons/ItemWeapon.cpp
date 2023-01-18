@@ -188,7 +188,7 @@ void AItemWeapon::WeaponTrace(int SingleWeaponTraceStart)
 	}
 
 	TArray<FHitResult> InitialOutHits;
-	if (CurrentAttackType == EAttackType::AT_LightAttack || CurrentAttackType == EAttackType::AT_LightFinisher)
+	if (CurrentAttackType == EAttackType::LightAttack || CurrentAttackType == EAttackType::LightFinisher)
 	{
 		if (GetLightAttackInfo().Find(AttackComboCount))
 		{
@@ -206,7 +206,7 @@ void AItemWeapon::WeaponTrace(int SingleWeaponTraceStart)
 			CurrentTraceType = ETraceType::None;
 		}
 	}
-	else if (CurrentAttackType == EAttackType::AT_HeavyAttack || CurrentAttackType == EAttackType::AT_HeavyFinisher)
+	else if (CurrentAttackType == EAttackType::HeavyAttack || CurrentAttackType == EAttackType::HeavyFinisher)
 	{
 		if (GetHeavyAttackInfo().Find(AttackComboCount))
 		{
@@ -471,19 +471,19 @@ void AItemWeapon::AttackBlocked(FWeaponAttackInfo& BlockedAttackInfo, AItemWeapo
 
 			/*switch (BlockedAttackType)
 			{
-			case EAttackType::AT_LightAttack:
+			case EAttackType::LightAttack:
 				BlockStaminaDamage = InWeaponData->WeaponBlockStaminaDamage * 1.f;
 				break;
 
-			case EAttackType::AT_HeavyAttack:
+			case EAttackType::HeavyAttack:
 				BlockStaminaDamage = InWeaponData->WeaponBlockStaminaDamage * 1.25f;
 				break;
 
-			case EAttackType::AT_LightFinisher:
+			case EAttackType::LightFinisher:
 				BlockStaminaDamage = InWeaponData->WeaponBlockStaminaDamage * 1.f;
 				break;
 
-			case EAttackType::AT_HeavyFinisher:
+			case EAttackType::HeavyFinisher:
 				BlockStaminaDamage = InWeaponData->WeaponBlockStaminaDamage * 1.25f;
 				break;
 

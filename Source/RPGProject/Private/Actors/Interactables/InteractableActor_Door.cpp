@@ -45,7 +45,7 @@ void AInteractableActor_Door::Tick(float DeltaTime)
 		SetActorRotation(CurrentRotation);
 		if (TimeRatio >= 1.0f)
 		{
-			InteractableActivated();
+			InteractableHasActivated();
 		}
 	}
 	else if (InteractableState == EInteractableState::Deactivating)
@@ -57,7 +57,7 @@ void AInteractableActor_Door::Tick(float DeltaTime)
 		SetActorRotation(CurrentRotation);
 		if (TimeRatio <= 0.0f)
 		{
-			InteractableDeactivated();
+			InteractableHasDeactivated();
 		}
 	}
 }
@@ -74,9 +74,9 @@ void AInteractableActor_Door::InteractionRequested(AActor* InteractingActor)
 	UE_LOG(LogTemp, Warning, TEXT("AInteractableActor_Door::InteractionRequested called."));
 }
 
-void AInteractableActor_Door::InteractionStart(AActor* InteractingActor)
+void AInteractableActor_Door::StartInteraction(AActor* InteractingActor)
 {
-	Super::InteractionStart(InteractingActor);
+	Super::StartInteraction(InteractingActor);
 
 	if (bActivateSelf)
 	{
@@ -142,14 +142,14 @@ void AInteractableActor_Door::DeactivateInteractable()
 
 }
 
-void AInteractableActor_Door::InteractableActivated()
+void AInteractableActor_Door::InteractableHasActivated()
 {
-	Super::InteractableActivated();
+	Super::InteractableHasActivated();
 }
 
-void AInteractableActor_Door::InteractableDeactivated()
+void AInteractableActor_Door::InteractableHasDeactivated()
 {
-	Super::InteractableDeactivated();
+	Super::InteractableHasDeactivated();
 }
 
 bool AInteractableActor_Door::GetIsInInteractableRange(AActor* InteractingActor)

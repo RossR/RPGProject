@@ -35,36 +35,39 @@ class RPGPROJECT_API IInteractionInterface : public IHighlightInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
+	// React to the interaction request from the interacting actor
 	UFUNCTION(BlueprintCallable)
 	virtual void InteractionRequested(AActor* InteractingActor = nullptr) = 0;
-	//virtual void InteractionRequested_Implementation(AActor* InteractingActor) = 0;
 
+	// Start this actor's interaction with the interacting actor, calling either ActivateInteractable or DeactivateInteractable depending on the actor's interactable state
 	UFUNCTION(BlueprintCallable)
-	virtual void InteractionStart(AActor* InteractingActor = nullptr) = 0;
-	//virtual void InteractionStart_Implementation(AActor* InteractingActor) = 0;
+	virtual void StartInteraction(AActor* InteractingActor = nullptr) = 0;
 
+	// This function should be called by StartInteraction and should set the interactable state of the actor to activating
 	UFUNCTION(BlueprintCallable)
 	virtual void ActivateInteractable() = 0;
-	//virtual void ActivateInteractable_Implementation() = 0;
 
+	// This function should be called by StartInteraction and should set the interactable state of the actor to deactivating
 	UFUNCTION(BlueprintCallable)
 	virtual void DeactivateInteractable() = 0;
-	//virtual void ActivateInteractable_Implementation() = 0;
 
+	// This function should be called when the actor's interactable state is set to activated
 	UFUNCTION(BlueprintCallable)
-	virtual void InteractableActivated() = 0;
-	//virtual void ActivateInteractable_Implementation() = 0;
+	virtual void InteractableHasActivated() = 0;
 
+	// This function should be called when the actor's interactable state is set to deactivated
 	UFUNCTION(BlueprintCallable)
-	virtual void InteractableDeactivated() = 0;
-	//virtual void ActivateInteractable_Implementation() = 0;
+	virtual void InteractableHasDeactivated() = 0;
 
+	// Returns true if the interacting actor is within range to interact with this actor
 	UFUNCTION(BlueprintCallable)
 	virtual bool GetIsInInteractableRange(AActor* InteractingActor) = 0;
 
+	// Returns the actor's interactable state
 	UFUNCTION(BlueprintCallable)
 	virtual EInteractableState GetInteractableState() = 0;
 
+	// Returns true if the actor can be interacted with
 	UFUNCTION(BlueprintCallable)
-	virtual bool CanBeInteractedWith() = 0;
+	virtual bool CanActorBeInteractedWith() = 0;
 };

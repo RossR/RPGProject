@@ -42,7 +42,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void InteractionStart();
+	virtual void StartInteraction();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void InteractionCancel();

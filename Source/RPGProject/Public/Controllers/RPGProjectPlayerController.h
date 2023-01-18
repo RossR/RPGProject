@@ -98,7 +98,7 @@ public:		// --- FUNCTIONS --- \\
 	//<><><><><><><><><><><><><><><><><><>
 
 	// Creates a notification on the player's screen when the possessed pawn picks up an item
-	UFUNCTION(BlueprintImplementableEvent, Category = "RPG Player Controller| Events | UI")
+	UFUNCTION(BlueprintImplementableEvent, Category = "RPG Player Controller|Events|UI")
 	void BPCreateNotification(UItemData* ItemData);
 
 

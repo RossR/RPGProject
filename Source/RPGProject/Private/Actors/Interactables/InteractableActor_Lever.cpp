@@ -39,7 +39,7 @@ void AInteractableActor_Lever::Tick(float DeltaTime)
 		LeverHandleMesh->SetRelativeRotation(CurrentRotation);
 		if (TimeRatio >= 1.0f)
 		{
-			InteractableActivated();
+			InteractableHasActivated();
 		}
 	}
 	else if (InteractableState == EInteractableState::Deactivating)
@@ -51,7 +51,7 @@ void AInteractableActor_Lever::Tick(float DeltaTime)
 		LeverHandleMesh->SetRelativeRotation(CurrentRotation);
 		if (TimeRatio <= 0.0f)
 		{
-			InteractableDeactivated();
+			InteractableHasDeactivated();
 		}
 	}
 }
@@ -71,11 +71,11 @@ void AInteractableActor_Lever::InteractionRequested(AActor* InteractingActor)
 	Super::InteractionRequested(InteractingActor);
 }
 
-void AInteractableActor_Lever::InteractionStart(AActor* InteractingActor)
+void AInteractableActor_Lever::StartInteraction(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AInteractableActor_Lever::InteractionStart called."));
 
-	Super::InteractionStart(InteractingActor);
+	Super::StartInteraction(InteractingActor);
 
 }
 
@@ -99,18 +99,18 @@ void AInteractableActor_Lever::DeactivateInteractable()
 	InteractableState = EInteractableState::Deactivating;
 }
 
-void AInteractableActor_Lever::InteractableActivated()
+void AInteractableActor_Lever::InteractableHasActivated()
 {
 	UE_LOG(LogTemp, Warning, TEXT("AInteractableActor_Lever::InteractableActivated called."));
 
-	Super::InteractableActivated();
+	Super::InteractableHasActivated();
 
 }
 
-void AInteractableActor_Lever::InteractableDeactivated()
+void AInteractableActor_Lever::InteractableHasDeactivated()
 {
 	UE_LOG(LogTemp, Warning, TEXT("AInteractableActor_Lever::InteractableDeactivated called."));
 
-	Super::InteractableDeactivated();
+	Super::InteractableHasDeactivated();
 
 }
