@@ -10,12 +10,6 @@ bool UItemDataWidget::Initialize()
 
 	PC = GetOwningPlayer<ARPGProjectPlayerController>();
 
-	/*if (PC)
-	{
-		InventoryComponentRef = Cast<UInventoryComponent>(PC->GetPawn()->GetComponentByClass(UInventoryComponent::StaticClass()));
-		EquipmentComponentRef = Cast<UEquipmentComponent>(PC->GetPawn()->GetComponentByClass(UEquipmentComponent::StaticClass()));
-	}*/
-
 	return b;
 }
 
@@ -24,8 +18,9 @@ void UItemDataWidget::NativeConstruct()
 	Super::NativeConstruct();
 }
 
-bool UItemDataWidget::SwapItemsBetweenEquipmentAndInventory(UInventoryComponent* TargetInventoryComponentRef, UEquipmentComponent* TargetEquipmentComponentRef, EEquipmentSlot EquipmentSlot, int ItemKey)
+bool UItemDataWidget::SwapItemsBetweenEquipmentAndInventory(UInventoryComponent* TargetInventoryComponentRef, int ItemKey, UEquipmentComponent* TargetEquipmentComponentRef, EEquipmentSlot EquipmentSlot)
 {
+	// Validate the inventory component and inventory item 
 	if (!TargetInventoryComponentRef) { return false; }
 	else if (!TargetInventoryComponentRef->GetInventoryItemData(ItemKey))
 	{
@@ -33,6 +28,7 @@ bool UItemDataWidget::SwapItemsBetweenEquipmentAndInventory(UInventoryComponent*
 		return false; 
 	}
 
+	// Validate the equipment component and the equipment item 
 	if (!TargetEquipmentComponentRef) { return false; }
 	else if (!TargetEquipmentComponentRef->GetWornEquipmentDataInSlot(EquipmentSlot))
 	{
@@ -43,13 +39,14 @@ bool UItemDataWidget::SwapItemsBetweenEquipmentAndInventory(UInventoryComponent*
 	UItemEquipmentData* EquipmentDataEquipmentCast = Cast<UItemEquipmentData>(TargetEquipmentComponentRef->GetWornEquipmentDataInSlot(EquipmentSlot));
 	UItemEquipmentData* InventoryDataEquipmentCast = Cast<UItemEquipmentData>(TargetInventoryComponentRef->GetInventoryItemData(ItemKey));
 
-	// Confirm item can be equipped
-	if (!(EquipmentDataEquipmentCast && InventoryDataEquipmentCast))
+	// Confirm that inventory item can be equipped
+	if (!InventoryDataEquipmentCast)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UItemDataWidget::SwapItemBetweenEquipmentAndInventory Item is not equipment."));
 		return false;
 	}
 
+	// Try to equip the inventory item and put the equipment item in the inventory
 	const bool bEquippedSuccessfully = TargetEquipmentComponentRef->Equip(InventoryDataEquipmentCast, EquipmentSlot, TargetInventoryComponentRef, ItemKey);
 
 	if (!bEquippedSuccessfully)
@@ -74,9 +71,28 @@ bool UItemDataWidget::SwapItemsBetweenInventoryComponents(UInventoryComponent* F
 		UItemData* FirstItemData = FirstInventoryComponentRef->GetInventoryItemData(FirstItemKey);
 		UItemData* SecondItemData = SecondInventoryComponentRef->GetInventoryItemData(SecondItemKey);
 
+		// Validate both items
 		if (FirstItemData && SecondItemData)
 		{
-			if (FirstInventoryComponentRef->RemoveItemFromInventory(FirstItemKey))
+			// Remove items from both inventory components
+			if (FirstInventoryComponentRef->RemoveItemFromInventory(FirstItemKey) && SecondInventoryComponentRef->RemoveItemFromInventory(SecondItemKey))
+			{
+				// Swap the items between inventory components
+				if (FirstInventoryComponentRef->AddItemToInventory(SecondItemData, FirstItemKey) && SecondInventoryComponentRef->AddItemToInventory(SecondItemData, SecondItemKey))
+				{
+					return true;
+				}
+				// If the swap fails, put everything back where it came from
+				else
+				{
+					FirstInventoryComponentRef->RemoveItemFromInventory(FirstItemKey);
+					SecondInventoryComponentRef->RemoveItemFromInventory(SecondItemKey);
+
+					FirstInventoryComponentRef->AddItemToInventory(FirstItemData, FirstItemKey);
+					SecondInventoryComponentRef->AddItemToInventory(SecondItemData, SecondItemKey);
+				}
+			}
+			/*if (FirstInventoryComponentRef->RemoveItemFromInventory(FirstItemKey))
 			{
 				if (FirstInventoryComponentRef->AddItemToInventory(SecondItemData, FirstItemKey))
 				{
@@ -105,7 +121,7 @@ bool UItemDataWidget::SwapItemsBetweenInventoryComponents(UInventoryComponent* F
 				{
 					FirstInventoryComponentRef->AddItemToInventory(FirstItemData, FirstItemKey);
 				}
-			}
+			}*/
 		}
 	}
 	return false;
@@ -127,7 +143,25 @@ bool UItemDataWidget::SwapItemsBetweenEquipmentComponents(UEquipmentComponent* F
 
 		if (FirstItemData && SecondItemData)
 		{
-			if (FirstEquipmentComponentRef->RemoveEquipmentInSlot(FirstEquipmentSlot))
+			// Remove items from both equipment components
+			if (FirstEquipmentComponentRef->RemoveEquipmentInSlot(FirstEquipmentSlot) && SecondEquipmentComponentRef->RemoveEquipmentInSlot(SecondEquipmentSlot))
+			{
+				// Swap the items between equipment components
+				if (FirstEquipmentComponentRef->Equip(SecondItemData, FirstEquipmentSlot, nullptr, -1, false) && SecondEquipmentComponentRef->Equip(FirstItemData, SecondEquipmentSlot, nullptr, -1, false))
+				{
+					return true;
+				}
+				// If the swap fails, put everything back where it came from
+				else
+				{
+					FirstEquipmentComponentRef->RemoveEquipmentInSlot(FirstEquipmentSlot);
+					SecondEquipmentComponentRef->RemoveEquipmentInSlot(SecondEquipmentSlot);
+
+					FirstEquipmentComponentRef->Equip(FirstItemData, FirstEquipmentSlot, nullptr, -1, false);
+					SecondEquipmentComponentRef->Equip(SecondItemData, SecondEquipmentSlot, nullptr, -1, false);
+				}
+			}
+			/*if (FirstEquipmentComponentRef->RemoveEquipmentInSlot(FirstEquipmentSlot))
 			{
 				if (FirstEquipmentComponentRef->Equip(SecondItemData, FirstEquipmentSlot, nullptr, -1, false))
 				{
@@ -156,13 +190,13 @@ bool UItemDataWidget::SwapItemsBetweenEquipmentComponents(UEquipmentComponent* F
 				{
 					FirstEquipmentComponentRef->Equip(FirstItemData, FirstEquipmentSlot, nullptr, -1, false);
 				}
-			}
+			}*/
 		}
 	}
 	return false;
 }
 
-void UItemDataWidget::CompareItemStatistics(UItemData FirstItem, UItemData SecondItem)
-{
-
-}
+//void UItemDataWidget::CompareItemStatistics(UItemData FirstItem, UItemData SecondItem)
+//{
+//
+//}
