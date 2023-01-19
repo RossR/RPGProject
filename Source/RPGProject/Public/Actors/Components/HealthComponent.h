@@ -91,10 +91,10 @@ protected:
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "Health Variables")
-	float MaxHealthPoints = 1000;
+	float MaxHealthPoints = 300.f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Health Variables")
-	float CurrentHealthPoints = 1000.f;
+	float CurrentHealthPoints = 300.f;
 	 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hitboxes")
 	// FName is the name of the body part, FBodyPartInfo stores information about that body part
