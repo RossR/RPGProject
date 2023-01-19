@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "RPGDamageStructs.generated.h"
 
-/** Damage subclass that handles damage with a single impact location and source direction */
+/* Damage subclass that handles damage with a single impact location and source direction, stores the name of the body part hit */
 USTRUCT(BlueprintType)
 struct FBodyPartDamageEvent : public FDamageEvent
 {
