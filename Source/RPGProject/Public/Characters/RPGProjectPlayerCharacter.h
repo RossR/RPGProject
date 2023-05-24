@@ -111,10 +111,10 @@ public:		// --- FUNCTIONS --- \\
 	//------------------
 
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Camera System")
-	UCameraComponent* GetPlayerCamera() { return HasActiveCameraComponent() ? PlayerCamera : nullptr; }
+	UCameraComponent* GetPlayerCamera() const { return HasActiveCameraComponent() ? PlayerCamera : nullptr; }
 
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Camera System")
-	ARPGPlayerCameraManager* GetRPGPlayerCameraManager() { return RPGPlayerCameraManager; }
+	ARPGPlayerCameraManager* GetRPGPlayerCameraManager() const { return RPGPlayerCameraManager; }
 	
 	//------------------
 	// Combat
@@ -154,7 +154,7 @@ public:		// --- FUNCTIONS --- \\
 	//------------------
 
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Death")
-	bool GetIsRagdollDeath() { return bIsRagdollDeath; }
+	bool GetIsRagdollDeath() const { return bIsRagdollDeath; }
 	UFUNCTION(BlueprintCallable, Category = "RPG Character|Functions|Death")
 	void SetIsRagdollDeath(bool IsActive) { bIsRagdollDeath = IsActive; }
 
@@ -232,7 +232,7 @@ public:		// --- FUNCTIONS --- \\
 	//------------------
 
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Interactions")
-	bool GetIsInteractionAvailable() { return bInteractionAvailable; }
+	bool GetIsInteractionAvailable() const { return bInteractionAvailable; }
 	UFUNCTION(BlueprintCallable, Category = "RPG Character|Functions|Interactions")
 	void SetIsInteractionAvailable(bool IsActive) { bInteractionAvailable = IsActive; }
 
@@ -246,7 +246,7 @@ public:		// --- FUNCTIONS --- \\
 
 	// Returns true if the character is moving on the z-axis
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Movement")
-	bool IsCharacterFalling() { return bIsFalling; }
+	bool IsCharacterFalling() const { return bIsFalling; }
 
 	//------------------
 	// Movement - States
@@ -254,14 +254,14 @@ public:		// --- FUNCTIONS --- \\
 
 	// Returns the character's horizontal mobility state
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Movement|States")
-	EPlayerHorizontalMobility GetPlayerHorizontalMobilityState() { return PlayerHorizontalMobilityState; }
+	EPlayerHorizontalMobility GetPlayerHorizontalMobilityState() const { return PlayerHorizontalMobilityState; }
 	// Sets the character's horizontal mobility state
 	UFUNCTION(BlueprintCallable, Category = "RPG Character|Functions|Movement|States")
 	void SetPlayerHorizontalMobilityState(EPlayerHorizontalMobility NewState);
 
 	// Returns the character's vertical mobility state
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Movement|States")
-	EPlayerVerticalMobility GetPlayerVerticalMobilityState() { return PlayerVerticalMobilityState; }
+	EPlayerVerticalMobility GetPlayerVerticalMobilityState() const { return PlayerVerticalMobilityState; }
 	// Sets the character's vertical mobility state
 	UFUNCTION(BlueprintCallable, Category = "RPG Character|Functions|Movement|States")
 	void SetPlayerVerticalMobilityState(EPlayerVerticalMobility NewState);
@@ -271,17 +271,17 @@ public:		// --- FUNCTIONS --- \\
 	//------------------
 
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Player Actions")
-	bool GetIsInUninterruptableAction() { return bIsInUninterruptableAction; }
+	bool GetIsInUninterruptableAction() const { return bIsInUninterruptableAction; }
 	UFUNCTION(BlueprintCallable, Category = "RPG Character|Functions|Player Actions")
 	void SetIsInUninterruptableAction(bool bActive) { bIsInUninterruptableAction = bActive; }
 	
 	// Get the character's last action state
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Player Actions")
-	EPlayerActionState GetLastPlayerActionState() { return LastPlayerActionState; }
+	EPlayerActionState GetLastPlayerActionState() const { return LastPlayerActionState; }
 
 	// Get the character's action state
 	UFUNCTION(BlueprintPure, Category = "RPG Character|Functions|Player Actions")
-	EPlayerActionState GetPlayerActionState() { return PlayerActionState; }
+	EPlayerActionState GetPlayerActionState() const { return PlayerActionState; }
 	// Set the character's action state
 	UFUNCTION(BlueprintCallable, Category = "RPG Character|Functions|Player Actions")
 	void SetPlayerActionState(EPlayerActionState NewState);
@@ -298,7 +298,7 @@ public:		// --- FUNCTIONS --- \\
 	// HitFX Interface
 	//<><><><><><><><><><><><><><><><><><>
 
-	UHitFXData* GetHitFXData() override { return HitFXOverride; };
+	UHitFXData* GetHitFXData() const override { return HitFXOverride; };
 
 public:		// --- VARIABLES --- \\
 

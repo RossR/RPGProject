@@ -126,7 +126,7 @@ void AItemBase::InteractableHasDeactivated()
 
 }
 
-bool AItemBase::GetIsInInteractableRange(AActor* InteractingActor)
+bool AItemBase::GetIsInInteractableRange(AActor* InteractingActor) const
 {
 	return true;
 }

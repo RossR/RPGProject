@@ -59,11 +59,11 @@ public:
 
 	void InteractableHasDeactivated() override;
 
-	bool GetIsInInteractableRange(AActor* InteractingActor) override;
+	bool GetIsInInteractableRange(AActor* InteractingActor) const  override;
 
-	EInteractableState GetInteractableState() override { return EInteractableState::MAX; };
+	EInteractableState GetInteractableState() const override { return EInteractableState::MAX; };
 
-	bool CanActorBeInteractedWith() { return true; }
+	bool CanActorBeInteractedWith() const override { return true; }
 
 	virtual void ItemPickupEvent() { OnItemPickup.ExecuteIfBound(ItemData); }
 

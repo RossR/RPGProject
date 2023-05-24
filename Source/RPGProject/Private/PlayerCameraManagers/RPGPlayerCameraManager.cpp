@@ -69,7 +69,7 @@ void ARPGPlayerCameraManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
+	LockOnUpdate();
 }
 
 void ARPGPlayerCameraManager::UpdateCamera(float DeltaTime)
@@ -98,8 +98,6 @@ void ARPGPlayerCameraManager::UpdateCamera(float DeltaTime)
 			}
 		}
 	}
-
-	LockOnUpdate();
 }
 
 bool ARPGPlayerCameraManager::GetCrosshairTarget(FHitResult& CrosshairResult)
@@ -189,7 +187,7 @@ bool ARPGPlayerCameraManager::SetArrowForCameraView(ECameraView CameraViewIndex,
 	return false;
 }
 
-USpringArmComponent* ARPGPlayerCameraManager::GetSpringArmFromCameraView(ECameraView CameraViewIndex)
+USpringArmComponent* ARPGPlayerCameraManager::GetSpringArmFromCameraView(ECameraView CameraViewIndex) const
 {
 	if (CameraSpringArmMap.Contains(CameraViewIndex))
 	{
@@ -279,7 +277,7 @@ void ARPGPlayerCameraManager::DisableLockOn()
 	TargetSocket = "";
 }
 
-FVector ARPGPlayerCameraManager::GetLocationOfLockOnTargetActorsMainTarget()
+FVector ARPGPlayerCameraManager::GetLocationOfLockOnTargetActorsMainTarget() const
 {
 	if (UMeshComponent* ActorMeshComponent = Cast<UMeshComponent>(LockOnTargetActor->GetComponentByClass(UMeshComponent::StaticClass())))
 	{
@@ -566,7 +564,7 @@ void ARPGPlayerCameraManager::InterpToView()
 	}
 }
 
-float ARPGPlayerCameraManager::GetViewportAngleFromScreenPosition(FVector2D ScreenPosition)
+float ARPGPlayerCameraManager::GetViewportAngleFromScreenPosition(FVector2D ScreenPosition) const
 {
 	FVector2D CentreVector2D{ 0.f, 1.f };
 	FVector2D ViewportCentre = UWidgetLayoutLibrary::GetViewportSize(GetWorld()) * FVector2D(.5f, .5f);
@@ -583,7 +581,7 @@ float ARPGPlayerCameraManager::GetViewportAngleFromScreenPosition(FVector2D Scre
 	return UKismetMathLibrary::DegAcos(UKismetMathLibrary::DotProduct2D(CentreVector2D, TargetVector2D) / (UKismetMathLibrary::VSize2D(CentreVector2D) * UKismetMathLibrary::VSize2D(TargetVector2D)));
 }
 
-float ARPGPlayerCameraManager::GetViewportAngleFromVector2D(FVector2D InVector2D)
+float ARPGPlayerCameraManager::GetViewportAngleFromVector2D(FVector2D InVector2D) const
 {
 	FVector2D CentreVector2D{ 0.f, 1.f };
 	CentreVector2D = UKismetMathLibrary::Normal2D(CentreVector2D);
@@ -687,12 +685,9 @@ void ARPGPlayerCameraManager::LockOnUpdate()
 				}
 			}
 			// Cancel the timer if the target is in the player character's line of sight, or is close enough to the player character
-			else
+			else if(GetWorldTimerManager().IsTimerActive(NoLineOfSightOnTargetTimerHandle))
 			{
-				if (GetWorldTimerManager().IsTimerActive(NoLineOfSightOnTargetTimerHandle))
-				{
-					GetWorldTimerManager().ClearTimer(NoLineOfSightOnTargetTimerHandle);
-				}
+				GetWorldTimerManager().ClearTimer(NoLineOfSightOnTargetTimerHandle);
 			}
 
 			// Get the angle to look at the target actor

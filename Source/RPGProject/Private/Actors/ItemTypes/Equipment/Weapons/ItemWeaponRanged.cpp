@@ -42,10 +42,9 @@ AItemWeaponRanged::AItemWeaponRanged()
 
 	ProjectileChildActorComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Projectile Actor"));
 	ProjectileChildActorComponent->SetupAttachment(BowstringPullPoint);
-	//ProjectileChildActorComponent->SetChildActorClass(GetItemWeaponRangedData()->ProjectileInUse.Get());
-	
 
 	ProjectileSpawnerComponent = CreateDefaultSubobject<UProjectileSpawnerComponent>(TEXT("Projectile Spawner Component"));
+	ProjectileSpawnerComponent->GetProjectileSpawnTransform()->SetupAttachment(GetRootComponent(), "ProjectileSpawn");
 }
 
 void AItemWeaponRanged::BeginPlay()
@@ -84,14 +83,6 @@ void AItemWeaponRanged::Tick(float DeltaTime)
 
 	UpdateCurves();
 
-	if (HoldBowstringCurve >= 1.f && EnableFireCurve >= 1.f)
-	{
-		if (ProjectileSpawnerComponent && GetParentActor())
-		{
-			ProjectileSpawnerComponent->SetProjectileFiringAngle(GetParentActor()->GetActorRotation());
-		}
-	}
-
 	if (GetItemWeaponRangedData()->AmmoInMagazine > 0.f && ProjectileChildActorRef->IsHidden())
 	{
 		ProjectileChildActorRef->SetActorHiddenInGame(false);
@@ -129,6 +120,7 @@ void AItemWeaponRanged::SetItemData(UItemData* NewItemData)
 	{
 		WeaponRangedData = NULL;
 		WeaponRangedData = NewObject<UItemWeaponRangedData>(this, UItemWeaponRangedData::StaticClass(), TEXT("Equipment Data"), EObjectFlags::RF_NoFlags, NewItemWeaponRangedData);
+		
 	}
 }
 

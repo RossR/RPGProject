@@ -39,36 +39,30 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
-
 	StaminaRegenPerFrame = (MaxStamina / TimeToFullyRegenStamina) * DeltaTime;
 
 	if (OwnerAnimInstance)
 	{
-		if (OwnerAnimInstance->GetCurveValue("DisableStaminaRegen") >= 1.f) { ResetStaminaRegenDelay(); }
+		if (OwnerAnimInstance->GetCurveValue("DisableStaminaRegen") >= 1.f) { StopStaminaRegeneration(); }
 	}
 
-	if (CurrentStamina == MaxStamina)
+	if (IsStaminaRegenerating() && GetCurrentStamina() < GetMaxStamina())
 	{
-		IsRegeneratingStamina = false;
-		GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
-	} 
-	else if (!IsRegeneratingStamina && CurrentStamina < MaxStamina /* And if didn't take stamina damage this tick */)
+		RegenerateStamina();
+	}
+	else
 	{
-		// UE_LOG(LogTemp, Warning, TEXT("UStaminaComponent::TickComponent StaminaRegenTimerHandle Set"));
-		if (!GetWorld()->GetTimerManager().IsTimerActive(StaminaRegenTimerHandle))
-		{
-			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &UStaminaComponent::RegenerateStamina, DeltaTime, true, StaminaRegenDelay * StaminaRegenDelayMultiplier);
-		}
+		StartStaminaRegeneration();
 	}
 }
 
 void UStaminaComponent::ReduceCurrentStamina(float Damage)
 {
 	CurrentStamina -= Damage;
-	if (true)//IsRegeneratingStamina)
+	if (true)//bIsStaminaRegenerating)
 	{
-		IsRegeneratingStamina = false;
-		ResetStaminaRegenDelay();
+		bIsStaminaRegenerating = false;
+		StopStaminaRegeneration();
 	}
 }
 
@@ -77,8 +71,8 @@ void UStaminaComponent::DrainStaminaPerSecond(EStaminaDrainType StaminaDrainType
 	if (StaminaDrainTypeMap.Contains(StaminaDrainType))
 	{
 		CurrentStamina -= StaminaDrainTypeMap[StaminaDrainType];
-		IsRegeneratingStamina = false;
-		ResetStaminaRegenDelay();
+		bIsStaminaRegenerating = false;
+		StopStaminaRegeneration();
 	}
 }
 
@@ -96,13 +90,33 @@ bool UStaminaComponent::IsStaminaExhausted()
 	return bHasStaminaBeenExhausted;
 }
 
-void UStaminaComponent::RegenerateStamina() 
+void UStaminaComponent::StaminaRegenTimerFinished()
+{
+	bIsStaminaRegenerating = true;
+}
+
+void UStaminaComponent::RegenerateStamina()
 { 
-	IsRegeneratingStamina = true;
 	CurrentStamina += StaminaRegenPerFrame * StaminaRegenMultiplier;
 }
 
-void UStaminaComponent::ResetStaminaRegenDelay()
+void UStaminaComponent::StartStaminaRegeneration()
+{
+	if (bIsStaminaRegenerating && CurrentStamina == MaxStamina)
+	{
+		bIsStaminaRegenerating = false;
+		GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
+	}
+	else if (!bIsStaminaRegenerating && GetCurrentStamina() < GetMaxStamina())
+	{
+		if (!GetWorld()->GetTimerManager().IsTimerActive(StaminaRegenTimerHandle))
+		{
+			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &UStaminaComponent::StaminaRegenTimerFinished, GetWorld()->GetDeltaSeconds(), false, StaminaRegenDelay * StaminaRegenDelayMultiplier);
+		}
+	}
+}
+
+void UStaminaComponent::StopStaminaRegeneration()
 {
 	GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
 }

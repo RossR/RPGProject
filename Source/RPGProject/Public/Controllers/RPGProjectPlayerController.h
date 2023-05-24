@@ -111,7 +111,7 @@ public:		// --- FUNCTIONS --- \\
 	//------------------
 	
 	UFUNCTION(BlueprintPure, Category = "RPG Player Controller|Functions|Camera Manager")
-	ARPGPlayerCameraManager* GetRPGPlayerCameraManager();
+	ARPGPlayerCameraManager* GetRPGPlayerCameraManager() const;
 
 	//------------------
 	// Input
@@ -123,16 +123,16 @@ public:		// --- FUNCTIONS --- \\
 	void UpdateInputActionGamepadMappings();
 
 	UFUNCTION(BlueprintPure, Category = "RPG Player Controller|Functions|Input")
-	TMap<EGamePadActionMappings, EInputButtonState> GetMappedActionStates() { return MappedActionStates; }
+	TMap<EGamePadActionMappings, EInputButtonState> GetMappedActionStates() const { return MappedActionStates; }
 	UFUNCTION(BlueprintPure, Category = "RPG Player Controller|Functions|Input")
-	EInputButtonState GetMappedActionState(TEnumAsByte<EGamePadActionMappings> ActionMapping);
+	EInputButtonState GetMappedActionState(TEnumAsByte<EGamePadActionMappings> ActionMapping) const;
 	UFUNCTION(BlueprintCallable, Category = "RPG Player Controller|Functions|Input")
 	void SetMappedActionState(TEnumAsByte<EGamePadActionMappings> ActionMapping, EInputButtonState NewInputState);
 
 	UFUNCTION(BlueprintPure, Category = "RPG Player Controller|Functions|Input")
-	float GetJumpOrCrouchHoldTime() { return JumpOrCrouchHoldTime; }
+	float GetJumpOrCrouchHoldTime() const { return JumpOrCrouchHoldTime; }
 	UFUNCTION(BlueprintPure, Category = "RPG Player Controller|Functions|Input")
-	float GetJumpOrCrouchHoldTimeThreshold() { return JumpOrCrouchHoldTimeThreshold; }
+	float GetJumpOrCrouchHoldTimeThreshold() const { return JumpOrCrouchHoldTimeThreshold; }
 
 	//------------------
 	// Pawn
@@ -144,12 +144,12 @@ public:		// --- FUNCTIONS --- \\
 	void DisablePawnRotation(bool bActive) { bDisablePawnRotation = bActive; }
 
 	UFUNCTION(BlueprintPure, Category = "RPG Player Controller|Functions|Pawn")
-	bool GetOverridePawnRotation() { return bOverridePawnRotation; }
+	bool GetOverridePawnRotation() const { return bOverridePawnRotation; }
 	UFUNCTION(BlueprintCallable, Category = "RPG Player Controller|Functions|Pawn")
 	void OverridePawnRotation(bool bActive) { bOverridePawnRotation = bActive; }
 
 	UFUNCTION(BlueprintPure, Category = "RPG Player Controller|Functions|Pawn")
-	bool GetOverridePawnRotationForLockOn() { return bOverridePawnRotationForLockOn; }
+	bool GetOverridePawnRotationForLockOn() const { return bOverridePawnRotationForLockOn; }
 	UFUNCTION(BlueprintCallable, Category = "RPG Player Controller|Functions|Pawn")
 	void OverridePawnRotationForLockOn(bool bActive) { bOverridePawnRotationForLockOn = bActive; }
 
@@ -159,7 +159,7 @@ public:		// --- FUNCTIONS --- \\
 
 	// Returns true if the player is interacting with any menu UI
 	UFUNCTION(BlueprintPure, Category = "RPG Player Controller|Functions|UI")
-	bool IsPlayerInMenu() { return bIsPlayerInMenu; }
+	bool IsPlayerInMenu() const { return bIsPlayerInMenu; }
 	// Sets bIsPlayerInMenu
 	UFUNCTION(BlueprintCallable, Category = "RPG Player Controller|Functions|UI")
 	void SetIsPlayerInMenu(bool bActive) { bIsPlayerInMenu = bActive; }

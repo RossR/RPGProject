@@ -18,17 +18,6 @@ UProjectileSpawnerComponent::UProjectileSpawnerComponent()
 
 	ProjectileSpawnTransform = CreateDefaultSubobject<USceneComponent>(TEXT("Projectile Spawn Transform"));
 
-	RangedWeaponRef = Cast<AItemWeaponRanged>(GetOwner());
-
-	if (RangedWeaponRef)
-	{
-		ProjectileSpawnTransform->SetupAttachment(RangedWeaponRef->GetRootComponent(), "ProjectileSpawn");
-	}
-	else if (GetOwner())
-	{
-		ProjectileSpawnTransform->SetupAttachment( GetOwner()->GetRootComponent());
-	}
-
 	ProjectileSpawnArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Projectile Spawn Arrow"));
 	ProjectileSpawnArrow->SetupAttachment(ProjectileSpawnTransform);
 	ProjectileSpawnArrow->ArrowColor = FColor().FromHex("FFE100FF"); // Uses Hex sRGB value
@@ -38,30 +27,27 @@ UProjectileSpawnerComponent::UProjectileSpawnerComponent()
 	ProjectileSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 }
 
-
 // Called when the game starts
 void UProjectileSpawnerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
+	RangedWeaponRef = Cast<AItemWeaponRanged>(GetOwner());
 }
-
 
 // Called every frame
 void UProjectileSpawnerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+
 }
 
-bool UProjectileSpawnerComponent::SpawnProjectile(TSubclassOf<AProjectileActor> ProjectileInUse, bool bAimAtCrosshair, float ProjectileStrength)
+bool UProjectileSpawnerComponent::SpawnProjectile(TSubclassOf<AProjectileActor> ProjectileInUse, bool bAimAtCrosshair, float ProjectileStrengthScale)
 {
 	UClass* ProjectileClass = ProjectileInUse.Get();
-	
-	FRotator SpawnAngle;
+
+	FRotator ProjectileSpawnAngle;
 
 	if (bAimAtCrosshair && RangedWeaponRef)
 	{
@@ -70,43 +56,48 @@ bool UProjectileSpawnerComponent::SpawnProjectile(TSubclassOf<AProjectileActor> 
 			if (ARPGPlayerCameraManager* CameraManagerRef = OwningCharacterRef->GetRPGPlayerCameraManager())
 			{
 				FHitResult CrosshairHitResult;
-				if (true)
-				{
-					CameraManagerRef->GetCrosshairTarget(CrosshairHitResult);
-					
-					FRotator FireDirection = UKismetMathLibrary::FindLookAtRotation(ProjectileSpawnTransform->GetComponentLocation(), CrosshairHitResult.Location);
 
-					SpawnAngle = FireDirection + FRotator((FMath::FRandRange(-FiringAngleVariance.Pitch, FiringAngleVariance.Pitch)) / ProjectileStrength, (FMath::FRandRange(-FiringAngleVariance.Yaw, FiringAngleVariance.Yaw)) / ProjectileStrength, 0.f);
-				}
+				CameraManagerRef->GetCrosshairTarget(CrosshairHitResult);
+
+				FRotator FireDirection = UKismetMathLibrary::FindLookAtRotation(ProjectileSpawnTransform->GetComponentLocation(), CrosshairHitResult.Location);
+
+				// Angle towards the player's crosshair with a random offset (accuracy)
+				ProjectileSpawnAngle = FireDirection + FRotator((FMath::FRandRange(-FiringAngleVariance.Pitch, FiringAngleVariance.Pitch)) / ProjectileStrengthScale, (FMath::FRandRange(-FiringAngleVariance.Yaw, FiringAngleVariance.Yaw)) / ProjectileStrengthScale, 0.f);
 			}
 		}
 	}
 	else
 	{
-		SpawnAngle = ProjectileSpawnTransform->GetComponentRotation() + FRotator((FMath::FRandRange(-FiringAngleVariance.Pitch, FiringAngleVariance.Pitch)) / ProjectileStrength, (FMath::FRandRange(-FiringAngleVariance.Yaw, FiringAngleVariance.Yaw)) / ProjectileStrength, 0.f);
+		// Use the ProjectileSpawnTransform's rotation with a random offset (accuracy)
+		ProjectileSpawnAngle = ProjectileSpawnTransform->GetComponentRotation() + FRotator((FMath::FRandRange(-FiringAngleVariance.Pitch, FiringAngleVariance.Pitch)) / ProjectileStrengthScale, (FMath::FRandRange(-FiringAngleVariance.Yaw, FiringAngleVariance.Yaw)) / ProjectileStrengthScale, 0.f);
 	}
 	
-	const FTransform SpawnTransform{ SpawnAngle, ProjectileSpawnTransform->GetComponentLocation(), ProjectileSpawnTransform->GetComponentScale() };
+	const FTransform SpawnTransform{ ProjectileSpawnAngle, ProjectileSpawnTransform->GetComponentLocation(), ProjectileSpawnTransform->GetComponentScale() };
 	ProjectileSpawnParameters.Owner = GetOwner();
 
+	// Spawn the projectile
 	AProjectileActor* LoadedProjectile = GetWorld()->SpawnActor<AProjectileActor>(ProjectileClass, SpawnTransform, ProjectileSpawnParameters);
 
 	int SpawnIndex = 0;
+
+	// If the projectile was spawned successfully
 	if (LoadedProjectile)
 	{
+		// Appropriately set the location of the projectile to the location of the ProjectileSpawnTransform
 		if (LoadedProjectile->GetProjectileMesh()->DoesSocketExist("ProjectileStart") && LoadedProjectile->GetProjectileMesh()->DoesSocketExist("ProjectileEnd"))
 		{
 			FVector ProjectileStart = LoadedProjectile->GetProjectileMesh()->GetSocketTransform("ProjectileStart").GetLocation();
 			FVector ProjectileEnd = LoadedProjectile->GetProjectileMesh()->GetSocketTransform("ProjectileEnd").GetLocation();
 
-			FVector FSpawnLocationAdjustment = UKismetMathLibrary::Subtract_VectorVector(ProjectileEnd, ProjectileStart);
+			FVector SpawnLocationAdjustment = UKismetMathLibrary::Subtract_VectorVector(ProjectileEnd, ProjectileStart);
 
-			LoadedProjectile->SetActorLocation(ProjectileSpawnTransform->GetComponentLocation() + FSpawnLocationAdjustment);
+			LoadedProjectile->SetActorLocation(ProjectileSpawnTransform->GetComponentLocation() + SpawnLocationAdjustment);
 			LoadedProjectile->SetProjectileOwner(GetOwner());
 		}
 
-		LoadedProjectile->GetProjectileMovementComponent()->InitialSpeed = LoadedProjectile->GetProjectileMovementComponent()->InitialSpeed * ProjectileStrength;
-		LoadedProjectile->SetProjectileStrengthMultiplier(ProjectileStrength);
+		// Set the speed of the projectile depending on the projectile's strength
+		LoadedProjectile->GetProjectileMovementComponent()->InitialSpeed = LoadedProjectile->GetProjectileMovementComponent()->InitialSpeed * ProjectileStrengthScale;
+		LoadedProjectile->SetProjectileStrengthMultiplier(ProjectileStrengthScale);
 
 		LoadedProjectile->PlayProjectileSFX();
 	}

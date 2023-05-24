@@ -152,7 +152,7 @@ void AInteractableActor_Door::InteractableHasDeactivated()
 	Super::InteractableHasDeactivated();
 }
 
-bool AInteractableActor_Door::GetIsInInteractableRange(AActor* InteractingActor)
+bool AInteractableActor_Door::GetIsInInteractableRange(AActor* InteractingActor) const
 {
 	if (ActorsInInteractionRange.Contains(InteractingActor))
 	{

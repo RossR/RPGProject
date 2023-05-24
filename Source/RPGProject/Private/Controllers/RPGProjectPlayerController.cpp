@@ -196,7 +196,7 @@ void ARPGProjectPlayerController::Tick(float DeltaTime)
 	UpdatePawnRotationBooleans();
 }
 
-ARPGPlayerCameraManager* ARPGProjectPlayerController::GetRPGPlayerCameraManager()
+ARPGPlayerCameraManager* ARPGProjectPlayerController::GetRPGPlayerCameraManager() const
 {
 	if (ARPGPlayerCameraManager* RPGPlayerCameraManager = Cast<ARPGPlayerCameraManager>(PlayerCameraManager))
 	{
@@ -234,7 +234,7 @@ void ARPGProjectPlayerController::UpdateInputActionGamepadMappings()
 	}
 }
 
-EInputButtonState ARPGProjectPlayerController::GetMappedActionState(TEnumAsByte<EGamePadActionMappings> ActionMapping)
+EInputButtonState ARPGProjectPlayerController::GetMappedActionState(TEnumAsByte<EGamePadActionMappings> ActionMapping) const
 {
 	if (MappedActionStates.Contains(ActionMapping))
 	{

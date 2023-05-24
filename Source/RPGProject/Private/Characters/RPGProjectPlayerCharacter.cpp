@@ -974,7 +974,7 @@ void ARPGProjectPlayerCharacter::PlayerHorizontalMobilityUpdate()
 				StaminaComponent->DrainStaminaPerSecond(EStaminaDrainType::Sprint);
 			}
 		}
-
+		
 		break;
 	}
 	}
@@ -1052,7 +1052,7 @@ void ARPGProjectPlayerCharacter::CheckCharacterExhaustion()
 	}
 	else if (StaminaComponent->IsStaminaExhausted() && GetVelocity().Length() >= 0.f)
 	{
-		StaminaComponent->ResetStaminaRegenDelay();
+		StaminaComponent->StopStaminaRegeneration();
 	}
 }
 

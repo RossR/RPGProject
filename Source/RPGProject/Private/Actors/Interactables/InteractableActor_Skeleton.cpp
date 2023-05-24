@@ -69,7 +69,7 @@ void AInteractableActor_Skeleton::InteractableHasDeactivated()
 	Super::InteractableHasDeactivated();
 }
 
-bool AInteractableActor_Skeleton::GetIsInInteractableRange(AActor* InteractingActor)
+bool AInteractableActor_Skeleton::GetIsInInteractableRange(AActor* InteractingActor) const
 {
 	return Super::GetIsInInteractableRange(InteractingActor);
 }

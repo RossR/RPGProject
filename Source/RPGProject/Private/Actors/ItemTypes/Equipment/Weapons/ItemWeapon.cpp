@@ -190,15 +190,15 @@ void AItemWeapon::WeaponTrace(int SingleWeaponTraceStart)
 	TArray<FHitResult> InitialOutHits;
 	if (CurrentAttackType == EAttackType::LightAttack || CurrentAttackType == EAttackType::LightFinisher)
 	{
-		if (GetLightAttackInfo().Find(AttackComboCount))
+		if (WeaponData->LightAttackInfo.Contains(AttackComboCount))
 		{
-			CurrentTraceType = GetLightAttackInfo()[AttackComboCount].AttackTraceType;
+			CurrentTraceType = WeaponData->LightAttackInfo[AttackComboCount].AttackTraceType;
 		}
 		else if (AttackComboCount >= 1)
 		{
-			if (GetLightAttackInfo().Find(0))
+			if (WeaponData->LightAttackInfo.Contains(0))
 			{
-				CurrentTraceType = GetLightAttackInfo()[0].AttackTraceType;
+				CurrentTraceType = WeaponData->LightAttackInfo[0].AttackTraceType;
 			}
 		}
 		else
@@ -208,15 +208,15 @@ void AItemWeapon::WeaponTrace(int SingleWeaponTraceStart)
 	}
 	else if (CurrentAttackType == EAttackType::HeavyAttack || CurrentAttackType == EAttackType::HeavyFinisher)
 	{
-		if (GetHeavyAttackInfo().Find(AttackComboCount))
+		if (GetItemWeaponData()->HeavyAttackInfo.Contains(AttackComboCount))
 		{
-			CurrentTraceType = GetHeavyAttackInfo()[AttackComboCount].AttackTraceType;
+			CurrentTraceType = GetItemWeaponData()->HeavyAttackInfo[AttackComboCount].AttackTraceType;
 		}
 		else if (AttackComboCount >= 1)
 		{
-			if (GetHeavyAttackInfo().Find(0))
+			if (GetItemWeaponData()->HeavyAttackInfo.Find(0))
 			{
-				CurrentTraceType = GetHeavyAttackInfo()[0].AttackTraceType;
+				CurrentTraceType = GetItemWeaponData()->HeavyAttackInfo[0].AttackTraceType;
 			}
 		}
 		else

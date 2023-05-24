@@ -25,7 +25,7 @@ class RPGPROJECT_API IHighlightInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Highlight Interface")
 	virtual void EnableHighlight(bool bActive, int Colour = -1) = 0;
 	//virtual void EnableHighlight_Implementation(bool bActive, int Colour = -1) = 0;
 

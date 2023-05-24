@@ -45,7 +45,7 @@ public:		// --- FUNCTIONS --- \\
 
 public:		// --- FUNCTIONS --- \\
 
-	virtual UHitFXData* GetHitFXData() override { return ProjectileHitFXData; }
+	virtual UHitFXData* GetHitFXData() const override { return ProjectileHitFXData; }
 
 	UFUNCTION()
 	void OnProjectileCollisionVolumeHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

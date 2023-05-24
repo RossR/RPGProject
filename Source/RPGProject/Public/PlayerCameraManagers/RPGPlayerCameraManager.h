@@ -77,16 +77,16 @@ public:		// --- FUNCTIONS --- \\
 	// Camera Arrows
 	//------------------
 
-	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Camera View|Camera Arrows")
-	UArrowComponent* GetArrowFromCameraView(ECameraView CameraViewIndex);
+	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Camera View|Camera Arrows")
+	UArrowComponent* GetArrowFromCameraView(ECameraView CameraViewIndex) ;
 	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Camera View|Camera Arrows")
 	bool SetArrowForCameraView(ECameraView CameraViewIndex, UArrowComponent* ArrowComp);
 
 	// Spring Arms
 	//------------------
 
-	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Camera View|Spring Arms")
-	USpringArmComponent* GetSpringArmFromCameraView(ECameraView CameraViewIndex);
+	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Camera View|Spring Arms")
+	USpringArmComponent* GetSpringArmFromCameraView(ECameraView CameraViewIndex) const;
 	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Camera View|Spring Arms")
 	bool SetSpringArmForCameraView(ECameraView CameraViewIndex, USpringArmComponent* SpringArmComp);
 
@@ -101,16 +101,16 @@ public:		// --- FUNCTIONS --- \\
 	void EnableLockOn();
 
 	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Lock-On")
-	AActor* GetLockOnTargetActor() { return LockOnTargetActor; }
+	AActor* GetLockOnTargetActor() const { return LockOnTargetActor; }
 	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Lock-On")
 	void SetLockOnTargetActor(AActor* NewTargetActor) { LockOnTargetActor = NewTargetActor; }
 	
 	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Lock-On")
-	FRotator GetTargetActorAngle() { return TargetActorAngle; }
+	FRotator GetTargetActorAngle() const { return TargetActorAngle; }
 
 	// Used by the HUD widget to place the lock-on crosshair over the lock-on target's "LockOn_MainTarget" socket
 	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Lock-On")
-	FVector GetLocationOfLockOnTargetActorsMainTarget();
+	FVector GetLocationOfLockOnTargetActorsMainTarget() const;
 
 	/**
 	 * Gets all the actors in the world that are within the view of the viewing actor
@@ -138,7 +138,7 @@ public:		// --- FUNCTIONS --- \\
 	//------------------
 	
 	UFUNCTION(BlueprintPure, Category = "RPG Player Camera Manager|Lock-On|Swapping Target")
-	bool GetCanSwapTarget() { return bCanSwapTarget; }
+	bool GetCanSwapTarget() const { return bCanSwapTarget; }
 	UFUNCTION(BlueprintCallable, Category = "RPG Player Camera Manager|Lock-On|Swapping Target")
 	void SetCanSwapTarget(bool bIsActive) { bCanSwapTarget = bIsActive; }
 
@@ -156,11 +156,11 @@ protected:	// --- FUNCTIONS --- \\
 
 	// Returns the dot product of the screen position from the centre of the viewport
 	UFUNCTION(BlueprintPure)
-	float GetViewportAngleFromScreenPosition(FVector2D ScreenPosition);
+	float GetViewportAngleFromScreenPosition(FVector2D ScreenPosition) const;
 	
 	//Returns the dot product of the 2D vector from the centre of the viewport.
 	UFUNCTION(BlueprintPure)
-	float GetViewportAngleFromVector2D(FVector2D InVector2D);
+	float GetViewportAngleFromVector2D(FVector2D InVector2D) const;
 
 	void ResetSwapTargetCooldown() { bSwapTargetOnCooldown = false; }
 

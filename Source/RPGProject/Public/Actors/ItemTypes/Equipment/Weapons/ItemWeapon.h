@@ -51,7 +51,7 @@ public:
 	virtual UItemData* GetItemData() override { return WeaponData; }
 
 	UFUNCTION(BlueprintPure)
-	UItemWeaponData* GetItemWeaponData() { return WeaponData; }
+	virtual UItemWeaponData* GetItemWeaponData() { return WeaponData; }
 
 	virtual void ItemPickupEvent() override { OnItemPickup.ExecuteIfBound(WeaponData); }
 
@@ -81,18 +81,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetIsFirstTrace(bool bActive) { bIsFirstTrace = bActive; }
-
-	UFUNCTION(BlueprintPure)
-	TMap<uint8, FWeaponAttackInfo> GetLightAttackInfo() const { if (!WeaponData->LightAttackInfo.IsEmpty()) { return WeaponData->LightAttackInfo; } else { return TMap<uint8, FWeaponAttackInfo>(); } }
-
-	UFUNCTION(BlueprintPure)
-	FWeaponAttackInfo GetLightAttackInfoAtIndex(uint8 Index) { return  WeaponData->LightAttackInfo.Find(Index) ? WeaponData->LightAttackInfo[Index] : FWeaponAttackInfo(); }
-
-	UFUNCTION(BlueprintPure)
-	TMap<uint8, FWeaponAttackInfo> GetHeavyAttackInfo() const { if (!WeaponData->HeavyAttackInfo.IsEmpty()) { return WeaponData->HeavyAttackInfo; } else { return TMap<uint8, FWeaponAttackInfo>(); } }
-
-	UFUNCTION(BlueprintPure)
-	FWeaponAttackInfo GetHeavyAttackInfoAtIndex(uint8 Index) { return WeaponData->HeavyAttackInfo.Find(Index) ? WeaponData->HeavyAttackInfo[Index] : FWeaponAttackInfo(); }
 
 	UFUNCTION(BlueprintCallable)
 	void EnableWeaponVFX(int Index = -1);

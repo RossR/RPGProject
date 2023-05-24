@@ -241,7 +241,17 @@ class RPGPROJECT_API UItemWeaponData : public UItemEquipmentData
 
 public:
 
+	//UFUNCTION(BlueprintPure)
+	//TMap<uint8, FWeaponAttackInfo> GetLightAttackInfo() const { if (!LightAttackInfo.IsEmpty()) { return LightAttackInfo; } else { return TMap<uint8, FWeaponAttackInfo>(); } }
 
+	//UFUNCTION(BlueprintPure)
+	//FWeaponAttackInfo GetLightAttackInfoAtIndex(uint8 Index) { return LightAttackInfo.Find(Index) ? LightAttackInfo[Index] : FWeaponAttackInfo(); }
+
+	//UFUNCTION(BlueprintPure)
+	//TMap<uint8, FWeaponAttackInfo> GetHeavyAttackInfo() const { if (!HeavyAttackInfo.IsEmpty()) { return HeavyAttackInfo; } else { return TMap<uint8, FWeaponAttackInfo>(); } }
+
+	//UFUNCTION(BlueprintPure)
+	//FWeaponAttackInfo GetHeavyAttackInfoAtIndex(uint8 Index) { return HeavyAttackInfo.Find(Index) ? HeavyAttackInfo[Index] : FWeaponAttackInfo(); }
 
 public:
 

@@ -33,74 +33,110 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-public:
+public:		// --- FUNCTIONS --- \\
 
+	UFUNCTION(BlueprintPure, Category = "Stamina")
+	float GetMaxStamina() const { return MaxStamina; }
+	UFUNCTION(BlueprintCallable, Category = "Stamina")
+	void SetMaxStamina(float NewMaxStamina) { MaxStamina = NewMaxStamina; }
+
+	UFUNCTION(BlueprintPure, Category = "Stamina")
+	float GetCurrentStamina() const { return CurrentStamina; }
+	UFUNCTION(BlueprintCallable, Category = "Stamina")
+	void SetCurrentStamina(float Stamina) { CurrentStamina = Stamina; }
+	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void ReduceCurrentStamina(float Damage);
+	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void DrainStaminaPerSecond(EStaminaDrainType StaminaDrainType);
 
-	UFUNCTION(BlueprintPure)
-	bool IsStaminaExhausted(); //{ return CurrentStamina <= FLT_EPSILON; }
+	//------------------
+	// Stamina Exhaustion
+	//------------------
 
-	UFUNCTION(BlueprintPure)
-	float GetMaxStamina() { return MaxStamina; }
-	UFUNCTION(BlueprintPure)
-	float GetCurrentStamina() { return CurrentStamina; }
-	UFUNCTION(BlueprintCallable)
-	void SetMaxStamina(float NewMaxStamina) { MaxStamina = NewMaxStamina; }
-	UFUNCTION(BlueprintCallable)
-	void SetCurrentStamina(float Stamina) { CurrentStamina = Stamina; }
-	UFUNCTION(BlueprintCallable)
-	void RegenerateStamina();
-	UFUNCTION(BlueprintCallable)
-	void ResetStaminaRegenDelay();
+	UFUNCTION(BlueprintPure, Category = "Stamina|Stamina Exhaustion")
+	bool IsStaminaExhausted();
 
-	UFUNCTION(BlueprintPure)
-	float GetStaminaRegenMultiplier() { return StaminaRegenMultiplier; }
-	UFUNCTION(BlueprintCallable)
+	//------------------
+	// Stamina Regeneration
+	//------------------
+
+	UFUNCTION(BlueprintPure, Category = "Stamina|Stamina Regeneration")
+	bool IsStaminaRegenerating() { return bIsStaminaRegenerating; }
+
+	UFUNCTION(BlueprintPure, Category = "Stamina|Stamina Regeneration")
+	float GetStaminaRegenMultiplier() const { return StaminaRegenMultiplier; }
+	UFUNCTION(BlueprintCallable, Category = "Stamina|Stamina Regeneration")
 	void SetStaminaRegenMultiplier(float NewFloat) { StaminaRegenMultiplier = NewFloat; }
 
-	UFUNCTION(BlueprintPure)
-	float GetStaminaRegenDelayMultiplier() { return StaminaRegenDelayMultiplier; }
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure, Category = "Stamina|Stamina Regeneration")
+	float GetStaminaRegenDelayMultiplier() const { return StaminaRegenDelayMultiplier; }
+	UFUNCTION(BlueprintCallable, Category = "Stamina|Stamina Regeneration")
 	void SetStaminaRegenDelayMultiplier(float NewFloat) { StaminaRegenDelayMultiplier = NewFloat; }
 
-protected:
+	UFUNCTION(BlueprintCallable, Category = "Stamina|Stamina Regeneration")
+	void StartStaminaRegeneration();
+	UFUNCTION(BlueprintCallable, Category = "Stamina|Stamina Regeneration")
+	void StopStaminaRegeneration();
 
-	UPROPERTY(EditAnywhere)
-	float MaxStamina = 400;
+public: 	// --- VARIABLES --- \\
 
-	UPROPERTY(VisibleAnywhere)
+
+
+protected:	// --- FUNCTIONS --- \\
+
+	void StaminaRegenTimerFinished();
+
+	void RegenerateStamina();
+
+protected:	// --- VARIABLES --- \\
+
+	URPGProjectAnimInstance* OwnerAnimInstance;
+
+	UPROPERTY(VisibleAnywhere, Category = "Stamina")
 	float CurrentStamina = 0.f;
 
-	UPROPERTY(EditAnywhere)
-	float TimeToFullyRegenStamina = 5.f;
+	UPROPERTY(VisibleAnywhere, Category = "Stamina")
+	float MaxStamina = 400;
 
-	UPROPERTY(VisibleAnywhere)
-	float StaminaRegenMultiplier = 1.f;
+	//------------------
+	// Stamina Drain
+	//------------------
 
-	UPROPERTY(EditAnywhere)
-	float StaminaRegenDelay = 2.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Stamina Drain")
+	TMap<EStaminaDrainType, float> StaminaDrainTypeMap;
 
-	UPROPERTY(VisibleAnywhere)
-	float StaminaRegenDelayMultiplier = 1.f;
+	//------------------
+	// Stamina Exhaustion
+	//------------------
 
-	UPROPERTY(VisibleAnywhere)
-	bool IsRegeneratingStamina = true;
+	UPROPERTY(VisibleAnywhere, Category = "Stamina|Stamina Exhaustion")
+	bool bHasStaminaBeenExhausted = false;
+
+	UPROPERTY(EditAnywhere, Category = "Stamina|Stamina Exhaustion")
+	float ExhaustionRecoveryPercentage = 0.25f;
+
+	//------------------
+	// Stamina Regeneration
+	//------------------
 
 	FTimerHandle StaminaRegenTimerHandle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)//, Category = "[Character Movement] Stamina Damage")
-	TMap<EStaminaDrainType, float> StaminaDrainTypeMap;
+	UPROPERTY(VisibleAnywhere, Category = "Stamina|Stamina Regeneration")
+	bool bIsStaminaRegenerating = true;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Stamina|Stamina Regeneration")
 	float StaminaRegenPerFrame = 0.f;
 
-	UPROPERTY(VisibleAnywhere)
-	bool bHasStaminaBeenExhausted = false;
+	UPROPERTY(EditAnywhere, Category = "Stamina|Stamina Regeneration")
+	float StaminaRegenDelay = 2.5f;
 
-	UPROPERTY(EditAnywhere)
-	float ExhaustionRecoveryPercentage = 0.25f;
+	UPROPERTY(EditAnywhere, Category = "Stamina|Stamina Regeneration")
+	float TimeToFullyRegenStamina = 5.f;
 
-	URPGProjectAnimInstance* OwnerAnimInstance;
+	UPROPERTY(VisibleAnywhere, Category = "Stamina|Stamina Regeneration")
+	float StaminaRegenMultiplier = 1.f;
+
+	UPROPERTY(VisibleAnywhere, Category = "Stamina|Stamina Regeneration")
+	float StaminaRegenDelayMultiplier = 1.f;
 		
 };

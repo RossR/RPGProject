@@ -979,46 +979,46 @@ FWeaponAttackInfo UCombatComponent::GetCurrentWeaponAttackInfo(AItemWeapon* Atta
 	switch (CurrentAttackType)
 	{
 	case EAttackType::LightAttack:
-		if (AttackingWeapon->GetLightAttackInfo().Contains(AttackCount))
+		if (AttackingWeapon->GetItemWeaponData()->LightAttackInfo.Contains(AttackCount))
 		{
-			return AttackingWeapon->GetLightAttackInfoAtIndex(AttackCount);
+			return AttackingWeapon->GetItemWeaponData()->LightAttackInfo[AttackCount];
 		}
-		else if (AttackingWeapon->GetLightAttackInfo().Contains(0.f))
+		else if (AttackingWeapon->GetItemWeaponData()->LightAttackInfo.Contains(0.f))
 		{
-			return AttackingWeapon->GetLightAttackInfoAtIndex(0.f);
+			return AttackingWeapon->GetItemWeaponData()->LightAttackInfo[0];
 		}
 		break;
 
 	case EAttackType::HeavyAttack:
-		if (AttackingWeapon->GetHeavyAttackInfo().Contains(AttackCount))
+		if (AttackingWeapon->GetItemWeaponData()->HeavyAttackInfo.Contains(AttackCount))
 		{
-			return AttackingWeapon->GetHeavyAttackInfoAtIndex(AttackCount);
+			return AttackingWeapon->GetItemWeaponData()->HeavyAttackInfo[AttackCount];
 		}
-		else if (AttackingWeapon->GetHeavyAttackInfo().Contains(0.f))
+		else if (AttackingWeapon->GetItemWeaponData()->HeavyAttackInfo.Contains(0.f))
 		{
-			return AttackingWeapon->GetHeavyAttackInfoAtIndex(0.f);
+			return AttackingWeapon->GetItemWeaponData()->HeavyAttackInfo[0];
 		}
 		break;
 
 	case EAttackType::LightFinisher:
-		if (AttackingWeapon->GetLightAttackInfo().Contains(AttackCount))
+		if (AttackingWeapon->GetItemWeaponData()->LightAttackInfo.Contains(AttackCount))
 		{
-			return AttackingWeapon->GetLightAttackInfoAtIndex(AttackCount);
+			return AttackingWeapon->GetItemWeaponData()->LightAttackInfo[AttackCount];
 		}
-		else if (AttackingWeapon->GetLightAttackInfo().Contains(0.f))
+		else if (AttackingWeapon->GetItemWeaponData()->LightAttackInfo.Contains(0.f))
 		{
-			return AttackingWeapon->GetLightAttackInfoAtIndex(0.f);
+			return AttackingWeapon->GetItemWeaponData()->LightAttackInfo[0];
 		}
 		break;
 
 	case EAttackType::HeavyFinisher:
-		if (AttackingWeapon->GetHeavyAttackInfo().Contains(AttackCount))
+		if (AttackingWeapon->GetItemWeaponData()->HeavyAttackInfo.Contains(AttackCount))
 		{
-			return AttackingWeapon->GetHeavyAttackInfoAtIndex(AttackCount);
+			return AttackingWeapon->GetItemWeaponData()->HeavyAttackInfo[AttackCount];
 		}
-		else if (AttackingWeapon->GetHeavyAttackInfo().Contains(0.f))
+		else if (AttackingWeapon->GetItemWeaponData()->HeavyAttackInfo.Contains(0.f))
 		{
-			return AttackingWeapon->GetHeavyAttackInfoAtIndex(0.f);
+			return AttackingWeapon->GetItemWeaponData()->HeavyAttackInfo[0];
 		}
 		break;
 
@@ -1534,22 +1534,28 @@ bool UCombatComponent::DoesAttackNeedAmmunition(EWeaponToUse AttackingWeapon, EA
 		{
 		case EAttackType::LightFinisher:
 		case EAttackType::LightAttack:
-			if (MainhandWeaponRanged->GetLightAttackInfo().Contains(AttackCount))
+			if (!MainhandWeaponRanged->GetItemWeaponRangedData()->LightAttackInfo.IsEmpty())
 			{
-				if (MainhandWeaponRanged->GetLightAttackInfoAtIndex(AttackCount).bUsesAmmunition && MainhandWeaponRangedData->AmmoInMagazine <= 0.f)
+				if (MainhandWeaponRanged->GetItemWeaponRangedData()->LightAttackInfo.Contains(AttackCount))
 				{
-					return true;
+					if (MainhandWeaponRanged->GetItemWeaponRangedData()->LightAttackInfo[AttackCount].bUsesAmmunition && MainhandWeaponRangedData->AmmoInMagazine <= 0.f)
+					{
+						return true;
+					}
 				}
 			}
 			break;
 
 		case EAttackType::HeavyFinisher:
 		case EAttackType::HeavyAttack:
-			if (MainhandWeaponRanged->GetHeavyAttackInfo().Contains(AttackCount))
+			if (!MainhandWeaponRanged->GetItemWeaponRangedData()->HeavyAttackInfo.IsEmpty())
 			{
-				if (MainhandWeaponRanged->GetHeavyAttackInfoAtIndex(AttackCount).bUsesAmmunition && MainhandWeaponRangedData->AmmoInMagazine <= 0.f)
+				if (MainhandWeaponRanged->GetItemWeaponRangedData()->HeavyAttackInfo.Contains(AttackCount))
 				{
-					return true;
+					if (MainhandWeaponRanged->GetItemWeaponRangedData()->HeavyAttackInfo[AttackCount].bUsesAmmunition && MainhandWeaponRangedData->AmmoInMagazine <= 0.f)
+					{
+						return true;
+					}
 				}
 			}
 			break;
@@ -1565,9 +1571,9 @@ bool UCombatComponent::DoesAttackNeedAmmunition(EWeaponToUse AttackingWeapon, EA
 		{
 		case EAttackType::LightFinisher:
 		case EAttackType::LightAttack:
-			if (OffhandWeaponRanged->GetLightAttackInfo().Contains(AttackCount))
+			if (OffhandWeaponRanged->GetItemWeaponData()->LightAttackInfo.Contains(AttackCount))
 			{
-				if (OffhandWeaponRanged->GetLightAttackInfoAtIndex(AttackCount).bUsesAmmunition && OffhandWeaponRangedData->AmmoInMagazine <= 0.f)
+				if (OffhandWeaponRanged->GetItemWeaponData()->LightAttackInfo[AttackCount].bUsesAmmunition && OffhandWeaponRangedData->AmmoInMagazine <= 0.f)
 				{
 					return true;
 				}
@@ -1576,9 +1582,9 @@ bool UCombatComponent::DoesAttackNeedAmmunition(EWeaponToUse AttackingWeapon, EA
 
 		case EAttackType::HeavyFinisher:
 		case EAttackType::HeavyAttack:
-			if (OffhandWeaponRanged->GetHeavyAttackInfo().Contains(AttackCount))
+			if (OffhandWeaponRanged->GetItemWeaponData()->HeavyAttackInfo.Contains(AttackCount))
 			{
-				if (OffhandWeaponRanged->GetHeavyAttackInfoAtIndex(AttackCount).bUsesAmmunition && OffhandWeaponRangedData->AmmoInMagazine <= 0.f)
+				if (OffhandWeaponRanged->GetItemWeaponData()->HeavyAttackInfo[AttackCount].bUsesAmmunition && OffhandWeaponRangedData->AmmoInMagazine <= 0.f)
 				{
 					return true;
 				}
@@ -1888,25 +1894,25 @@ void UCombatComponent::AttackTracing()
 		{
 		case EAttackType::LightFinisher:
 		case EAttackType::LightAttack:
-			if (EquippedWeapon->GetLightAttackInfo().Contains(AttackCount))
+			if (EquippedWeapon->GetItemWeaponData()->LightAttackInfo.Contains(AttackCount))
 			{
-				WeaponAttackInfo = EquippedWeapon->GetLightAttackInfoAtIndex(AttackCount);
+				WeaponAttackInfo = EquippedWeapon->GetItemWeaponData()->LightAttackInfo[AttackCount];
 			}
-			else if (EquippedWeapon->GetLightAttackInfo().Contains(0.f))
+			else if (EquippedWeapon->GetItemWeaponData()->LightAttackInfo.Contains(0.f))
 			{
-				WeaponAttackInfo = EquippedWeapon->GetLightAttackInfoAtIndex(0);
+				WeaponAttackInfo = EquippedWeapon->GetItemWeaponData()->LightAttackInfo[0];
 			}
 			break;
 
 		case EAttackType::HeavyFinisher:
 		case EAttackType::HeavyAttack:
-			if (EquippedWeapon->GetHeavyAttackInfo().Contains(AttackCount))
+			if (EquippedWeapon->GetItemWeaponData()->HeavyAttackInfo.Contains(AttackCount))
 			{
-				WeaponAttackInfo = EquippedWeapon->GetHeavyAttackInfoAtIndex(AttackCount);
+				WeaponAttackInfo = EquippedWeapon->GetItemWeaponData()->HeavyAttackInfo[AttackCount];
 			}
-			else if ((EquippedWeapon->GetHeavyAttackInfo().Contains(0)))
+			else if ((EquippedWeapon->GetItemWeaponData()->HeavyAttackInfo.Contains(0)))
 			{
-				WeaponAttackInfo = EquippedWeapon->GetHeavyAttackInfoAtIndex(0);
+				WeaponAttackInfo = EquippedWeapon->GetItemWeaponData()->HeavyAttackInfo[0];
 			}
 			break;
 
@@ -1949,7 +1955,6 @@ void UCombatComponent::AttackTracing()
 		EquippedWeapon->ClearWeaponTraceHitResults();
 		EquippedWeapon->SetIsFirstTrace(true);
 	}
-
 }
 
 UItemWeaponData* UCombatComponent::GetEquippedWeaponData()

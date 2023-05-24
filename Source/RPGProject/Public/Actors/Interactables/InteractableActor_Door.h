@@ -32,7 +32,7 @@ public:
 
 	void InteractableHasDeactivated() override;
 
-	bool GetIsInInteractableRange(AActor* InteractingActor) override;
+	bool GetIsInInteractableRange(AActor* InteractingActor) const override;
 
 protected:
 	// Called when the game starts or when spawned

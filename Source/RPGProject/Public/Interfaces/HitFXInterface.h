@@ -25,7 +25,7 @@ class RPGPROJECT_API IHitFXInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	UFUNCTION(BlueprintCallable)
-	virtual UHitFXData* GetHitFXData() = 0;
+	UFUNCTION(BlueprintCallable, Category = "HitFX Interface")
+	virtual UHitFXData* GetHitFXData() const = 0;
 
 };

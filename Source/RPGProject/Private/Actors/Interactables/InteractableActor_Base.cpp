@@ -238,7 +238,7 @@ void AInteractableActor_Base::InteractableHasDeactivated()
 	
 }
 
-bool AInteractableActor_Base::GetIsInInteractableRange(AActor* InteractingActor)
+bool AInteractableActor_Base::GetIsInInteractableRange(AActor* InteractingActor) const
 {
 	if (ActorsInInteractionRange.Contains(InteractingActor))
 	{

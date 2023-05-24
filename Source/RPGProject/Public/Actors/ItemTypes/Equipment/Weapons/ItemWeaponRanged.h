@@ -40,6 +40,8 @@ public:		// --- FUNCTIONS --- \\
 	UFUNCTION(BlueprintPure)
 	UItemWeaponRangedData* GetItemWeaponRangedData () { return WeaponRangedData; }
 
+	virtual UItemWeaponData* GetItemWeaponData() override { return Cast<UItemWeaponData>(WeaponRangedData); }
+
 	virtual void ItemPickupEvent() override { OnItemPickup.ExecuteIfBound(WeaponRangedData); }
 
 	UFUNCTION(BlueprintCallable)

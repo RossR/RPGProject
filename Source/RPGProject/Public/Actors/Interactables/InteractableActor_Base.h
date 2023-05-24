@@ -58,12 +58,12 @@ public:
 
 	void InteractableHasDeactivated() override;
 
-	bool GetIsInInteractableRange(AActor* InteractingActor) override;
+	bool GetIsInInteractableRange(AActor* InteractingActor) const override;
 
 	UFUNCTION(BlueprintPure)
-	EInteractableState GetInteractableState() override { return InteractableState; };
+	EInteractableState GetInteractableState() const override { return InteractableState; };
 
-	bool CanActorBeInteractedWith() { return bCanInteract; }
+	bool CanActorBeInteractedWith() const override { return bCanInteract; }
 
 
 protected:

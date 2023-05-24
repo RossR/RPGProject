@@ -16,59 +16,70 @@ class RPGPROJECT_API UProjectileSpawnerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:		// --- FUNCTIONS --- \\
+public:		
 
 	// Sets default values for this component's properties
 	UProjectileSpawnerComponent();
 
-	USceneComponent* GetProjectileSpawnTransform() { return ProjectileSpawnTransform; }
-
-	void SetProjectileFiringAngle(FRotator NewAngle) { ProjectileFiringAngle = NewAngle; }
-
-protected:	// --- FUNCTIONS --- \\
+protected:	
 
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:		// --- FUNCTIONS --- \\
+public:		
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:		// --- FUNCTIONS --- \\
 
+	UFUNCTION(BlueprintPure, Category = "Projectile Spawner")
+	USceneComponent* GetProjectileSpawnTransform() const { return ProjectileSpawnTransform; }
+
+	/*
+	* Spawns the specified projectile actor
+	* @param ProjectileInUse The class of the projectile actor being spawned
+	* @param bAimAtCrosshair If true, the projectile will be spawned facing towards the centre of the player's viewport (if the projectile is being fired from a weapon)
+	* @param ProjectileStrengthScale Determines the speed and accuracy of the fired projectile
+	*/
 	UFUNCTION(BlueprintCallable)
-	bool SpawnProjectile(TSubclassOf<AProjectileActor> ProjectileInUse, bool bAimAtCrosshair = false, float ProjectileStrength = 1.f);
+	bool SpawnProjectile(TSubclassOf<AProjectileActor> ProjectileInUse, bool bAimAtCrosshair = false, float ProjectileStrengthScale = 1.f);
+
+public:		// --- VARIABLES --- \\
+
 
 
 protected:	// --- FUNCTIONS --- \\
 
 
 
-private:	// --- FUNCTIONS --- \\
-	
-
-
 protected:	// --- VARIABLES --- \\
-
-	AItemWeaponRanged* RangedWeaponRef;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Projectile Transform")
-	USceneComponent* ProjectileSpawnTransform;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Projectile Transform")
-	UArrowComponent* ProjectileSpawnArrow;
 
 	FActorSpawnParameters ProjectileSpawnParameters;
 
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spawn Projectiles")
-	//TArray<AProjectileActor*> SpawnedProjectileArray;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Workarounds")
-	FRotator ProjectileFiringAngle = FRotator::ZeroRotator;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Workarounds")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Spawner")
 	FRotator FiringAngleVariance = FRotator::ZeroRotator;
+
+	//------------------
+	// References
+	//------------------
+
+	UPROPERTY(BlueprintReadOnly, Category = "Projectile Spawner|References")
+	AItemWeaponRanged* RangedWeaponRef;
+
+	//------------------
+	// Spawn Transform
+	//------------------
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Projectile Spawner|Spawn Transform")
+	UArrowComponent* ProjectileSpawnArrow;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Projectile Spawner|Spawn Transform")
+	USceneComponent* ProjectileSpawnTransform;
+
+private:	// --- FUNCTIONS --- \\
+	
+
 
 private:	// --- VARIABLES --- \\
 
